@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sleepy Cat Cafe Clock</title>
+  <style>
+    :root {
+      --wall-top: #e9c9a6;
+      --wall-bottom: #c98764;
+      --wood-dark: #633d2d;
+      --wood: #9b6043;
+      --cream: #fff3d7;
+      --cat: #e8a45f;
+      --cat-light: #f8c887;
+      --cat-dark: #a9583d;
+      --ink: #4b302d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--cream);
+      background: #6a4435;
+    }
+
+    button { font: inherit; }
+
+    .cafe {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background:
+        linear-gradient(90deg, rgba(92, 54, 41, .10) 1px, transparent 1px),
+        linear-gradient(var(--wall-top), var(--wall-bottom));
+      background-size: 54px 100%, 100% 100%;
+      transition: background 1.5s ease;
+    }
+
+    .cafe::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 24vh;
+      background: repeating-linear-gradient(90deg, #724633 0 70px, #82513a 70px 73px);
+      border-top: 9px solid #4d3027;
+      z-index: 1;
+    }
+
+    .header {
+      position: relative;
+      z-index: 10;
+      margin-top: 20px;
+      text-align: center;
+      filter: drop-shadow(0 3px 3px rgba(50, 25, 20, .35));
+    }
+
+    h1 { margin: 0; font-size: clamp(1.7rem, 4vw, 3rem); }
+    .subtitle { margin: 5px 0 0; color: #6a4038; font-family: Arial, sans-serif; }
+
+    .lamp {
+      position: absolute;
+      top: 0;
+      width: 130px;
+      height: 150px;
+      z-index: 5;
+    }
+    .lamp.left { left: 7%; }
+    .lamp.right { right: 7%; }
+    .lamp .cord { width: 4px; height: 75px; background: #432d28; margin: auto; }
+    .lamp .shade {
+      width: 90px; height: 50px; margin: 0 auto;
+      border-radius: 50% 50% 10px 10px;
+      background: #7d493a;
+      box-shadow: 0 18px 30px 10px rgba(255, 207, 113, .23);
+      clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+    }
+    .lamp .bulb { width: 18px; height: 14px; border-radius: 50%; background: #ffe7a0; margin: -3px auto; box-shadow: 0 0 22px #ffd979; }
+
+    .window-wrap {
+      position: absolute;
+      top: 105px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(72vw, 680px);
+      height: min(43vh, 355px);
+      padding: 15px;
+      border: 12px solid #704533;
+      border-radius: 8px;
+      background: #4a2d26;
+      box-shadow: 0 14px 35px rgba(63, 34, 27, .35), inset 0 0 0 4px #bb7a54;
+      z-index: 2;
+    }
+
+    .window {
+      position: relative;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: linear-gradient(#88cdec, #ffdf9f);
+      transition: background 1.5s ease;
+    }
+
+    .window::before, .window::after {
+      content: ""; position: absolute; z-index: 7; background: #714735;
+    }
+    .window::before { width: 13px; height: 100%; left: calc(50% - 6px); }
+    .window::after { height: 13px; width: 100%; top: calc(50% - 6px); }
+
+    .sun-moon {
+      position: absolute;
+      left: 15%; top: 17%;
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: #fff2ad;
+      box-shadow: 0 0 35px #ffe77c;
+      transition: all 1.5s ease;
+    }
+
+    .stars { position: absolute; inset: 0; opacity: 0; transition: opacity 1s; }
+    .star { position: absolute; color: white; animation: twinkle 2s infinite alternate; }
+    .star:nth-child(1) { left: 12%; top: 20%; }
+    .star:nth-child(2) { left: 37%; top: 12%; animation-delay: .5s; }
+    .star:nth-child(3) { left: 67%; top: 24%; animation-delay: 1s; }
+    .star:nth-child(4) { left: 84%; top: 10%; }
+    .star:nth-child(5) { left: 55%; top: 40%; animation-delay: .8s; }
+    @keyframes twinkle { to { opacity: .35; transform: scale(.7); } }
+
+    .cloud {
+      position: absolute;
+      width: 105px; height: 27px;
+      border-radius: 30px;
+      background: rgba(255,255,255,.7);
+      animation: drift 22s linear infinite;
+    }
+    .cloud::before, .cloud::after { content: ""; position: absolute; border-radius: 50%; background: inherit; }
+    .cloud::before { width: 45px; height: 45px; left: 18px; bottom: 3px; }
+    .cloud::after { width: 57px; height: 57px; right: 12px; bottom: 0; }
+    .cloud.one { top: 31%; left: -130px; }
+    .cloud.two { top: 16%; left: -170px; transform: scale(.7); animation-delay: -11s; }
+    @keyframes drift { to { left: calc(100% + 140px); } }
+
+    .city {
+      position: absolute; inset: auto 0 0; height: 33%;
+      background: linear-gradient(90deg, #58473f 0 10%, #6b5145 10% 18%, #453c38 18% 31%, #715143 31% 43%, #4b403b 43% 55%, #634b42 55% 68%, #3f3937 68% 82%, #61483f 82%);
+      clip-path: polygon(0 35%, 10% 35%, 10% 12%, 18% 12%, 18% 45%, 31% 45%, 31% 20%, 43% 20%, 43% 52%, 55% 52%, 55% 5%, 68% 5%, 68% 40%, 82% 40%, 82% 17%, 94% 17%, 94% 42%, 100% 42%, 100% 100%, 0 100%);
+      opacity: .85;
+    }
+
+    .plant {
+      position: absolute;
+      bottom: calc(7vh + 105px);
+      z-index: 4;
+      width: 100px;
+      height: 170px;
+    }
+    .plant.left { left: 3%; }
+    .plant.right { right: 3%; transform: scaleX(-1); }
+    .pot { position: absolute; bottom: 0; left: 25px; width: 60px; height: 55px; background: #a75f46; clip-path: polygon(0 0,100% 0,85% 100%,15% 100%); }
+
+    /* These soft-edged wooden tables stand on the floor and support the plants. */
+    .plant-table {
+      position: absolute;
+      bottom: 7vh;
+      z-index: 3;
+      width: 128px;
+      height: 105px;
+    }
+    .plant-table.left { left: 1.7%; }
+    .plant-table.right { right: 1.7%; }
+    .plant-table .tabletop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 128px;
+      height: 18px;
+      border-radius: 7px;
+      background: linear-gradient(#bd805a, #8f5940);
+      box-shadow: 0 4px 6px rgba(55, 28, 21, .18);
+    }
+    .plant-table .leg {
+      position: absolute;
+      top: 15px;
+      width: 13px;
+      height: 90px;
+      border: 0;
+      border-radius: 0 0 4px 4px;
+      background: linear-gradient(90deg, #81513c, #9a654a);
+    }
+    .plant-table .leg.one { left: 18px; transform: rotate(1deg); }
+    .plant-table .leg.two { right: 18px; transform: rotate(-1deg); }
+    .plant-table .brace {
+      position: absolute;
+      left: 25px;
+      top: 61px;
+      width: 78px;
+      height: 9px;
+      border: 0;
+      border-radius: 4px;
+      background: #8e5b43;
+    }
+    .leaf { position: absolute; width: 40px; height: 75px; border-radius: 100% 0 100% 0; background: #55754f; transform-origin: bottom; }
+    .leaf.a { left: 35px; top: 45px; transform: rotate(-28deg); }
+    .leaf.b { left: 50px; top: 18px; transform: rotate(15deg); }
+    .leaf.c { left: 16px; top: 58px; transform: rotate(-57deg); }
+
+    .shelf {
+      position: absolute; left: 3%; top: 205px; width: 185px; height: 20px; background: #704735; box-shadow: 0 7px 0 #4d3027; z-index: 3;
+    }
+    .shelf-item { position: absolute; bottom: 20px; border-radius: 5px 5px 0 0; }
+    .jar1 { left: 15px; width: 36px; height: 49px; background: #e8d0a5; }
+    .jar2 { left: 61px; width: 32px; height: 62px; background: #b66d58; }
+    .cups { left: 113px; width: 46px; height: 28px; background: #719b91; border-radius: 0 0 12px 12px; box-shadow: 0 -12px 0 #e6b893; }
+
+    .clock-board {
+      position: absolute; top: 165px; right: 3%; z-index: 4;
+      min-width: 190px; padding: 13px 19px;
+      border: 8px solid #714735; border-radius: 6px;
+      color: #fff2be; background: #263d35;
+      text-align: center; box-shadow: 0 8px 18px rgba(40,20,15,.3);
+    }
+    .clock-board small { display: block; font: .75rem Arial, sans-serif; letter-spacing: 2px; }
+    #clock { font-size: clamp(1.45rem, 3vw, 2.25rem); font-variant-numeric: tabular-nums; }
+    #period { margin-top: 3px; color: #d7a679; font: .8rem Arial, sans-serif; }
+
+    .counter {
+      position: absolute; z-index: 9; left: 50%; bottom: 8vh; transform: translateX(-50%);
+      width: min(94vw, 820px); height: 225px;
+      border-radius: 25px 25px 0 0;
+      background: linear-gradient(#bd805a 0 18px, #8a553e 18px 100%);
+      box-shadow: 0 -6px 0 #deb084, 0 16px 26px rgba(50, 25, 20, .4);
+    }
+    .counter::after { content: ""; position: absolute; inset: 53px 6% 0; border: 4px solid rgba(74,42,34,.35); border-bottom: none; }
+
+    .cat-button {
+      position: absolute; left: 50%; top: -115px; transform: translateX(-50%);
+      width: 460px; height: 190px; padding: 0; border: 0; background: transparent; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cat-button:hover .cat-body { filter: brightness(1.04); }
+    .cat-button:focus-visible { outline: 4px solid #fff1a8; border-radius: 90px; }
+
+    .cat-body {
+      position: absolute; left: 100px; top: 48px; width: 285px; height: 125px;
+      border: 0; border-radius: 55% 48% 42% 48%;
+      background: var(--cat); box-shadow: inset 0 -17px 0 rgba(196,105,65,.20), 0 12px 18px rgba(91,48,34,.18);
+      animation: breathe 3.5s ease-in-out infinite;
+      transform-origin: bottom;
+    }
+    @keyframes breathe { 50% { transform: scaleY(1.035) translateY(-2px); } }
+
+    .stripe { position: absolute; height: 9px; width: 46px; background: var(--cat-dark); border-radius: 10px; transform: rotate(68deg); }
+    .stripe.s1 { left: 150px; top: 12px; }
+    .stripe.s2 { left: 190px; top: 15px; }
+    .stripe.s3 { left: 229px; top: 25px; width: 39px; }
+
+    .cat-head {
+      position: absolute; left: 48px; top: 50px; width: 120px; height: 108px;
+      border: 0; border-radius: 48% 48% 45% 45%; background-color: var(--cat); z-index: 4;
+      box-shadow: inset 0 -10px 0 rgba(196,105,65,.14);
+    }
+    .ear {
+      position: absolute; top: -27px; width: 50px; height: 58px; background: var(--cat); border: 0; z-index: -1;
+    }
+    .ear::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 13px;
+      width: 20px;
+      height: 25px;
+      background: #dc8179;
+      opacity: .68;
+      transform: translateX(-50%);
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+      border-radius: 45% 45% 28% 28%;
+    }
+    .ear.left { left: 4px; transform: rotate(-14deg); clip-path: polygon(0 100%, 45% 0, 100% 100%); }
+    .ear.right { right: 4px; transform: rotate(14deg); clip-path: polygon(0 100%, 55% 0, 100% 100%); }
+
+    .forehead-mark { position: absolute; width: 8px; height: 28px; left: 53px; top: 0; background: var(--cat-dark); border-radius: 0 0 8px 8px; }
+    .forehead-mark::before, .forehead-mark::after { content: ""; position: absolute; width: 8px; height: 23px; background: var(--cat-dark); border-radius: 0 0 8px 8px; top: -2px; }
+    .forehead-mark::before { left: -15px; transform: rotate(-16deg); }
+    .forehead-mark::after { left: 15px; transform: rotate(16deg); }
+
+    .eye { position: absolute; top: 48px; width: 25px; height: 11px; border-bottom: 3px solid rgba(75,48,45,.72); border-radius: 50%; animation: blink 7s infinite; }
+    .eye.left { left: 20px; }
+    .eye.right { right: 20px; }
+    @keyframes blink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(.1); } }
+
+    .nose { position: absolute; left: 53px; top: 66px; width: 14px; height: 10px; border-radius: 50% 50% 60% 60%; background: #b75f62; }
+    .mouth { position: absolute; left: 50px; top: 72px; width: 23px; height: 15px; border-bottom: 2px solid rgba(75,48,45,.72); border-radius: 50%; }
+    .cheek { position: absolute; top: 70px; width: 22px; height: 11px; border-radius: 50%; background: rgba(231,126,120,.45); }
+    .cheek.left { left: 10px; } .cheek.right { right: 10px; }
+    .whiskers { position: absolute; top: 66px; width: 48px; height: 35px; }
+    .whiskers.left { right: 100%; } .whiskers.right { left: 100%; transform: scaleX(-1); }
+    .whiskers i { position: absolute; right: 0; width: 46px; height: 2px; background: rgba(75,48,45,.58); transform-origin: right; }
+    .whiskers i:nth-child(1) { top: 4px; transform: rotate(8deg); }
+    .whiskers i:nth-child(2) { top: 14px; }
+    .whiskers i:nth-child(3) { top: 24px; transform: rotate(-8deg); }
+
+    .paw { position: absolute; z-index: 5; top: 133px; width: 77px; height: 42px; border: 0; border-radius: 50%; background-color: var(--cat); box-shadow: 0 5px 9px rgba(105,55,39,.14); }
+    .paw.one { left: 118px; transform: rotate(4deg); }
+    .paw.two { left: 172px; transform: rotate(-5deg); }
+    .toe { position: absolute; top: 9px; width: 2px; height: 15px; background: rgba(75,48,45,.55); }
+    .toe.a { left: 27px; transform: rotate(-7deg); } .toe.b { left: 44px; transform: rotate(7deg); }
+
+    .tail {
+      position: absolute;
+      right: -2px;
+      top: 31px;
+      width: 158px;
+      height: 137px;
+      border: 31px solid var(--cat);
+      border-left-color: transparent;
+      border-radius: 50%;
+      background: transparent;
+      transform-origin: 25px 105px;
+      z-index: 2;
+      filter: drop-shadow(0 8px 7px rgba(92, 47, 34, .15));
+      box-shadow:
+        inset 7px 6px 0 rgba(255, 218, 160, .12),
+        inset -5px -4px 0 rgba(177, 91, 57, .08);
+      animation: tailSwing 2.6s ease-in-out infinite alternate;
+    }
+    .tail::after {
+      content: "";
+      position: absolute;
+      left: -27px;
+      bottom: -18px;
+      width: 60px;
+      height: 42px;
+      border-radius: 60% 48% 58% 50%;
+      background:
+        radial-gradient(ellipse at 14% 58%, rgba(255, 220, 166, .22) 0 8%, transparent 9%),
+        radial-gradient(ellipse at 34% 82%, rgba(255, 220, 166, .18) 0 7%, transparent 8%),
+        radial-gradient(ellipse at 60% 88%, rgba(255, 220, 166, .16) 0 6%, transparent 7%),
+        var(--cat);
+      transform: rotate(-24deg);
+      box-shadow:
+        -5px 3px 0 -2px var(--cat),
+        3px 6px 0 -3px var(--cat);
+    }
+    @keyframes tailSwing {
+      from { transform: rotate(-5deg) scale(1); }
+      to { transform: rotate(6deg) scale(1.025); }
+    }
+
+    /* The cat-fact control is presented as a clear, clickable coffee cup. */
+    .coffee-button {
+      position: absolute;
+      right: 58px;
+      top: -43px;
+      width: 104px;
+      height: 96px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      z-index: 14;
+      transition: transform .2s ease, filter .2s ease;
+    }
+    .coffee-button:hover { transform: translateY(-4px) rotate(2deg); filter: brightness(1.06); }
+    .coffee-button:focus-visible { outline: 4px solid #fff1a8; outline-offset: 5px; }
+    .coffee-button:active { transform: translateY(1px) scale(.96); }
+    .coffee-cup {
+      position: absolute;
+      left: 9px;
+      bottom: 4px;
+      font-size: 72px;
+      line-height: 1;
+      filter: drop-shadow(0 6px 5px rgba(55, 28, 21, .25));
+      user-select: none;
+    }
+    .steam { position: absolute; bottom: 72px; color: rgba(255,255,255,.85); font:bold 29px Arial; animation: steam 2.8s infinite ease-out; pointer-events: none; }
+    .steam.a { left: 31px; } .steam.b { left: 55px; animation-delay: 1.2s; }
+    @keyframes steam { from { opacity: 0; transform: translateY(10px) scale(.7); } 35% {opacity:1} to { opacity:0; transform: translateY(-30px) translateX(6px); } }
+
+    .message-card {
+      position: absolute; z-index: 15; left: 50%; bottom: 2.1vh; transform: translateX(-50%);
+      width: min(88vw, 610px); padding: 11px 17px; border: 2px solid rgba(255,238,198,.65); border-radius: 18px;
+      background: rgba(66,40,34,.90); color: #fff0ce; text-align: center; font-family: Arial, sans-serif;
+      box-shadow: 0 8px 18px rgba(40,20,15,.25); backdrop-filter: blur(6px);
+    }
+    #badge { display: block; margin-top: 4px; color: #ffd66b; font-weight: bold; }
+
+    .floating-paw { position: fixed; z-index: 30; pointer-events: none; font-size: 30px; animation: pawFloat 1.5s forwards; }
+    @keyframes pawFloat { to { transform: translateY(-80px) rotate(24deg); opacity: 0; } }
+    .purr { animation: happyBounce .45s ease 2; }
+    @keyframes happyBounce { 50% { transform: translateX(-50%) translateY(-10px) rotate(-2deg); } }
+
+    .morning .window { background: linear-gradient(#72bce5 0%, #ffdfac 68%, #efa875); }
+    .afternoon .window { background: linear-gradient(#65bdec 0%, #bce7f1 65%, #f7dfb6); }
+    .evening .window { background: linear-gradient(#715b9d 0%, #e48179 55%, #f4ac65); }
+    .night .window { background: linear-gradient(#111b3a 0%, #263f67 70%, #3d4564); }
+    .evening .sun-moon { left: 72%; top: 37%; background: #ffd18a; box-shadow: 0 0 38px #ffad6a; }
+    .night .sun-moon { left: 75%; top: 13%; background: #f7f2d5; box-shadow: 0 0 28px rgba(241,239,202,.75); }
+    .night .sun-moon::after { content: ""; position: absolute; width: 54px; height: 54px; left: -13px; top: -7px; border-radius: 50%; background: #182848; }
+    .night .stars, .evening .stars { opacity: 1; }
+    .night .cloud { opacity: .22; }
+    .night.cafe { background: linear-gradient(#765a61, #4f3943); }
+    .evening.cafe { background: linear-gradient(#d0a487, #a46765); }
+
+    @media (max-width: 720px) {
+      .lamp.right, .plant.right, .plant-table.right, .shelf { display: none; }
+      .lamp.left { left: 2%; transform: scale(.75); transform-origin: top; }
+      .clock-board { top: 125px; right: 1.5%; min-width: 155px; padding: 8px; }
+      .window-wrap { top: 105px; width: 92vw; height: 310px; }
+      .plant.left {
+        bottom: calc(8vh + 79px);
+        left: 0;
+        transform: scale(.75);
+        transform-origin: bottom center;
+      }
+      .plant-table.left {
+        bottom: 8vh;
+        left: 0;
+        transform: scale(.75);
+        transform-origin: bottom left;
+      }
+      .counter { bottom: 10vh; height: 185px; }
+      .cat-button { transform: translateX(-50%) scale(.76); transform-origin: center bottom; top: -112px; }
+      .cat-button.purr { animation: mobileBounce .45s ease 2; }
+      @keyframes mobileBounce { 50% { transform: translateX(-50%) scale(.76) translateY(-10px) rotate(-2deg); } }
+      .coffee-button { right: 28px; transform: scale(.8); }
+      .message-card { bottom: 1.5vh; font-size: .88rem; }
+      .subtitle { font-size: .85rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="cafe" id="cafe">
+    <header class="header">
+      <h1>Sleepy Cat Cafe Clock</h1>
+      <p class="subtitle">Time passes more softly with paws and coffee.</p>
+    </header>
+
+    <div class="lamp left" aria-hidden="true"><div class="cord"></div><div class="shade"></div><div class="bulb"></div></div>
+    <div class="lamp right" aria-hidden="true"><div class="cord"></div><div class="shade"></div><div class="bulb"></div></div>
+
+    <section class="window-wrap" aria-label="Cafe window showing the current time of day">
+      <div class="window">
+        <div class="sun-moon"></div>
+        <div class="stars"><span class="star">✦</span><span class="star">✧</span><span class="star">✦</span><span class="star">✧</span><span class="star">✦</span></div>
+        <div class="cloud one"></div><div class="cloud two"></div><div class="city"></div>
+      </div>
+    </section>
+
+    <div class="shelf" aria-hidden="true"><span class="shelf-item jar1"></span><span class="shelf-item jar2"></span><span class="shelf-item cups"></span></div>
+    <div class="plant left" aria-hidden="true"><span class="leaf a"></span><span class="leaf b"></span><span class="leaf c"></span><span class="pot"></span></div>
+    <div class="plant right" aria-hidden="true"><span class="leaf a"></span><span class="leaf b"></span><span class="leaf c"></span><span class="pot"></span></div>
+    <div class="plant-table left" aria-hidden="true"><span class="tabletop"></span><span class="leg one"></span><span class="leg two"></span><span class="brace"></span></div>
+    <div class="plant-table right" aria-hidden="true"><span class="tabletop"></span><span class="leg one"></span><span class="leg two"></span><span class="brace"></span></div>
+
+    <aside class="clock-board" aria-live="polite">
+      <small>CAFE TIME</small>
+      <div id="clock">--:--:--</div>
+      <div id="period">Welcome in</div>
+    </aside>
+
+    <section class="counter" aria-label="Cafe counter">
+      <button class="cat-button" id="cat" aria-label="Pet the sleepy orange cat">
+        <span class="tail" aria-hidden="true"></span>
+        <span class="cat-body" aria-hidden="true"><i class="stripe s1"></i><i class="stripe s2"></i><i class="stripe s3"></i></span>
+        <span class="cat-head" aria-hidden="true">
+          <i class="ear left"></i><i class="ear right"></i><i class="forehead-mark"></i>
+          <i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="mouth"></i>
+          <i class="cheek left"></i><i class="cheek right"></i>
+          <span class="whiskers left"><i></i><i></i><i></i></span><span class="whiskers right"><i></i><i></i><i></i></span>
+        </span>
+        <span class="paw one" aria-hidden="true"><i class="toe a"></i><i class="toe b"></i></span>
+        <span class="paw two" aria-hidden="true"><i class="toe a"></i><i class="toe b"></i></span>
+      </button>
+
+      <button class="coffee-button" id="coffee" aria-label="Click the coffee cup for a cat fact" title="Click for a cat fact">
+        <span class="steam a" aria-hidden="true">~</span><span class="steam b" aria-hidden="true">~</span>
+        <span class="coffee-cup" aria-hidden="true">☕</span>
+      </button>
+    </section>
+
+    <div class="message-card" aria-live="polite">
+      <span id="message">Pet the cat or click the coffee mug for a surprise.</span>
+      <span id="badge"></span>
+    </div>
+  </main>
+
+  <script>
+    // Store the interactive page elements so the script can update them.
+    const cafe = document.getElementById('cafe');
+    const clock = document.getElementById('clock');
+    const period = document.getElementById('period');
+    const cat = document.getElementById('cat');
+    const coffee = document.getElementById('coffee');
+    const message = document.getElementById('message');
+    const badge = document.getElementById('badge');
+    let pets = 0;
+
+    // Return the matching atmosphere and greeting for the current hour.
+    function getTimePeriod(hour) {
+      if (hour >= 6 && hour < 12) return { theme: 'morning', label: 'Morning pastries and sunbeams' };
+      if (hour >= 12 && hour < 18) return { theme: 'afternoon', label: 'A warm afternoon catnap' };
+      if (hour >= 18 && hour < 22) return { theme: 'evening', label: 'Golden hour at the cafe' };
+      return { theme: 'night', label: 'Moonlight and sleepy purrs' };
+    }
+
+    // Update the real clock and change the cafe window based on local time.
+    function updateClockAndScene() {
+      const now = new Date();
+      const current = getTimePeriod(now.getHours());
+      clock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      period.textContent = current.label;
+      cafe.classList.remove('morning', 'afternoon', 'evening', 'night');
+      cafe.classList.add(current.theme);
+    }
+
+    // Create a small floating paw print wherever the cat is clicked.
+    function createFloatingPaw(event) {
+      const paw = document.createElement('span');
+      paw.className = 'floating-paw';
+      paw.textContent = '🐾';
+      paw.style.left = `${event.clientX - 12}px`;
+      paw.style.top = `${event.clientY - 12}px`;
+      document.body.appendChild(paw);
+      window.setTimeout(() => paw.remove(), 1500);
+    }
+
+    const catResponses = [
+      'Purr... the sleepy cafe cat is happy.',
+      'The cat makes tiny biscuits on the counter.',
+      'A soft meow says, “One more pet, please.”',
+      'The cat stretches one paw without waking up.',
+      'You hear the gentlest little snore.'
+    ];
+
+    const catFacts = [
+      'Cats can spend around two-thirds of their lives sleeping.',
+      'A cat uses its whiskers to help judge whether it can fit through a space.',
+      'Cats can rotate each ear independently to locate sounds.',
+      'A relaxed cat may slowly blink as a friendly signal.',
+      'A group of cats can be called a clowder.'
+    ];
+
+    // Pet the cat, show a random response, and unlock an achievement after ten pets.
+    cat.addEventListener('click', (event) => {
+      pets += 1;
+      message.textContent = catResponses[Math.floor(Math.random() * catResponses.length)];
+      createFloatingPaw(event);
+      cat.classList.remove('purr');
+      void cat.offsetWidth;
+      cat.classList.add('purr');
+      if (pets >= 10) badge.textContent = '🏆 Achievement unlocked: Official Cafe Cat Manager';
+    });
+
+    // Show a random cat fact when the coffee mug is clicked.
+    coffee.addEventListener('click', () => {
+      message.textContent = `☕ Cat fact: ${catFacts[Math.floor(Math.random() * catFacts.length)]}`;
+    });
+
+    // Start the clock immediately and keep it accurate once per second.
+    updateClockAndScene();
+    window.setInterval(updateClockAndScene, 1000);
+  </script>
+</body>
+</html>
