@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sleepy Cat Cafe Clock</title>
+  <title>Time for a Catnap</title>
   <style>
     :root {
       --wall-top: #e9c9a6;
@@ -55,15 +55,41 @@
     }
 
     .header {
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 50%;
       z-index: 10;
-      margin-top: 20px;
+      width: min(78vw, 720px);
+      height: 112px;
+      margin: 0;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      filter: drop-shadow(0 3px 3px rgba(50, 25, 20, .35));
+      line-height: 1;
+      filter: drop-shadow(0 3px 3px rgba(50, 25, 20, .20));
     }
 
-    h1 { margin: 0; font-size: clamp(1.7rem, 4vw, 3rem); }
-    .subtitle { margin: 5px 0 0; color: #6a4038; font-family: Arial, sans-serif; }
+    h1 {
+      margin: 0;
+      color: #4b302d;
+      font-family: "Arial Rounded MT Bold", "Nunito", "Trebuchet MS", Arial, sans-serif;
+      font-size: clamp(2.25rem, 5.2vw, 4.15rem);
+      font-weight: 800;
+      line-height: .96;
+      letter-spacing: -0.045em;
+    }
+    .subtitle {
+      margin: 3px 0 0;
+      color: #6a4038;
+      font-family: "Arial Rounded MT Bold", "Nunito", "Trebuchet MS", Arial, sans-serif;
+      font-size: clamp(.78rem, 1.5vw, .98rem);
+      font-weight: 600;
+      line-height: 1;
+      text-align: center;
+    }
 
     .lamp {
       position: absolute;
@@ -86,7 +112,7 @@
 
     .window-wrap {
       position: absolute;
-      top: 105px;
+      top: 112px;
       left: 50%;
       transform: translateX(-50%);
       width: min(72vw, 680px);
@@ -239,26 +265,28 @@
     .counter::after { content: ""; position: absolute; inset: 53px 6% 0; border: 4px solid rgba(74,42,34,.35); border-bottom: none; }
 
     .cat-button {
-      position: absolute; left: 50%; top: -115px; transform: translateX(-50%);
+      position: absolute; left: 50%; top: -130px; transform: translateX(-50%);
       width: 460px; height: 190px; padding: 0; border: 0; background: transparent; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .cat-button:hover .cat-body { filter: brightness(1.04); }
     .cat-button:focus-visible { outline: 4px solid #fff1a8; border-radius: 90px; }
 
     .cat-body {
       position: absolute; left: 100px; top: 48px; width: 285px; height: 125px;
       border: 0; border-radius: 55% 48% 42% 48%;
       background: var(--cat); box-shadow: inset 0 -17px 0 rgba(196,105,65,.20), 0 12px 18px rgba(91,48,34,.18);
+      overflow: hidden;
+      clip-path: inset(0 round 55% 48% 42% 48%);
       animation: breathe 3.5s ease-in-out infinite;
       transform-origin: bottom;
     }
     @keyframes breathe { 50% { transform: scaleY(1.035) translateY(-2px); } }
 
     .stripe { position: absolute; height: 9px; width: 46px; background: var(--cat-dark); border-radius: 10px; transform: rotate(68deg); }
-    .stripe.s1 { left: 150px; top: 12px; }
-    .stripe.s2 { left: 190px; top: 15px; }
-    .stripe.s3 { left: 229px; top: 25px; width: 39px; }
+    .stripe.s1 { left: 98px; top: 10px; width: 40px; }
+    .stripe.s2 { left: 134px; top: 12px; }
+    .stripe.s3 { left: 170px; top: 15px; width: 44px; }
+    .stripe.s4 { left: 196px; top: 8px; width: 53px; }
 
     .cat-head {
       position: absolute; left: 48px; top: 50px; width: 120px; height: 108px;
@@ -284,23 +312,91 @@
     .ear.left { left: 4px; transform: rotate(-14deg); clip-path: polygon(0 100%, 45% 0, 100% 100%); }
     .ear.right { right: 4px; transform: rotate(14deg); clip-path: polygon(0 100%, 55% 0, 100% 100%); }
 
-    .forehead-mark { position: absolute; width: 8px; height: 28px; left: 53px; top: 0; background: var(--cat-dark); border-radius: 0 0 8px 8px; }
-    .forehead-mark::before, .forehead-mark::after { content: ""; position: absolute; width: 8px; height: 23px; background: var(--cat-dark); border-radius: 0 0 8px 8px; top: -2px; }
-    .forehead-mark::before { left: -15px; transform: rotate(-16deg); }
-    .forehead-mark::after { left: 15px; transform: rotate(16deg); }
+    /* Three separate forehead stripes stay clearly visible inside the rounded face. */
+    .forehead-mark {
+      position: absolute;
+      top: 3px;
+      width: 8px;
+      height: 22px;
+      background: var(--cat-dark);
+      border-radius: 0 0 8px 8px;
+    }
+    .forehead-mark.center { left: 56px; }
+    .forehead-mark.left {
+      left: 39px;
+      height: 19px;
+      transform: rotate(-14deg);
+      transform-origin: top center;
+    }
+    .forehead-mark.right {
+      left: 73px;
+      height: 19px;
+      transform: rotate(14deg);
+      transform-origin: top center;
+    }
 
-    .eye { position: absolute; top: 48px; width: 25px; height: 11px; border-bottom: 3px solid rgba(75,48,45,.72); border-radius: 50%; animation: blink 7s infinite; }
+    /* The cat begins asleep with gently curved closed eyes. */
+    .eye {
+      position: absolute;
+      top: 48px;
+      width: 25px;
+      height: 11px;
+      border: 0;
+      border-bottom: 3px solid rgba(75,48,45,.72);
+      border-radius: 50%;
+      background: transparent;
+      transition: top .28s ease, width .28s ease, height .28s ease, background .28s ease, border .28s ease;
+      transform-origin: center;
+    }
     .eye.left { left: 20px; }
     .eye.right { right: 20px; }
-    @keyframes blink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(.1); } }
+
+    /* Clicking the cat opens its eyes and starts a soft blinking animation. */
+    .cat-button.awake .eye {
+      top: 43px;
+      width: 22px;
+      height: 25px;
+      border: 0;
+      border-radius: 50%;
+      background: #4b302d;
+      box-shadow: inset 0 -3px 0 rgba(27, 15, 14, .16);
+      animation: awakeBlink 2.8s ease-in-out infinite;
+    }
+    .cat-button.awake .eye.left { left: 22px; }
+    .cat-button.awake .eye.right { right: 22px; }
+    .cat-button.awake .eye::after {
+      content: "";
+      position: absolute;
+      top: 5px;
+      left: 6px;
+      width: 6px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255, 244, 218, .88);
+    }
+    @keyframes awakeBlink {
+      0%, 38%, 48%, 76%, 86%, 100% { transform: scaleY(1); }
+      43%, 81% { transform: scaleY(.08); }
+    }
+
+    /* After five seconds without another click, the eyes softly return to rest. */
+    .cat-button.resting .eye {
+      animation: closeEyes .42s ease forwards;
+    }
+    @keyframes closeEyes {
+      0% { transform: scaleY(1); }
+      55% { transform: scaleY(.08); }
+      100% { transform: scaleY(1); }
+    }
 
     .nose { position: absolute; left: 53px; top: 66px; width: 14px; height: 10px; border-radius: 50% 50% 60% 60%; background: #b75f62; }
     .mouth { position: absolute; left: 50px; top: 72px; width: 23px; height: 15px; border-bottom: 2px solid rgba(75,48,45,.72); border-radius: 50%; }
     .cheek { position: absolute; top: 70px; width: 22px; height: 11px; border-radius: 50%; background: rgba(231,126,120,.45); }
     .cheek.left { left: 10px; } .cheek.right { right: 10px; }
     .whiskers { position: absolute; top: 66px; width: 48px; height: 35px; }
-    .whiskers.left { right: 100%; } .whiskers.right { left: 100%; transform: scaleX(-1); }
-    .whiskers i { position: absolute; right: 0; width: 46px; height: 2px; background: rgba(75,48,45,.58); transform-origin: right; }
+    .whiskers.left { right: calc(100% - 9px); }
+    .whiskers.right { left: calc(100% - 9px); transform: scaleX(-1); }
+    .whiskers i { position: absolute; right: -2px; width: 48px; height: 2px; background: rgba(75,48,45,.58); transform-origin: right; border-radius: 2px; }
     .whiskers i:nth-child(1) { top: 4px; transform: rotate(8deg); }
     .whiskers i:nth-child(2) { top: 14px; }
     .whiskers i:nth-child(3) { top: 24px; transform: rotate(-8deg); }
@@ -308,13 +404,37 @@
     .paw { position: absolute; z-index: 5; top: 133px; width: 77px; height: 42px; border: 0; border-radius: 50%; background-color: var(--cat); box-shadow: 0 5px 9px rgba(105,55,39,.14); }
     .paw.one { left: 118px; transform: rotate(4deg); }
     .paw.two { left: 172px; transform: rotate(-5deg); }
+    .hind-paw {
+      position: absolute;
+      right: 72px;
+      top: 142px;
+      z-index: 5;
+      width: 72px;
+      height: 37px;
+      border-radius: 54% 58% 45% 48%;
+      background: var(--cat);
+      box-shadow: 0 5px 9px rgba(105,55,39,.13);
+      transform: rotate(3deg);
+    }
+    .hind-paw::before,
+    .hind-paw::after {
+      content: "";
+      position: absolute;
+      top: 9px;
+      width: 2px;
+      height: 13px;
+      border-radius: 2px;
+      background: rgba(75,48,45,.45);
+    }
+    .hind-paw::before { left: 27px; transform: rotate(-7deg); }
+    .hind-paw::after { left: 44px; transform: rotate(7deg); }
     .toe { position: absolute; top: 9px; width: 2px; height: 15px; background: rgba(75,48,45,.55); }
     .toe.a { left: 27px; transform: rotate(-7deg); } .toe.b { left: 44px; transform: rotate(7deg); }
 
     .tail {
       position: absolute;
-      right: -2px;
-      top: 31px;
+      right: -18px;
+      top: 8px;
       width: 158px;
       height: 137px;
       border: 31px solid var(--cat);
@@ -324,41 +444,50 @@
       transform-origin: 25px 105px;
       z-index: 2;
       filter: drop-shadow(0 8px 7px rgba(92, 47, 34, .15));
-      box-shadow:
-        inset 7px 6px 0 rgba(255, 218, 160, .12),
-        inset -5px -4px 0 rgba(177, 91, 57, .08);
-      animation: tailSwing 2.6s ease-in-out infinite alternate;
+      box-shadow: none;
+      animation: tailSwing 4.2s cubic-bezier(.45, .05, .25, 1) infinite;
     }
+
     .tail::after {
       content: "";
       position: absolute;
-      left: -27px;
-      bottom: -18px;
-      width: 60px;
-      height: 42px;
-      border-radius: 60% 48% 58% 50%;
-      background:
-        radial-gradient(ellipse at 14% 58%, rgba(255, 220, 166, .22) 0 8%, transparent 9%),
-        radial-gradient(ellipse at 34% 82%, rgba(255, 220, 166, .18) 0 7%, transparent 8%),
-        radial-gradient(ellipse at 60% 88%, rgba(255, 220, 166, .16) 0 6%, transparent 7%),
-        var(--cat);
-      transform: rotate(-24deg);
-      box-shadow:
-        -5px 3px 0 -2px var(--cat),
-        3px 6px 0 -3px var(--cat);
+      left: -14px;
+      top: -15px;
+      width: 37px;
+      height: 37px;
+      border-radius: 50%;
+      background: var(--cat);
+      box-shadow: none;
     }
+
     @keyframes tailSwing {
-      from { transform: rotate(-5deg) scale(1); }
-      to { transform: rotate(6deg) scale(1.025); }
+      0% {
+        transform: rotate(-5deg) translateY(1px) scale(1);
+      }
+      18% {
+        transform: rotate(-1deg) translateY(-1px) scale(1.006);
+      }
+      42% {
+        transform: rotate(6deg) translateY(-3px) scale(1.018);
+      }
+      58% {
+        transform: rotate(7deg) translateY(-3px) scale(1.02);
+      }
+      78% {
+        transform: rotate(1deg) translateY(-1px) scale(1.008);
+      }
+      100% {
+        transform: rotate(-5deg) translateY(1px) scale(1);
+      }
     }
 
     /* The cat-fact control is presented as a clear, clickable coffee cup. */
     .coffee-button {
       position: absolute;
       right: 58px;
-      top: -43px;
-      width: 104px;
-      height: 96px;
+      top: -51px;
+      width: 112px;
+      height: 112px;
       border: 0;
       border-radius: 50%;
       background: transparent;
@@ -369,18 +498,15 @@
     .coffee-button:hover { transform: translateY(-4px) rotate(2deg); filter: brightness(1.06); }
     .coffee-button:focus-visible { outline: 4px solid #fff1a8; outline-offset: 5px; }
     .coffee-button:active { transform: translateY(1px) scale(.96); }
-    .coffee-cup {
+    .coffee-cup-svg {
       position: absolute;
-      left: 9px;
-      bottom: 4px;
-      font-size: 72px;
-      line-height: 1;
-      filter: drop-shadow(0 6px 5px rgba(55, 28, 21, .25));
+      inset: -8px auto auto -8px;
+      width: 120px;
+      height: 120px;
+      overflow: visible;
+      pointer-events: none;
       user-select: none;
     }
-    .steam { position: absolute; bottom: 72px; color: rgba(255,255,255,.85); font:bold 29px Arial; animation: steam 2.8s infinite ease-out; pointer-events: none; }
-    .steam.a { left: 31px; } .steam.b { left: 55px; animation-delay: 1.2s; }
-    @keyframes steam { from { opacity: 0; transform: translateY(10px) scale(.7); } 35% {opacity:1} to { opacity:0; transform: translateY(-30px) translateX(6px); } }
 
     .message-card {
       position: absolute; z-index: 15; left: 50%; bottom: 2.1vh; transform: translateX(-50%);
@@ -390,8 +516,52 @@
     }
     #badge { display: block; margin-top: 4px; color: #ffd66b; font-weight: bold; }
 
-    .floating-paw { position: fixed; z-index: 30; pointer-events: none; font-size: 30px; animation: pawFloat 1.5s forwards; }
-    @keyframes pawFloat { to { transform: translateY(-80px) rotate(24deg); opacity: 0; } }
+    /* Small paw prints follow pointer movement, then shrink and fade away. */
+    .cursor-paw {
+      position: fixed;
+      z-index: 35;
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+      color: rgba(120, 72, 62, .62);
+      transform: translate(-50%, -50%) rotate(var(--paw-angle, 0deg)) scale(.75);
+      filter: drop-shadow(0 2px 2px rgba(68, 37, 31, .10));
+      animation: cursorPawFade .9s ease-out forwards;
+    }
+    .cursor-paw svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+    @keyframes cursorPawFade {
+      0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--paw-angle, 0deg)) scale(.55); }
+      18% { opacity: .78; transform: translate(-50%, -50%) rotate(var(--paw-angle, 0deg)) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -58%) rotate(var(--paw-angle, 0deg)) scale(.7); }
+    }
+
+    /* Small light-pink SVG hearts appear at the exact petting point and softly disappear. */
+    .pet-heart {
+      position: fixed;
+      z-index: 40;
+      width: var(--heart-size, 22px);
+      height: var(--heart-size, 22px);
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(.35) rotate(var(--heart-rotation, 0deg));
+      opacity: 0;
+      filter: drop-shadow(0 3px 3px rgba(185, 107, 134, .18));
+      animation: heartFloat var(--heart-duration, 1.35s) ease-out forwards;
+    }
+    @keyframes heartFloat {
+      12% { opacity: .95; transform: translate(-50%, -50%) scale(1) rotate(var(--heart-rotation, 0deg)); }
+      70% { opacity: .75; }
+      100% {
+        opacity: 0;
+        transform: translate(
+          calc(-50% + var(--heart-x, 0px)),
+          calc(-50% + var(--heart-y, -75px))
+        ) scale(.55) rotate(calc(var(--heart-rotation, 0deg) + 18deg));
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pet-heart { animation-duration: .45s; }
+      .cursor-paw { display: none; }
+    }
     .purr { animation: happyBounce .45s ease 2; }
     @keyframes happyBounce { 50% { transform: translateX(-50%) translateY(-10px) rotate(-2deg); } }
 
@@ -409,9 +579,10 @@
 
     @media (max-width: 720px) {
       .lamp.right, .plant.right, .plant-table.right, .shelf { display: none; }
+      .header { width: 88vw; height: 112px; }
       .lamp.left { left: 2%; transform: scale(.75); transform-origin: top; }
       .clock-board { top: 125px; right: 1.5%; min-width: 155px; padding: 8px; }
-      .window-wrap { top: 105px; width: 92vw; height: 310px; }
+      .window-wrap { top: 112px; width: 92vw; height: 310px; }
       .plant.left {
         bottom: calc(8vh + 79px);
         left: 0;
@@ -425,7 +596,7 @@
         transform-origin: bottom left;
       }
       .counter { bottom: 10vh; height: 185px; }
-      .cat-button { transform: translateX(-50%) scale(.76); transform-origin: center bottom; top: -112px; }
+      .cat-button { transform: translateX(-50%) scale(.76); transform-origin: center bottom; top: -127px; }
       .cat-button.purr { animation: mobileBounce .45s ease 2; }
       @keyframes mobileBounce { 50% { transform: translateX(-50%) scale(.76) translateY(-10px) rotate(-2deg); } }
       .coffee-button { right: 28px; transform: scale(.8); }
@@ -437,8 +608,8 @@
 <body>
   <main class="cafe" id="cafe">
     <header class="header">
-      <h1>Sleepy Cat Cafe Clock</h1>
-      <p class="subtitle">Time passes more softly with paws and coffee.</p>
+      <h1>Time for a Catnap</h1>
+      <p class="subtitle">Time passes more softly with paws and coffee</p>
     </header>
 
     <div class="lamp left" aria-hidden="true"><div class="cord"></div><div class="shade"></div><div class="bulb"></div></div>
@@ -467,20 +638,96 @@
     <section class="counter" aria-label="Cafe counter">
       <button class="cat-button" id="cat" aria-label="Pet the sleepy orange cat">
         <span class="tail" aria-hidden="true"></span>
-        <span class="cat-body" aria-hidden="true"><i class="stripe s1"></i><i class="stripe s2"></i><i class="stripe s3"></i></span>
+        <span class="cat-body" aria-hidden="true"><i class="stripe s1"></i><i class="stripe s2"></i><i class="stripe s3"></i><i class="stripe s4"></i></span>
         <span class="cat-head" aria-hidden="true">
-          <i class="ear left"></i><i class="ear right"></i><i class="forehead-mark"></i>
+          <i class="ear left"></i><i class="ear right"></i><i class="forehead-mark left"></i><i class="forehead-mark center"></i><i class="forehead-mark right"></i>
           <i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="mouth"></i>
           <i class="cheek left"></i><i class="cheek right"></i>
           <span class="whiskers left"><i></i><i></i><i></i></span><span class="whiskers right"><i></i><i></i><i></i></span>
         </span>
         <span class="paw one" aria-hidden="true"><i class="toe a"></i><i class="toe b"></i></span>
         <span class="paw two" aria-hidden="true"><i class="toe a"></i><i class="toe b"></i></span>
+        <span class="hind-paw" aria-hidden="true"></span>
       </button>
 
       <button class="coffee-button" id="coffee" aria-label="Click the coffee cup for a cat fact" title="Click for a cat fact">
-        <span class="steam a" aria-hidden="true">~</span><span class="steam b" aria-hidden="true">~</span>
-        <span class="coffee-cup" aria-hidden="true">☕</span>
+<svg class="coffee-cup-svg" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-labelledby="title description">
+  <title id="title">Cozy coffee cup</title>
+  <desc id="description">A rounded sage green coffee cup filled with warm coffee, a cream paw-shaped foam design, and three softly animated curls of steam.</desc>
+
+  <defs>
+    <linearGradient id="cupFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9fc5b8"/>
+      <stop offset="1" stop-color="#6f9d91"/>
+    </linearGradient>
+    <linearGradient id="cupShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#416b62" stop-opacity="0.12"/>
+    </linearGradient>
+    <radialGradient id="coffeeFill" cx="48%" cy="38%" r="64%">
+      <stop offset="0" stop-color="#7e4e38"/>
+      <stop offset="1" stop-color="#4d2e23"/>
+    </radialGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#3e251d" flood-opacity="0.23"/>
+    </filter>
+    <filter id="steamBlur" x="-60%" y="-30%" width="220%" height="180%">
+      <feGaussianBlur stdDeviation="1.2"/>
+    </filter>
+  </defs>
+
+  <!-- Soft animated steam keeps the cup feeling warm and clickable. -->
+  <g fill="none" stroke="#fff7e8" stroke-linecap="round" filter="url(#steamBlur)" opacity="0.76">
+    <path d="M82 75 C62 55 99 43 81 20" stroke-width="7">
+      <animate attributeName="d" dur="3.2s" repeatCount="indefinite"
+        values="M82 75 C62 55 99 43 81 20; M82 75 C105 54 65 43 86 18; M82 75 C62 55 99 43 81 20"/>
+      <animate attributeName="opacity" dur="3.2s" repeatCount="indefinite" values="0.25;0.9;0.25"/>
+    </path>
+    <path d="M120 69 C102 50 137 39 119 13" stroke-width="8">
+      <animate attributeName="d" dur="3.6s" repeatCount="indefinite"
+        values="M120 69 C102 50 137 39 119 13; M120 69 C145 49 103 38 126 11; M120 69 C102 50 137 39 119 13"/>
+      <animate attributeName="opacity" dur="3.6s" repeatCount="indefinite" values="0.3;0.95;0.3"/>
+    </path>
+    <path d="M156 75 C137 57 172 45 154 23" stroke-width="7">
+      <animate attributeName="d" dur="3s" repeatCount="indefinite"
+        values="M156 75 C137 57 172 45 154 23; M156 75 C179 57 141 45 162 21; M156 75 C137 57 172 45 154 23"/>
+      <animate attributeName="opacity" dur="3s" repeatCount="indefinite" values="0.2;0.82;0.2"/>
+    </path>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <!-- The handle sits behind the cup so the silhouette remains clean. -->
+    <path d="M179 116 C221 111 226 176 184 181 C169 183 163 170 174 160 C184 167 197 163 199 150 C201 135 188 128 178 134 Z"
+      fill="url(#cupFill)"/>
+
+    <!-- Cup body uses no hard line art, matching the soft café illustration. -->
+    <path d="M43 105 C43 91 54 83 68 83 H177 C191 83 197 93 195 107 L186 176 C183 199 166 215 143 215 H94 C70 215 54 201 51 177 Z"
+      fill="url(#cupFill)"/>
+    <path d="M54 111 H185 L177 175 C175 193 161 204 143 204 H95 C77 204 65 194 62 176 Z"
+      fill="url(#cupShade)" opacity="0.5"/>
+
+    <!-- Coffee surface. -->
+    <ellipse cx="119" cy="105" rx="70" ry="25" fill="#d9eee6"/>
+    <ellipse cx="119" cy="106" rx="62" ry="19" fill="url(#coffeeFill)"/>
+    <ellipse cx="105" cy="100" rx="31" ry="8" fill="#ffffff" opacity="0.12"/>
+
+    <!-- A small paw-shaped foam design connects the drink to the cat café. -->
+    <g fill="#f7e4c2" opacity="0.92" transform="translate(119 106) rotate(-6)">
+      <ellipse cx="0" cy="5" rx="15" ry="10"/>
+      <circle cx="-14" cy="-6" r="5"/>
+      <circle cx="-5" cy="-11" r="5"/>
+      <circle cx="6" cy="-11" r="5"/>
+      <circle cx="15" cy="-5" r="5"/>
+    </g>
+
+    <!-- Gentle highlight adds depth without outlining the cup. -->
+    <path d="M68 127 C69 166 77 187 98 196" fill="none" stroke="#e9fff7" stroke-width="8" stroke-linecap="round" opacity="0.24"/>
+  </g>
+
+  <!-- A soft counter shadow visually grounds the cup. -->
+  <ellipse cx="122" cy="222" rx="77" ry="9" fill="#3e251d" opacity="0.13"/>
+</svg>
+
       </button>
     </section>
 
@@ -500,6 +747,7 @@
     const message = document.getElementById('message');
     const badge = document.getElementById('badge');
     let pets = 0;
+    let restTimer = null;
 
     // Return the matching atmosphere and greeting for the current hour.
     function getTimePeriod(hour) {
@@ -519,15 +767,107 @@
       cafe.classList.add(current.theme);
     }
 
-    // Create a small floating paw print wherever the cat is clicked.
-    function createFloatingPaw(event) {
+    // Add a lightweight SVG paw trail while a mouse, pen, or touch pointer moves.
+    let lastPawTime = 0;
+    let lastPawX = 0;
+    let lastPawY = 0;
+    let pawSide = 1;
+
+    function createCursorPaw(x, y, angle) {
       const paw = document.createElement('span');
-      paw.className = 'floating-paw';
-      paw.textContent = '🐾';
-      paw.style.left = `${event.clientX - 12}px`;
-      paw.style.top = `${event.clientY - 12}px`;
+      paw.className = 'cursor-paw';
+      paw.style.left = `${x}px`;
+      paw.style.top = `${y}px`;
+      paw.style.setProperty('--paw-angle', `${angle + pawSide * 10}deg`);
+      paw.innerHTML = `
+        <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <ellipse cx="32" cy="39" rx="16" ry="14"/>
+          <ellipse cx="13" cy="25" rx="7" ry="9" transform="rotate(-25 13 25)"/>
+          <ellipse cx="26" cy="16" rx="7" ry="9" transform="rotate(-7 26 16)"/>
+          <ellipse cx="39" cy="16" rx="7" ry="9" transform="rotate(7 39 16)"/>
+          <ellipse cx="52" cy="25" rx="7" ry="9" transform="rotate(25 52 25)"/>
+        </svg>`;
       document.body.appendChild(paw);
-      window.setTimeout(() => paw.remove(), 1500);
+      pawSide *= -1;
+      window.setTimeout(() => paw.remove(), 950);
+    }
+
+    // Space out paw prints so the trail stays subtle and performs smoothly.
+    document.addEventListener('pointermove', (event) => {
+      const now = performance.now();
+      const distance = Math.hypot(event.clientX - lastPawX, event.clientY - lastPawY);
+
+      if (now - lastPawTime < 90 || distance < 24) return;
+
+      const angle = Math.atan2(event.clientY - lastPawY, event.clientX - lastPawX) * 180 / Math.PI + 90;
+      createCursorPaw(event.clientX, event.clientY, angle);
+      lastPawTime = now;
+      lastPawX = event.clientX;
+      lastPawY = event.clientY;
+    }, { passive: true });
+
+    // Release several light-pink SVG hearts from the exact point where the cat is petted.
+    function createPetHearts(event) {
+      const heartCount = 6;
+
+      for (let index = 0; index < heartCount; index += 1) {
+        const heart = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const heartPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        const firstStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        const secondStop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        const definitions = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const gradientId = `pet-heart-gradient-${Date.now()}-${index}`;
+        const spread = (index - (heartCount - 1) / 2) * 17 + (Math.random() * 12 - 6);
+        const rise = -58 - Math.random() * 48;
+        const size = 14 + Math.random() * 13;
+        const duration = 1.05 + Math.random() * .55;
+        const rotation = -18 + Math.random() * 36;
+
+        heart.setAttribute('viewBox', '0 0 240 220');
+        heart.setAttribute('aria-hidden', 'true');
+        heart.classList.add('pet-heart');
+        heart.style.left = `${event.clientX}px`;
+        heart.style.top = `${event.clientY}px`;
+        heart.style.setProperty('--heart-x', `${spread}px`);
+        heart.style.setProperty('--heart-y', `${rise}px`);
+        heart.style.setProperty('--heart-size', `${size}px`);
+        heart.style.setProperty('--heart-duration', `${duration}s`);
+        heart.style.setProperty('--heart-rotation', `${rotation}deg`);
+
+        gradient.setAttribute('id', gradientId);
+        gradient.setAttribute('x1', '0');
+        gradient.setAttribute('y1', '0');
+        gradient.setAttribute('x2', '1');
+        gradient.setAttribute('y2', '1');
+        firstStop.setAttribute('offset', '0');
+        firstStop.setAttribute('stop-color', '#ffd6e3');
+        secondStop.setAttribute('offset', '1');
+        secondStop.setAttribute('stop-color', '#f5a9c2');
+        gradient.append(firstStop, secondStop);
+        definitions.appendChild(gradient);
+
+        heartPath.setAttribute('d', 'M120 202 C102 184 42 145 26 103 C10 61 32 25 70 21 C93 19 111 31 120 49 C129 31 147 19 170 21 C208 25 230 61 214 103 C198 145 138 184 120 202 Z');
+        heartPath.setAttribute('fill', `url(#${gradientId})`);
+        heart.append(definitions, heartPath);
+        document.body.appendChild(heart);
+        window.setTimeout(() => heart.remove(), 1800);
+      }
+    }
+
+    // Wake the cat on every pet, then return it to sleep after five quiet seconds.
+    function wakeCatTemporarily() {
+      window.clearTimeout(restTimer);
+      cat.classList.remove('resting');
+      cat.classList.add('awake');
+
+      restTimer = window.setTimeout(() => {
+        cat.classList.remove('awake');
+        cat.classList.add('resting');
+
+        // Remove the temporary closing class after the closing transition finishes.
+        window.setTimeout(() => cat.classList.remove('resting'), 460);
+      }, 5000);
     }
 
     const catResponses = [
@@ -549,8 +889,9 @@
     // Pet the cat, show a random response, and unlock an achievement after ten pets.
     cat.addEventListener('click', (event) => {
       pets += 1;
+      wakeCatTemporarily();
       message.textContent = catResponses[Math.floor(Math.random() * catResponses.length)];
-      createFloatingPaw(event);
+      createPetHearts(event);
       cat.classList.remove('purr');
       void cat.offsetWidth;
       cat.classList.add('purr');
