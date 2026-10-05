@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architectural Poster Generator Studio Pro</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --color-bg: #FAF7F2;
+      --color-text: #2B211B;
+      --color-accent: #E8A8B8;
+      
+      --font-heading: 'Oswald', -apple-system, sans-serif;
+      --font-body: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --poster-w: 600px;
+      --poster-h: 1200px;
+      --datum-x: 195px;
+      --color-spot: #b5c7bc;
+      --poster-paper-bg: #FFFFFF;
+      --poster-scale: 1;
+
+      /* Dynamic Visual Stage Coordinates */
+      --stage-pad-top: 300px;
+      --photo-size: 381px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .twinkle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .twinkle-star {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      opacity: 0;
+      animation: twinkleFade ease-in-out infinite alternate;
+    }
+    @keyframes twinkleFade {
+      0% { opacity: 0; transform: scale(0.6); }
+      50% { opacity: 0.55; transform: scale(1.1); }
+      100% { opacity: 0; transform: scale(0.6); }
+    }
+
+    .site-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 40px 28px 96px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .hero-header {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-bottom: 2px solid var(--color-accent);
+      padding-bottom: 24px;
+    }
+    .hero-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .hero-byline {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-text);
+      opacity: 0.75;
+    }
+    .preset-pill-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .preset-btn {
+      background: #FFFFFF;
+      border: 1px solid rgba(43, 33, 27, 0.2);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--color-text);
+      transition: all 0.2s ease;
+    }
+    .preset-btn:hover {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+    }
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: clamp(38px, 6vw, 84px);
+      line-height: 0.94;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+    }
+    .hero-description {
+      font-size: 1.05rem;
+      max-width: 720px;
+      line-height: 1.5;
+      opacity: 0.9;
+    }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 36px;
+      align-items: start;
+    }
+    @media (max-width: 1080px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .console-panel {
+      background: #FFFFFF;
+      border: 2px solid var(--color-accent);
+      border-radius: 20px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 8px 30px rgba(43, 33, 27, 0.04);
+    }
+
+    .console-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .console-title {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      line-height: 1.0;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(43, 33, 27, 0.12);
+      padding-bottom: 10px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      font-family: var(--font-heading);
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text);
+      opacity: 0.55;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      opacity: 1;
+      background: var(--color-accent);
+      color: var(--color-text);
+      font-weight: 600;
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tab-content.active {
+      display: flex;
+    }
+
+    .control-card {
+      background: #FAF7F2;
+      border: 1px solid rgba(43, 33, 27, 0.12);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-label {
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text);
+    }
+
+    .input-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .input-field-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0.8;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .checkbox-row input[type="checkbox"] {
+      accent-color: var(--color-accent);
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+    }
+
+    input[type="text"], textarea, select {
+      background: #FFFFFF;
+      border: 1px solid rgba(43, 33, 27, 0.2);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      padding: 8px 12px;
+      border-radius: 10px;
+      outline: none;
+      transition: border 0.2s ease;
+      width: 100%;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(232, 168, 184, 0.35);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 58px;
+    }
+
+    .slider-control {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .slider-control input[type="range"] {
+      flex: 1;
+      accent-color: var(--color-accent);
+      height: 5px;
+    }
+    .slider-badge {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      width: 52px;
+      text-align: right;
+    }
+
+    .preset-chip-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .preset-chip {
+      background: #FFFFFF;
+      border: 1px solid rgba(43, 33, 27, 0.2);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--color-text);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+    .preset-chip:hover, .preset-chip.active {
+      border-color: var(--color-text);
+      background: #F0EAE1;
+    }
+
+    .swatches-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .swatch-item {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 2px solid rgba(43, 33, 27, 0.2);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .swatch-item.active {
+      border-color: var(--color-text);
+      transform: scale(1.15);
+    }
+    .color-picker-inline {
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .export-button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn-action {
+      background: var(--color-accent);
+      color: var(--color-text);
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      min-height: 44px;
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+      width: 100%;
+    }
+    .btn-action.secondary {
+      background: #FFFFFF;
+      border: 1px solid rgba(43, 33, 27, 0.25);
+    }
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(43, 33, 27, 0.12);
+    }
+
+    .stage-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stage-toolbar {
+      width: 100%;
+      background: #FFFFFF;
+      border: 1px solid rgba(43, 33, 27, 0.12);
+      border-radius: 12px;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .zoom-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .zoom-btn {
+      background: #FAF7F2;
+      border: 1px solid rgba(43, 33, 27, 0.15);
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+    .zoom-btn:hover {
+      background: var(--color-accent);
+    }
+
+    .stage-canvas-outer {
+      background: #EAE6DF;
+      border: 2px solid var(--color-accent);
+      border-radius: 20px;
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      overflow: auto;
+      max-height: 85vh;
+    }
+
+    .poster-canvas-scaler {
+      transform-origin: top center;
+      transition: transform 0.15s ease-out;
+    }
+
+    .poster-canvas {
+      position: relative;
+      width: var(--poster-w);
+      height: var(--poster-h);
+      background: var(--poster-paper-bg);
+      color: #111111;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      box-shadow: 0 18px 45px rgba(43, 33, 27, 0.12);
+      transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+    }
+    .grid-overlay.visible {
+      display: block;
+    }
+    .datum-line-v {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(0, 102, 255, 0.4);
+      left: var(--datum-x);
+    }
+    .datum-line-v::after {
+      content: 'DATUM RAIL (195px)';
+      position: absolute;
+      top: 60px;
+      left: 4px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: #0066FF;
+      letter-spacing: 0.05em;
+    }
+    .baseline-grid-stripes {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(to bottom, rgba(255, 0, 102, 0.08) 1px, transparent 1px);
+      background-size: 100% 24px;
+    }
+
+    .reg-top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 32%;
+      height: 38px;
+      background: #111111;
+      display: flex;
+      justify-content: space-evenly;
+      align-items: stretch;
+      z-index: 50;
+    }
+    .reg-top-bar span {
+      width: 2px;
+      background: #FFFFFF;
+      display: block;
+    }
+
+    .reg-bleed-indicator {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 14px;
+      height: 120px;
+      background: #111111;
+      z-index: 50;
+    }
+
+    .reg-bottom-assembly {
+      position: absolute;
+      bottom: 0;
+      left: 14%;
+      display: flex;
+      align-items: flex-end;
+      z-index: 50;
+    }
+    .reg-block-main {
+      width: 85px;
+      height: 24px;
+      background: #111111;
+    }
+    .reg-block-step {
+      width: 28px;
+      height: 14px;
+      background: #111111;
+    }
+
+    .monolithic-spot-shape {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .circle-assembly {
+      position: absolute;
+      left: 24px;
+      z-index: 3;
+      pointer-events: none;
+      transition: top 0.25s ease;
+    }
+    .circle-top-white {
+      top: 672px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #FFFFFF;
+    }
+    .circle-bottom-green {
+      top: 785px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--color-spot);
+    }
+
+    .horizontal-rules-stack {
+      position: absolute;
+      top: 650px;
+      right: 48px;
+      width: 84px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      z-index: 10;
+      pointer-events: none;
+      transition: top 0.25s ease;
+    }
+    .horizontal-rules-stack span {
+      display: block;
+      width: 100%;
+      height: 3px;
+      background: #FFFFFF;
+    }
+
+    .upper-zone {
+      position: relative;
+      display: grid;
+      grid-template-columns: var(--datum-x) calc(100% - var(--datum-x));
+      z-index: 4;
+      padding-top: var(--stage-pad-top);
+      transition: padding-top 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .vertical-rail-grid {
+      position: relative;
+      display: flex;
+      justify-content: flex-start;
+      /* All vertical text bottom-aligned to the baseline */
+      align-items: flex-end;
+      height: var(--photo-size);
+      padding-left: 20px;
+      padding-bottom: 0px;
+      gap: 12px;
+      z-index: 10;
+      transition: height 0.25s ease;
+    }
+
+    .v-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .v-line {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: 1.85rem;
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.035em;
+      white-space: nowrap;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    .v-word {
+      display: inline;
+    }
+    .v-space {
+      display: inline;
+      white-space: pre;
+    }
+
+    .visual-stage {
+      position: relative;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding-top: 0;
+      padding-right: 24px;
+      z-index: 4;
+    }
+
+    .hero-photo-wrapper {
+      position: relative;
+      width: var(--photo-size);
+      height: var(--photo-size);
+      max-width: 100%;
+      z-index: 4;
+      background: #d8d8d8;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-photo-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(100%) contrast(115%);
+    }
+
+    .hook-h2 {
+      margin-top: 18px;
+      font-size: 1.55rem;
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+      width: 65%;
+      text-align: left;
+      z-index: 10;
+      font-family: 'Inter', -apple-system, sans-serif;
+      transition: margin-top 0.2s ease, font-size 0.2s ease;
+    }
+
+    /* Raised closer under the photo and subheading */
+    .lower-zone-datum {
+      position: relative;
+      width: 100%;
+      margin-top: 48px;
+      display: grid;
+      grid-template-columns: var(--datum-x) calc(100% - var(--datum-x));
+      padding-bottom: 24px;
+      z-index: 10;
+      transition: margin-top 0.2s ease;
+    }
+
+    .editorial-columns-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      column-gap: 16px;
+      padding-right: 24px;
+      font-size: 0.49rem;
+      line-height: 1.35;
+      letter-spacing: -0.005em;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    .text-col {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+    }
+    .text-col strong {
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="twinkle-canvas" id="twinkle-canvas"></div>
+
+  <div class="site-wrapper">
+    
+    <header class="hero-header">
+      <div class="hero-top-row">
+        <div class="hero-byline">Design Studio Archive &bull; Swiss Modernist Grid Engine</div>
+        <div class="preset-pill-group">
+          <span style="font-size: 0.78rem; font-weight: 600;">Styles:</span>
+          <button class="preset-btn" data-preset="gsapp">Columbia GSAPP</button>
+          <button class="preset-btn" data-preset="bauhaus">Bauhaus Weimar</button>
+          <button class="preset-btn" data-preset="zurich">Zurich Typo 1958</button>
+        </div>
+      </div>
+      <h1 class="hero-title">Architectural Poster Studio</h1>
+      <p class="hero-description">
+        Modular grid typesetting workbench. Select dynamic word-boundaries to terrace the monolithic form, configure aspect ratios, and export print-ready SVGs, PNGs, or standalone HTML.
+      </p>
+    </header>
+
+    <div class="workspace-grid">
+
+      <!-- Workbench Controls -->
+      <aside class="console-panel">
+        <div class="console-header-row">
+          <h2 class="console-title">Studio Console</h2>
+          <span id="scale-indicator" style="font-family: var(--font-mono); font-size: 0.78rem; opacity: 0.6;">100% Zoom</span>
+        </div>
+
+        <nav class="tab-nav">
+          <button class="tab-btn active" data-tab="tab-text">Vertical Text</button>
+          <button class="tab-btn" data-tab="tab-image">Imagery</button>
+          <button class="tab-btn" data-tab="tab-editorial">Body Text</button>
+          <button class="tab-btn" data-tab="tab-ratio">Ratio</button>
+          <button class="tab-btn" data-tab="tab-palette">Color</button>
+          <button class="tab-btn" data-tab="tab-accents">Accents</button>
+        </nav>
+
+        <!-- TAB 1: Vertical Text -->
+        <div class="tab-content active" id="tab-text">
+          <div class="control-card">
+            <span class="card-label">Column 1 (Outer Left)</span>
+            <div class="input-field-group">
+              <label>Text Line</label>
+              <input type="text" id="text-col-1" value="Columbia University">
+            </div>
+            <div class="input-field-group">
+              <label>Snap Terrace To:</label>
+              <select id="snap-col-1"></select>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Column 2 (Center Rail)</span>
+            <div class="input-field-group">
+              <label>Text Line</label>
+              <input type="text" id="text-col-2" value="Graduate School of Architecture">
+            </div>
+            <div class="input-field-group">
+              <label>Snap Terrace To:</label>
+              <select id="snap-col-2"></select>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Column 3 (Inner Datum)</span>
+            <div class="input-field-group">
+              <label>Text Line</label>
+              <input type="text" id="text-col-3" value="and Planning">
+            </div>
+            <div class="input-field-group">
+              <label>Snap Terrace To:</label>
+              <select id="snap-col-3"></select>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Terrace Calibration</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Cap Clearance</label>
+                <input type="range" id="clearance-slider" min="0" max="30" value="12">
+                <span class="slider-badge" id="clearance-val">12px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Rail Baseline Pad</label>
+                <input type="range" id="rail-pad-slider" min="0" max="120" value="0">
+                <span class="slider-badge" id="rail-pad-val">0px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Font Size</label>
+                <input type="range" id="font-size-slider" min="18" max="38" value="29">
+                <span class="slider-badge" id="font-size-val">29px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Final Step Height (Y)</label>
+                <input type="range" id="final-step-slider" min="60" max="500" value="220">
+                <span class="slider-badge" id="final-step-val">220px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: Imagery -->
+        <div class="tab-content" id="tab-image">
+          <div class="control-card">
+            <span class="card-label">Angular Abstract Presets</span>
+            <div class="preset-chip-grid">
+              <button class="preset-chip" data-img="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=700&q=80">Brutalist Relief</button>
+              <button class="preset-chip" data-img="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=700&q=80">Angular Facets</button>
+              <button class="preset-chip" data-img="https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=700&q=80">Concrete Monolith</button>
+              <button class="preset-chip" data-img="https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=700&q=80">Hard Shadows</button>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Hero Photograph</span>
+            <div class="input-field-group">
+              <label>Image URL</label>
+              <input type="text" id="image-url-input" value="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=700&q=80">
+            </div>
+            <div class="input-field-group">
+              <label>Upload Custom Photo</label>
+              <input type="file" id="image-file-input" accept="image/*" style="font-size:0.8rem;">
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Image Stage Geometry</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Photo Size</label>
+                <input type="range" id="photo-size-slider" min="180" max="450" value="381">
+                <span class="slider-badge" id="photo-size-val">381px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Top Elevation (Y)</label>
+                <input type="range" id="photo-top-slider" min="60" max="420" value="300">
+                <span class="slider-badge" id="photo-top-val">300px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Photo Filtering</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Grayscale</label>
+                <input type="range" id="filter-gray-slider" min="0" max="100" value="100">
+                <span class="slider-badge" id="filter-gray-val">100%</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Contrast</label>
+                <input type="range" id="filter-contrast-slider" min="80" max="180" value="115">
+                <span class="slider-badge" id="filter-contrast-val">115%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Subheading Hook</span>
+            <div class="input-field-group">
+              <label>Headline Text</label>
+              <textarea id="h2-text-input">Master of Science in Historic Preservation</textarea>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Width Boundary</label>
+                <input type="range" id="subhead-width-slider" min="40" max="100" value="65">
+                <span class="slider-badge" id="subhead-width-val">65%</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Font Size</label>
+                <input type="range" id="subhead-font-slider" min="16" max="36" value="25">
+                <span class="slider-badge" id="subhead-font-val">25px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Top Margin</label>
+                <input type="range" id="subhead-top-slider" min="0" max="48" value="18">
+                <span class="slider-badge" id="subhead-top-val">18px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: Body Text -->
+        <div class="tab-content" id="tab-editorial">
+          <div class="control-card">
+            <span class="card-label">Body Text Styling</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Font Size</label>
+                <input type="range" id="body-font-slider" min="6" max="12" step="0.5" value="7.8">
+                <span class="slider-badge" id="body-font-val">7.8px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Distance Below Header</label>
+                <input type="range" id="body-margin-slider" min="16" max="140" value="48">
+                <span class="slider-badge" id="body-margin-val">48px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Column 1 Content</span>
+            <textarea id="edit-col-3" rows="3">The master's degree historic preservation program provides specialized training for the individual who wishes to be professionally active in preservation as architects, conservators, historians, and planners.</textarea>
+          </div>
+          <div class="control-card">
+            <span class="card-label">Column 2 Content</span>
+            <textarea id="edit-col-4" rows="3">There is also a four-year joint degree program offering qualified students the opportunity to work simultaneously toward master's degrees in architecture and historic preservation.</textarea>
+          </div>
+          <div class="control-card">
+            <span class="card-label">Column 3 Content</span>
+            <textarea id="edit-col-5" rows="3">As part of the Graduate School of Architecture and Planning, the program draws upon the resources of its master's programs in architecture, real estate development, and urban planning.</textarea>
+          </div>
+          <div class="control-card">
+            <span class="card-label">Column 4 Content (Contact / Info)</span>
+            <textarea id="edit-col-6" rows="3">Bulletin and application forms may be obtained from: Dean of Admissions, GSAP, 400 Avery Hall, Columbia University, New York, NY 10027</textarea>
+          </div>
+        </div>
+
+        <!-- TAB 4: Ratio -->
+        <div class="tab-content" id="tab-ratio">
+          <div class="control-card">
+            <span class="card-label">Aspect Ratio Presets</span>
+            <div class="preset-chip-grid">
+              <button class="preset-chip active" data-w="600" data-h="1200">1:2 Standard Banner</button>
+              <button class="preset-chip" data-w="600" data-h="849">1:√2 DIN A-Series (A2/A3)</button>
+              <button class="preset-chip" data-w="600" data-h="900">2:3 Classical Ratio</button>
+              <button class="preset-chip" data-w="600" data-h="800">3:4 Standard Poster</button>
+              <button class="preset-chip" data-w="600" data-h="750">4:5 Gallery Frame</button>
+              <button class="preset-chip" data-w="600" data-h="600">1:1 Square Format</button>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Custom Poster Dimensions</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Width (px)</label>
+                <input type="range" id="ratio-width-slider" min="450" max="900" step="10" value="600">
+                <span class="slider-badge" id="ratio-width-val">600px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Height (px)</label>
+                <input type="range" id="ratio-height-slider" min="550" max="1400" step="10" value="1200">
+                <span class="slider-badge" id="ratio-height-val">1200px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: Color -->
+        <div class="tab-content" id="tab-palette">
+          <div class="control-card">
+            <span class="card-label">Institutional Spot Tints</span>
+            <div class="swatches-row">
+              <div class="swatch-item active" data-color="#b5c7bc" style="background:#b5c7bc;" title="Sage Patina"></div>
+              <div class="swatch-item" data-color="#9BB0BC" style="background:#9BB0BC;" title="Slate Blue"></div>
+              <div class="swatch-item" data-color="#D8C29D" style="background:#D8C29D;" title="Drafting Ochre"></div>
+              <div class="swatch-item" data-color="#C69D8E" style="background:#C69D8E;" title="Industrial Terracotta"></div>
+              <div class="swatch-item" data-color="#C36B5E" style="background:#C36B5E;" title="Bauhaus Brick"></div>
+              <div class="swatch-item" data-color="#E2DCD2" style="background:#E2DCD2;" title="Concrete Sand"></div>
+            </div>
+          </div>
+          <div class="control-card">
+            <span class="card-label">Paper Base Tone Presets</span>
+            <div class="swatches-row">
+              <div class="swatch-item active" data-paper="#FFFFFF" style="background:#FFFFFF;" title="Pure White"></div>
+              <div class="swatch-item" data-paper="#FBF8F3" style="background:#FBF8F3;" title="Studio Cream"></div>
+              <div class="swatch-item" data-paper="#F2EEE6" style="background:#F2EEE6;" title="Muted Newsprint"></div>
+              <div class="swatch-item" data-paper="#E6E3DD" style="background:#E6E3DD;" title="Raw Concrete"></div>
+              <div class="swatch-item" data-paper="#D3CEC4" style="background:#D3CEC4;" title="Avery Parchment"></div>
+              <div class="swatch-item" data-paper="#262523" style="background:#262523;" title="Deep Charcoal"></div>
+            </div>
+          </div>
+          <div class="control-card">
+            <span class="card-label">Custom Hex Mixers</span>
+            <div class="slider-control">
+              <label>Custom Spot Tint</label>
+              <input type="color" id="custom-spot-picker" value="#b5c7bc" class="color-picker-inline">
+            </div>
+            <div class="slider-control">
+              <label>Custom Paper Tone</label>
+              <input type="color" id="custom-paper-picker" value="#ffffff" class="color-picker-inline">
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 6: Accents (Updated with Wave Calibration) -->
+        <div class="tab-content" id="tab-accents">
+          <div class="control-card">
+            <span class="card-label">Wave Calibration</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Wave Cycles (Count)</label>
+                <input type="range" id="wave-count-slider" min="1" max="12" step="1" value="2">
+                <span class="slider-badge" id="wave-count-val">2</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Roundness / Curvature</label>
+                <input type="range" id="wave-round-slider" min="0" max="100" value="85">
+                <span class="slider-badge" id="wave-round-val">85%</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Wave Amplitude (Height)</label>
+                <input type="range" id="wave-amp-slider" min="0" max="75" value="32">
+                <span class="slider-badge" id="wave-amp-val">32px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Wave Elevation Offset (Y)</label>
+                <input type="range" id="wave-offset-slider" min="-150" max="250" value="0">
+                <span class="slider-badge" id="wave-offset-val">0px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Registration Marks Visibility</span>
+            <label class="checkbox-row">
+              <input type="checkbox" id="toggle-top-reg" checked>
+              <span>Top Margin Calibration Bar</span>
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="toggle-bleed-bar" checked>
+              <span>Right Edge Bleed Indicator</span>
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="toggle-bottom-reg" checked>
+              <span>Baseline Multi-Block Cluster</span>
+            </label>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Knockout Lines Geometry</span>
+            <label class="checkbox-row">
+              <input type="checkbox" id="toggle-stripes" checked>
+              <span>Show Horizontal White Rules</span>
+            </label>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Vertical Position (Y)</label>
+                <input type="range" id="stripes-y-slider" min="400" max="800" value="650">
+                <span class="slider-badge" id="stripes-y-val">650px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Rule Width</label>
+                <input type="range" id="stripes-w-slider" min="50" max="140" value="84">
+                <span class="slider-badge" id="stripes-w-val">84px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Circle Assemblies</span>
+            <label class="checkbox-row">
+              <input type="checkbox" id="toggle-circles" checked>
+              <span>Show Vertical Circle Pair</span>
+            </label>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Top Circle Elevation</label>
+                <input type="range" id="top-circle-slider" min="400" max="750" value="672">
+                <span class="slider-badge" id="top-circle-val">672px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Bottom Circle Elevation</label>
+                <input type="range" id="bot-circle-slider" min="480" max="850" value="785">
+                <span class="slider-badge" id="bot-circle-val">785px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export Suite -->
+        <div class="export-button-group">
+          <button class="btn-action" id="btn-export-svg">Export SVG</button>
+          <button class="btn-action" id="btn-export-png">Export PNG</button>
+        </div>
+        <button class="btn-action secondary" id="btn-export-html">Export Standalone HTML</button>
+      </aside>
+
+      <!-- Poster Viewport -->
+      <section class="stage-wrapper">
+        <div class="stage-toolbar">
+          <label class="checkbox-row" title="Shortcut: Press 'G' key">
+            <input type="checkbox" id="toggle-guides">
+            <span>Show Grid & Datum Overlay (G)</span>
+          </label>
+          <div class="zoom-controls">
+            <span style="font-size: 0.75rem; opacity: 0.7;">ZOOM:</span>
+            <button class="zoom-btn" data-scale="0.6">60%</button>
+            <button class="zoom-btn" data-scale="0.8">80%</button>
+            <button class="zoom-btn" data-scale="1">100%</button>
+          </div>
+        </div>
+
+        <div class="stage-canvas-outer" id="stage-viewport">
+          <div class="poster-canvas-scaler" id="poster-scaler">
+            
+            <main class="poster-canvas" id="poster">
+              
+              <!-- Architectural Calibration Guides -->
+              <div class="grid-overlay" id="grid-overlay">
+                <div class="datum-line-v"></div>
+                <div class="baseline-grid-stripes"></div>
+              </div>
+
+              <!-- Registration Calibration Marks -->
+              <div class="reg-top-bar" id="reg-top-bar">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="reg-bleed-indicator" id="reg-bleed-bar"></div>
+
+              <!-- Layer 2: Monolithic Spot Vector Shape -->
+              <svg class="monolithic-spot-shape" viewBox="0 0 600 1200" preserveAspectRatio="none" id="poster-svg-shape">
+                <path id="dynamic-terrace-path" d="" fill="var(--color-spot)" />
+              </svg>
+
+              <!-- Layer 3: Circle Cutouts -->
+              <div class="circle-assembly circle-top-white" id="circle-top"></div>
+              <div class="circle-assembly circle-bottom-green" id="circle-bottom"></div>
+
+              <!-- Layer 5: 3 Horizontal Rules -->
+              <div class="horizontal-rules-stack" id="rules-stack">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+
+              <!-- Upper Zone: Rigid 2-Column Grid -->
+              <section class="upper-zone" id="upper-zone">
+                <aside class="vertical-rail-grid" id="vertical-rail">
+                  <div class="v-col" id="col-1"><span class="v-line" id="line-1"></span></div>
+                  <div class="v-col" id="col-2"><span class="v-line" id="line-2"></span></div>
+                  <div class="v-col" id="col-3"><span class="v-line" id="line-3"></span></div>
+                </aside>
+
+                <div class="visual-stage" id="visual-stage">
+                  <div class="hero-photo-wrapper" id="photo-wrapper">
+                    <img id="poster-hero-img" crossorigin="anonymous" src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=700&q=80" alt="Architectural relief detail">
+                  </div>
+                  <h2 class="hook-h2" id="poster-h2">Master of Science in Historic Preservation</h2>
+                </div>
+              </section>
+
+              <!-- Lower Modular Grid: Left-aligned with Upper Datum Zone (195px) -->
+              <footer class="lower-zone-datum" id="lower-zone-footer">
+                <div></div> <!-- Column 1: Blank Datum Buffer (195px) -->
+                <div class="editorial-columns-grid" id="body-text-grid">
+                  <div class="text-col">
+                    <p id="footer-p-3">The master's degree historic preservation program provides specialized training for the individual who wishes to be professionally active in preservation as architects, conservators, historians, and planners.</p>
+                  </div>
+                  <div class="text-col">
+                    <p id="footer-p-4">There is also a four-year joint degree program offering qualified students the opportunity to work simultaneously toward master's degrees in architecture and historic preservation.</p>
+                  </div>
+                  <div class="text-col">
+                    <p id="footer-p-5">As part of the Graduate School of Architecture and Planning, the program draws upon the resources of its master's programs in architecture, real estate development, and urban planning.</p>
+                  </div>
+                  <div class="text-col">
+                    <p id="footer-p-6"><strong>Bulletin and application forms may be obtained from:</strong><br>
+                    Dean of Admissions<br>
+                    GSAP, 400 Avery Hall<br>
+                    Columbia University<br>
+                    New York, NY 10027<br>
+                    (212) 280-3414</p>
+                  </div>
+                </div>
+              </footer>
+
+              <!-- Baseline Registration Assembly -->
+              <div class="reg-bottom-assembly" id="reg-bottom-assembly">
+                <div class="reg-block-main"></div>
+                <div class="reg-block-step"></div>
+              </div>
+            </main>
+
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    function createTwinkles() {
+      const container = document.getElementById('twinkle-canvas');
+      const starCount = 38;
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'twinkle-star';
+        star.style.left = `${Math.random() * 100}vw`;
+        star.style.top = `${Math.random() * 100}vh`;
+        const dur = (Math.random() * 4 + 4).toFixed(1);
+        const delay = (Math.random() * 6).toFixed(1);
+        star.style.animationDuration = `${dur}s`;
+        star.style.animationDelay = `${delay}s`;
+        container.appendChild(star);
+      }
+    }
+
+    const poster = document.getElementById('poster');
+    const posterScaler = document.getElementById('poster-scaler');
+    const pathElement = document.getElementById('dynamic-terrace-path');
+    const posterSvgShape = document.getElementById('poster-svg-shape');
+    const rail = document.getElementById('vertical-rail');
+    const heroImg = document.getElementById('poster-hero-img');
+    const photoWrapper = document.getElementById('photo-wrapper');
+    const visualStage = document.getElementById('visual-stage');
+    const posterH2 = document.getElementById('poster-h2');
+    const gridOverlay = document.getElementById('grid-overlay');
+    const bodyTextGrid = document.getElementById('body-text-grid');
+    const lowerZoneFooter = document.getElementById('lower-zone-footer');
+
+    const rulesStack = document.getElementById('rules-stack');
+    const circleTop = document.getElementById('circle-top');
+    const circleBottom = document.getElementById('circle-bottom');
+
+    let posterWidth = 600;
+    let posterHeight = 1200;
+    let photoSize = 381;
+    let stagePadTop = 300;
+    let finalStepHeight = 220;
+
+    // Wave parameters
+    let waveCount = 2;
+    let waveRoundness = 0.85; // 0 = sharp / pointy, 1 = smooth curve
+    let waveAmplitude = 32;
+    let waveOffset = 0;
+
+    const inputs = [
+      document.getElementById('text-col-1'),
+      document.getElementById('text-col-2'),
+      document.getElementById('text-col-3')
+    ];
+    const selectors = [
+      document.getElementById('snap-col-1'),
+      document.getElementById('snap-col-2'),
+      document.getElementById('snap-col-3')
+    ];
+    const lineElements = [
+      document.getElementById('line-1'),
+      document.getElementById('line-2'),
+      document.getElementById('line-3')
+    ];
+
+    const clearanceSlider = document.getElementById('clearance-slider');
+    const clearanceVal = document.getElementById('clearance-val');
+    const railPadSlider = document.getElementById('rail-pad-slider');
+    const railPadVal = document.getElementById('rail-pad-val');
+    const fontSizeSlider = document.getElementById('font-size-slider');
+    const fontSizeVal = document.getElementById('font-size-val');
+    const finalStepSlider = document.getElementById('final-step-slider');
+    const finalStepVal = document.getElementById('final-step-val');
+
+    const photoSizeSlider = document.getElementById('photo-size-slider');
+    const photoSizeVal = document.getElementById('photo-size-val');
+    const photoTopSlider = document.getElementById('photo-top-slider');
+    const photoTopVal = document.getElementById('photo-top-val');
+
+    const waveCountSlider = document.getElementById('wave-count-slider');
+    const waveCountVal = document.getElementById('wave-count-val');
+    const waveRoundSlider = document.getElementById('wave-round-slider');
+    const waveRoundVal = document.getElementById('wave-round-val');
+    const waveAmpSlider = document.getElementById('wave-amp-slider');
+    const waveAmpVal = document.getElementById('wave-amp-val');
+    const waveOffsetSlider = document.getElementById('wave-offset-slider');
+    const waveOffsetVal = document.getElementById('wave-offset-val');
+
+    // Default snap indices: Col 1 starts at Start of Line (behind first letter / baseline), Col 2 at Architecture, Col 3 at Planning
+    let selectedSnapIndices = [-1, 3, 1];
+
+    function renderLineWords(columnIndex) {
+      const text = inputs[columnIndex].value.trim();
+      const words = text.split(/\s+/).filter(Boolean);
+      const lineEl = lineElements[columnIndex];
+      const selectEl = selectors[columnIndex];
+
+      lineEl.innerHTML = '';
+      words.forEach((word, wIdx) => {
+        const span = document.createElement('span');
+        span.className = 'v-word';
+        span.dataset.wordIndex = wIdx;
+        span.textContent = word;
+        lineEl.appendChild(span);
+
+        if (wIdx < words.length - 1) {
+          const space = document.createElement('span');
+          space.className = 'v-space';
+          space.textContent = ' ';
+          lineEl.appendChild(space);
+        }
+      });
+
+      const defaultSnaps = [-1, 3, 1];
+      const prevSel = (selectedSnapIndices[columnIndex] !== undefined) ? selectedSnapIndices[columnIndex] : defaultSnaps[columnIndex];
+      selectEl.innerHTML = '';
+
+      // Option to end terrace step right behind the first letter of the line (bottom alignment)
+      const startOpt = document.createElement('option');
+      startOpt.value = -1;
+      startOpt.textContent = 'Start of Line (Behind 1st Letter)';
+      selectEl.appendChild(startOpt);
+
+      words.forEach((word, wIdx) => {
+        const opt = document.createElement('option');
+        opt.value = wIdx;
+        opt.textContent = `End of "${word}"`;
+        selectEl.appendChild(opt);
+      });
+
+      let validIdx = prevSel;
+      if (validIdx !== -1 && validIdx >= words.length) {
+        validIdx = Math.max(0, words.length - 1);
+      }
+      selectedSnapIndices[columnIndex] = validIdx;
+      selectEl.value = validIdx;
+    }
+
+    function buildUniformWavePath(startX, baselineY, targetLeftX, count, amplitude, roundness) {
+      const totalWidth = startX - targetLeftX;
+      if (count <= 0 || amplitude <= 0) {
+        return `H ${targetLeftX}`;
+      }
+
+      const halfCycles = count * 2;
+      const stepX = totalWidth / halfCycles;
+      let pathCommands = '';
+      let currentX = startX;
+
+      for (let i = 0; i < halfCycles; i++) {
+        const nextX = currentX - stepX;
+        const targetY = (i % 2 === 0) ? (baselineY - amplitude) : (baselineY + amplitude);
+
+        if (roundness <= 0.02) {
+          pathCommands += ` L ${Math.round(nextX)},${Math.round(targetY)}`;
+        } else {
+          const prevY = (i === 0) ? baselineY : ((i % 2 === 1) ? (baselineY - amplitude) : (baselineY + amplitude));
+          const handleOffset = (stepX * 0.5) * roundness;
+
+          const cp1x = currentX - handleOffset;
+          const cp1y = prevY;
+          const cp2x = nextX + handleOffset;
+          const cp2y = targetY;
+
+          pathCommands += ` C ${Math.round(cp1x)},${Math.round(cp1y)} ${Math.round(cp2x)},${Math.round(cp2y)} ${Math.round(nextX)},${Math.round(targetY)}`;
+        }
+
+        currentX = nextX;
+      }
+
+      pathCommands += ` L ${targetLeftX},${Math.round(baselineY)}`;
+      return pathCommands;
+    }
+
+    function recalculateTerrace() {
+      const posterRect = poster.getBoundingClientRect();
+      const clearance = parseInt(clearanceSlider.value, 10);
+      const rightBoundaryX = posterWidth - 48;
+
+      const scale = posterRect.width / posterWidth || 1;
+      const stepMetrics = [];
+
+      // Calculate the true bottom alignment baseline directly from the vertical text elements
+      // (ensuring dynamic tracking when Rail Baseline Pad is adjusted)
+      const textBottoms = Array.from(lineElements).map(el => {
+        const words = el.querySelectorAll('.v-word');
+        if (words.length > 0) {
+          // First word is at the bottom in vertical-rl rotate(180deg)
+          return Math.max(el.getBoundingClientRect().bottom, words[0].getBoundingClientRect().bottom);
+        }
+        return el.getBoundingClientRect().bottom;
+      });
+      const railBaselineY = Math.round((Math.max(...textBottoms) - posterRect.top) / scale);
+
+      for (let i = 0; i < 3; i++) {
+        const lineEl = lineElements[i];
+        const wordSpans = lineEl.querySelectorAll('.v-word');
+        const activeIdx = selectedSnapIndices[i];
+        const colContainerRect = lineEl.getBoundingClientRect();
+        const relRight = (colContainerRect.right - posterRect.left) / scale;
+
+        if (activeIdx === -1) {
+          // 'Start of Line': Step rests exactly at the bottom alignment of the vertical text behind the first letter
+          stepMetrics.push({
+            topY: railBaselineY,
+            rightX: Math.round(relRight)
+          });
+        } else {
+          const targetWordSpan = wordSpans[activeIdx] || wordSpans[0];
+          if (targetWordSpan) {
+            const wordRect = targetWordSpan.getBoundingClientRect();
+            const relTop = (wordRect.top - posterRect.top) / scale;
+
+            stepMetrics.push({
+              topY: Math.round(relTop - clearance),
+              rightX: Math.round(relRight)
+            });
+          }
+        }
+      }
+
+      if (stepMetrics.length === 3) {
+        const s1 = stepMetrics[0];
+        const s2 = stepMetrics[1];
+        const s3 = stepMetrics[2];
+
+        const imageBottom = stagePadTop + photoSize;
+        const terraceCutY = Math.min(posterHeight - 120, Math.max(imageBottom + 10, 380)) + waveOffset;
+        const terraceWaveBaseY = terraceCutY + 45;
+
+        const waveSvgPath = buildUniformWavePath(rightBoundaryX, terraceWaveBaseY, 0, waveCount, waveAmplitude, waveRoundness);
+
+        const pathData = `
+          M 24,${s1.topY}
+          H ${s1.rightX + 4}
+          V ${s2.topY}
+          H ${s2.rightX + 4}
+          V ${s3.topY}
+          H ${s3.rightX + 4}
+          V ${finalStepHeight}
+          H ${rightBoundaryX}
+          V ${terraceCutY}
+          H ${rightBoundaryX}
+          V ${terraceWaveBaseY}
+          ${waveSvgPath}
+          V ${Math.max(s1.topY, 460)}
+          H 24
+          Z
+        `.replace(/\s+/g, ' ').trim();
+
+        pathElement.setAttribute('d', pathData);
+      }
+    }
+
+    function autoScaleLayoutByRatio() {
+      const availableStageWidth = posterWidth - 195 - 24;
+      const heightRatio = posterHeight / 1200;
+
+      if (posterHeight < 1100) {
+        const targetSize = Math.round(Math.min(availableStageWidth, (posterHeight * 0.35)));
+        photoSize = Math.max(190, targetSize);
+        stagePadTop = Math.round(Math.max(120, 300 * heightRatio));
+      } else {
+        photoSize = Math.min(381, availableStageWidth);
+        stagePadTop = 300;
+      }
+
+      document.documentElement.style.setProperty('--photo-size', `${photoSize}px`);
+      document.documentElement.style.setProperty('--stage-pad-top', `${stagePadTop}px`);
+
+      photoSizeSlider.value = photoSize;
+      photoSizeVal.textContent = `${photoSize}px`;
+      photoTopSlider.value = stagePadTop;
+      photoTopVal.textContent = `${stagePadTop}px`;
+
+      const imageBottom = stagePadTop + photoSize;
+      const rulesY = Math.round(imageBottom + 12);
+      rulesStack.style.top = `${rulesY}px`;
+      document.getElementById('stripes-y-slider').value = rulesY;
+      document.getElementById('stripes-y-val').textContent = `${rulesY}px`;
+
+      const circleTopY = Math.round(imageBottom + 85);
+      const circleBotY = Math.round(imageBottom + 195);
+      circleTop.style.top = `${circleTopY}px`;
+      circleBottom.style.top = `${circleBotY}px`;
+      document.getElementById('top-circle-slider').value = circleTopY;
+      document.getElementById('top-circle-val').textContent = `${circleTopY}px`;
+      document.getElementById('bot-circle-slider').value = circleBotY;
+      document.getElementById('bot-circle-val').textContent = `${circleBotY}px`;
+    }
+
+    function updatePosterDimensions(w, h) {
+      posterWidth = parseInt(w, 10);
+      posterHeight = parseInt(h, 10);
+
+      document.documentElement.style.setProperty('--poster-w', `${posterWidth}px`);
+      document.documentElement.style.setProperty('--poster-h', `${posterHeight}px`);
+      posterSvgShape.setAttribute('viewBox', `0 0 ${posterWidth} ${posterHeight}`);
+
+      document.getElementById('ratio-width-slider').value = posterWidth;
+      document.getElementById('ratio-width-val').textContent = `${posterWidth}px`;
+      document.getElementById('ratio-height-slider').value = posterHeight;
+      document.getElementById('ratio-height-val').textContent = `${posterHeight}px`;
+
+      autoScaleLayoutByRatio();
+      setTimeout(recalculateTerrace, 60);
+    }
+
+    function setSpotColor(color) {
+      document.documentElement.style.setProperty('--color-spot', color);
+      document.querySelector('.circle-bottom-green').style.background = color;
+      document.getElementById('custom-spot-picker').value = color;
+    }
+
+    function setPaperColor(color) {
+      document.documentElement.style.setProperty('--poster-paper-bg', color);
+      document.getElementById('custom-paper-picker').value = color;
+      if (color.toLowerCase() === '#262523') {
+        poster.style.color = '#F5F5F5';
+      } else {
+        poster.style.color = '#111111';
+      }
+    }
+
+    const PRESETS = {
+      gsapp: {
+        col1: 'Columbia University',
+        col2: 'Graduate School of Architecture',
+        col3: 'and Planning',
+        h2: 'Master of Science in Historic Preservation',
+        color: '#b5c7bc',
+        paper: '#FFFFFF',
+        img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=700&q=80'
+      },
+      bauhaus: {
+        col1: 'Staatliches Bauhaus',
+        col2: 'Hochschule für Gestaltung',
+        col3: 'Weimar & Dessau',
+        h2: 'Ausstellung Neue Baukunst & Raumkunst',
+        color: '#C36B5E',
+        paper: '#FBF8F3',
+        img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=700&q=80'
+      },
+      zurich: {
+        col1: 'Konstruktive Kunst',
+        col2: 'Zürcher Schule der Konkreten',
+        col3: 'Typografie 1958',
+        h2: 'Internationale Plakatgestaltung und Neue Grafik',
+        color: '#9BB0BC',
+        paper: '#F2EEE6',
+        img: 'https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=700&q=80'
+      }
+    };
+
+    function applyPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+      inputs[0].value = p.col1;
+      inputs[1].value = p.col2;
+      inputs[2].value = p.col3;
+      posterH2.textContent = p.h2;
+      document.getElementById('h2-text-input').value = p.h2;
+      heroImg.src = p.img;
+      document.getElementById('image-url-input').value = p.img;
+      setSpotColor(p.color);
+      setPaperColor(p.paper);
+
+      document.querySelectorAll('[data-color]').forEach(s => {
+        s.classList.toggle('active', s.dataset.color.toLowerCase() === p.color.toLowerCase());
+      });
+      document.querySelectorAll('[data-paper]').forEach(s => {
+        s.classList.toggle('active', s.dataset.paper.toLowerCase() === p.paper.toLowerCase());
+      });
+
+      for (let i = 0; i < 3; i++) {
+        renderLineWords(i);
+      }
+      recalculateTerrace();
+    }
+
+    function initEvents() {
+      createTwinkles();
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      for (let i = 0; i < 3; i++) {
+        renderLineWords(i);
+        inputs[i].addEventListener('input', () => {
+          renderLineWords(i);
+          recalculateTerrace();
+        });
+        selectors[i].addEventListener('change', (e) => {
+          selectedSnapIndices[i] = parseInt(e.target.value, 10);
+          recalculateTerrace();
+        });
+      }
+
+      // Vertical text calibration
+      clearanceSlider.addEventListener('input', (e) => {
+        clearanceVal.textContent = `${e.target.value}px`;
+        recalculateTerrace();
+      });
+      railPadSlider.addEventListener('input', (e) => {
+        railPadVal.textContent = `${e.target.value}px`;
+        rail.style.paddingBottom = `${e.target.value}px`;
+        recalculateTerrace();
+      });
+      fontSizeSlider.addEventListener('input', (e) => {
+        fontSizeVal.textContent = `${e.target.value}px`;
+        lineElements.forEach(l => l.style.fontSize = `${e.target.value}px`);
+        recalculateTerrace();
+      });
+      finalStepSlider.addEventListener('input', (e) => {
+        finalStepHeight = parseInt(e.target.value, 10);
+        finalStepVal.textContent = `${finalStepHeight}px`;
+        recalculateTerrace();
+      });
+
+      // Photo geometry
+      photoSizeSlider.addEventListener('input', (e) => {
+        photoSize = parseInt(e.target.value, 10);
+        document.documentElement.style.setProperty('--photo-size', `${photoSize}px`);
+        photoSizeVal.textContent = `${photoSize}px`;
+        recalculateTerrace();
+      });
+      photoTopSlider.addEventListener('input', (e) => {
+        stagePadTop = parseInt(e.target.value, 10);
+        document.documentElement.style.setProperty('--stage-pad-top', `${stagePadTop}px`);
+        photoTopVal.textContent = `${stagePadTop}px`;
+        recalculateTerrace();
+      });
+
+      // Angular Abstract Presets
+      document.querySelectorAll('.preset-chip[data-img]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.preset-chip[data-img]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          const url = chip.dataset.img;
+          heroImg.src = url;
+          document.getElementById('image-url-input').value = url;
+        });
+      });
+
+      document.getElementById('image-url-input').addEventListener('input', (e) => {
+        heroImg.src = e.target.value;
+      });
+      document.getElementById('image-file-input').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => { heroImg.src = evt.target.result; };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Image Filters
+      const graySlider = document.getElementById('filter-gray-slider');
+      const contrastSlider = document.getElementById('filter-contrast-slider');
+      function updateFilters() {
+        heroImg.style.filter = `grayscale(${graySlider.value}%) contrast(${contrastSlider.value}%)`;
+        document.getElementById('filter-gray-val').textContent = `${graySlider.value}%`;
+        document.getElementById('filter-contrast-val').textContent = `${contrastSlider.value}%`;
+      }
+      graySlider.addEventListener('input', updateFilters);
+      contrastSlider.addEventListener('input', updateFilters);
+
+      // Subheading Hook
+      document.getElementById('h2-text-input').addEventListener('input', (e) => {
+        posterH2.textContent = e.target.value;
+      });
+      const subheadWidthSlider = document.getElementById('subhead-width-slider');
+      const subheadFontSlider = document.getElementById('subhead-font-slider');
+      const subheadTopSlider = document.getElementById('subhead-top-slider');
+
+      subheadWidthSlider.addEventListener('input', (e) => {
+        posterH2.style.width = `${e.target.value}%`;
+        document.getElementById('subhead-width-val').textContent = `${e.target.value}%`;
+      });
+      subheadFontSlider.addEventListener('input', (e) => {
+        posterH2.style.fontSize = `${e.target.value}px`;
+        document.getElementById('subhead-font-val').textContent = `${e.target.value}px`;
+      });
+      subheadTopSlider.addEventListener('input', (e) => {
+        posterH2.style.marginTop = `${e.target.value}px`;
+        document.getElementById('subhead-top-val').textContent = `${e.target.value}px`;
+      });
+
+      // Body Text
+      const bodyFontSlider = document.getElementById('body-font-slider');
+      const bodyMarginSlider = document.getElementById('body-margin-slider');
+
+      bodyFontSlider.addEventListener('input', (e) => {
+        bodyTextGrid.style.fontSize = `${e.target.value}px`;
+        document.getElementById('body-font-val').textContent = `${e.target.value}px`;
+      });
+      bodyMarginSlider.addEventListener('input', (e) => {
+        lowerZoneFooter.style.marginTop = `${e.target.value}px`;
+        document.getElementById('body-margin-val').textContent = `${e.target.value}px`;
+      });
+
+      document.getElementById('edit-col-3').addEventListener('input', (e) => {
+        document.getElementById('footer-p-3').textContent = e.target.value;
+      });
+      document.getElementById('edit-col-4').addEventListener('input', (e) => {
+        document.getElementById('footer-p-4').textContent = e.target.value;
+      });
+      document.getElementById('edit-col-5').addEventListener('input', (e) => {
+        document.getElementById('footer-p-5').textContent = e.target.value;
+      });
+      document.getElementById('edit-col-6').addEventListener('input', (e) => {
+        document.getElementById('footer-p-6').textContent = e.target.value;
+      });
+
+      // Ratio Sliders
+      document.querySelectorAll('.preset-chip[data-w]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.preset-chip[data-w]').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          updatePosterDimensions(chip.dataset.w, chip.dataset.h);
+        });
+      });
+
+      const ratioWidthSlider = document.getElementById('ratio-width-slider');
+      const ratioHeightSlider = document.getElementById('ratio-height-slider');
+
+      ratioWidthSlider.addEventListener('input', (e) => {
+        document.querySelectorAll('.preset-chip[data-w]').forEach(c => c.classList.remove('active'));
+        updatePosterDimensions(e.target.value, posterHeight);
+      });
+      ratioHeightSlider.addEventListener('input', (e) => {
+        document.querySelectorAll('.preset-chip[data-w]').forEach(c => c.classList.remove('active'));
+        updatePosterDimensions(posterWidth, e.target.value);
+      });
+
+      // Wave Calibration Sliders
+      waveCountSlider.addEventListener('input', (e) => {
+        waveCount = parseInt(e.target.value, 10);
+        waveCountVal.textContent = waveCount;
+        recalculateTerrace();
+      });
+      waveRoundSlider.addEventListener('input', (e) => {
+        waveRoundness = parseInt(e.target.value, 10) / 100;
+        waveRoundVal.textContent = `${e.target.value}%`;
+        recalculateTerrace();
+      });
+      waveAmpSlider.addEventListener('input', (e) => {
+        waveAmplitude = parseInt(e.target.value, 10);
+        waveAmpVal.textContent = `${waveAmplitude}px`;
+        recalculateTerrace();
+      });
+      waveOffsetSlider.addEventListener('input', (e) => {
+        waveOffset = parseInt(e.target.value, 10);
+        waveOffsetVal.textContent = `${waveOffset}px`;
+        recalculateTerrace();
+      });
+
+      // Palette
+      document.querySelectorAll('[data-color]').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+          document.querySelectorAll('[data-color]').forEach(s => s.classList.remove('active'));
+          swatch.classList.add('active');
+          setSpotColor(swatch.dataset.color);
+        });
+      });
+
+      document.querySelectorAll('[data-paper]').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+          document.querySelectorAll('[data-paper]').forEach(s => s.classList.remove('active'));
+          swatch.classList.add('active');
+          setPaperColor(swatch.dataset.paper);
+        });
+      });
+
+      document.getElementById('custom-spot-picker').addEventListener('input', (e) => {
+        setSpotColor(e.target.value);
+        document.querySelectorAll('[data-color]').forEach(s => s.classList.remove('active'));
+      });
+      document.getElementById('custom-paper-picker').addEventListener('input', (e) => {
+        setPaperColor(e.target.value);
+        document.querySelectorAll('[data-paper]').forEach(s => s.classList.remove('active'));
+      });
+
+      // Accents controls
+      const regTopBar = document.getElementById('reg-top-bar');
+      const regBleedBar = document.getElementById('reg-bleed-bar');
+      const regBottomAssembly = document.getElementById('reg-bottom-assembly');
+
+      document.getElementById('toggle-top-reg').addEventListener('change', (e) => {
+        regTopBar.style.display = e.target.checked ? 'flex' : 'none';
+      });
+      document.getElementById('toggle-bleed-bar').addEventListener('change', (e) => {
+        regBleedBar.style.display = e.target.checked ? 'block' : 'none';
+      });
+      document.getElementById('toggle-bottom-reg').addEventListener('change', (e) => {
+        regBottomAssembly.style.display = e.target.checked ? 'flex' : 'none';
+      });
+
+      document.getElementById('toggle-stripes').addEventListener('change', (e) => {
+        rulesStack.style.display = e.target.checked ? 'flex' : 'none';
+      });
+      document.getElementById('stripes-y-slider').addEventListener('input', (e) => {
+        rulesStack.style.top = `${e.target.value}px`;
+        document.getElementById('stripes-y-val').textContent = `${e.target.value}px`;
+      });
+      document.getElementById('stripes-w-slider').addEventListener('input', (e) => {
+        const w = parseInt(e.target.value, 10);
+        rulesStack.style.width = `${w}px`;
+        rulesStack.style.right = `48px`;
+        document.getElementById('stripes-w-val').textContent = `${w}px`;
+      });
+
+      document.getElementById('toggle-circles').addEventListener('change', (e) => {
+        const d = e.target.checked ? 'block' : 'none';
+        circleTop.style.display = d;
+        circleBottom.style.display = d;
+      });
+      document.getElementById('top-circle-slider').addEventListener('input', (e) => {
+        circleTop.style.top = `${e.target.value}px`;
+        document.getElementById('top-circle-val').textContent = `${e.target.value}px`;
+      });
+      document.getElementById('bot-circle-slider').addEventListener('input', (e) => {
+        circleBottom.style.top = `${e.target.value}px`;
+        document.getElementById('bot-circle-val').textContent = `${e.target.value}px`;
+      });
+
+      // Guides
+      const guidesCheckbox = document.getElementById('toggle-guides');
+      function setGuides(visible) {
+        guidesCheckbox.checked = visible;
+        gridOverlay.classList.toggle('visible', visible);
+      }
+      guidesCheckbox.addEventListener('change', (e) => setGuides(e.target.checked));
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          if (e.key === 'g' || e.key === 'G') {
+            setGuides(!gridOverlay.classList.contains('visible'));
+          }
+        }
+      });
+
+      // Zoom
+      document.querySelectorAll('.zoom-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const sc = parseFloat(btn.dataset.scale);
+          posterScaler.style.transform = `scale(${sc})`;
+          document.getElementById('scale-indicator').textContent = `${Math.round(sc * 100)}% Zoom`;
+          setTimeout(recalculateTerrace, 160);
+        });
+      });
+
+      // Style Presets
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+      });
+
+      // Standalone HTML Exporter
+      document.getElementById('btn-export-html').addEventListener('click', () => {
+        const posterClone = poster.cloneNode(true);
+        const overlay = posterClone.querySelector('.grid-overlay');
+        if (overlay) overlay.remove();
+        const fullCss = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
+        const htmlDoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Architectural Poster</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Oswald:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    ${fullCss}
+    body { background: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 40px; margin: 0; }
+  </style>
+</head>
+<body>
+  ${posterClone.outerHTML}
+</body>
+</html>`;
+        downloadFile(htmlDoc, 'architectural_poster.html', 'text/html');
+      });
+
+      // SVG Exporter
+      document.getElementById('btn-export-svg').addEventListener('click', () => {
+        const svgPath = pathElement.getAttribute('d');
+        const spotColor = getComputedStyle(document.documentElement).getPropertyValue('--color-spot').trim();
+        const paperBg = getComputedStyle(document.documentElement).getPropertyValue('--poster-paper-bg').trim() || '#FFFFFF';
+
+        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${posterWidth} ${posterHeight}" width="${posterWidth}" height="${posterHeight}">
+  <rect width="${posterWidth}" height="${posterHeight}" fill="${paperBg}" />
+  <path d="${svgPath}" fill="${spotColor}" />
+  <circle cx="41" cy="${parseInt(circleTop.style.top || 672) + 17}" r="17" fill="#FFFFFF" />
+  <circle cx="41" cy="${parseInt(circleBottom.style.top || 785) + 17}" r="17" fill="${spotColor}" />
+  <rect x="${posterWidth - 48 - parseInt(rulesStack.style.width || 84)}" y="${parseInt(rulesStack.style.top || 650)}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="#FFFFFF" />
+  <rect x="${posterWidth - 48 - parseInt(rulesStack.style.width || 84)}" y="${parseInt(rulesStack.style.top || 650) + 12}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="#FFFFFF" />
+  <rect x="${posterWidth - 48 - parseInt(rulesStack.style.width || 84)}" y="${parseInt(rulesStack.style.top || 650) + 24}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="#FFFFFF" />
+  <rect x="0" y="0" width="${Math.round(posterWidth * 0.32)}" height="38" fill="#111111" />
+  <rect x="${posterWidth - 14}" y="0" width="14" height="120" fill="#111111" />
+</svg>`;
+        downloadFile(svgContent, 'architectural_vector_framework.svg', 'image/svg+xml');
+      });
+
+      // PNG Exporter
+      document.getElementById('btn-export-png').addEventListener('click', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = posterWidth * 2;
+        canvas.height = posterHeight * 2;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(2, 2);
+
+        const paperBg = getComputedStyle(document.documentElement).getPropertyValue('--poster-paper-bg').trim() || '#FFFFFF';
+        ctx.fillStyle = paperBg;
+        ctx.fillRect(0, 0, posterWidth, posterHeight);
+
+        const spotColor = getComputedStyle(document.documentElement).getPropertyValue('--color-spot').trim();
+        const p2d = new Path2D(pathElement.getAttribute('d'));
+        ctx.fillStyle = spotColor;
+        ctx.fill(p2d);
+
+        if (regTopBar.style.display !== 'none') {
+          ctx.fillStyle = '#111111';
+          ctx.fillRect(0, 0, Math.round(posterWidth * 0.32), 38);
+        }
+        if (regBleedBar.style.display !== 'none') {
+          ctx.fillStyle = '#111111';
+          ctx.fillRect(posterWidth - 14, 0, 14, 120);
+        }
+
+        if (circleTop.style.display !== 'none') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.arc(41, parseInt(circleTop.style.top || 672) + 17, 17, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = spotColor;
+          ctx.beginPath();
+          ctx.arc(41, parseInt(circleBottom.style.top || 785) + 17, 17, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          ctx.save();
+          ctx.filter = `grayscale(${graySlider.value}%) contrast(${contrastSlider.value}%)`;
+          ctx.drawImage(img, 195, stagePadTop, photoSize, photoSize);
+          ctx.restore();
+
+          ctx.fillStyle = '#111111';
+          const fontSize = parseInt(subheadFontSlider.value, 10);
+          ctx.font = `700 ${fontSize}px "Inter", sans-serif`;
+          ctx.fillText(posterH2.textContent.slice(0, 42), 195, stagePadTop + photoSize + 22 + fontSize);
+
+          canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `architectural_poster_${posterWidth}x${posterHeight}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+        };
+        img.onerror = () => {
+          alert('Note: Image CORS restricted direct rasterization. Saved SVG or HTML instead!');
+        };
+        img.src = heroImg.src;
+      });
+
+      function downloadFile(content, fileName, contentType) {
+        const blob = new Blob([content], { type: contentType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      document.fonts.ready.then(() => {
+        autoScaleLayoutByRatio();
+        recalculateTerrace();
+      });
+      window.addEventListener('resize', recalculateTerrace);
+    }
+
+    window.addEventListener('DOMContentLoaded', initEvents);
+  </script>
+
+</body>
+</html>
