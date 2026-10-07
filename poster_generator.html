@@ -24,6 +24,7 @@
       --datum-x: 195px;
       --color-spot: #b5c7bc;
       --poster-paper-bg: #FFFFFF;
+      --poster-ink-color: #111111;
       --poster-scale: 1;
 
       /* Dynamic Visual Stage Coordinates */
@@ -387,6 +388,13 @@
       gap: 16px;
     }
 
+    .stage-toolbar-group {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
     .stage-toolbar {
       width: 100%;
       background: #FFFFFF;
@@ -399,6 +407,50 @@
       font-size: 0.85rem;
       font-weight: 600;
     }
+
+    .generator-toolbar-strip {
+      width: 100%;
+      background: #FAF7F2;
+      border: 1px dashed rgba(43, 33, 27, 0.25);
+      border-radius: 12px;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .generator-strip-label {
+      font-family: var(--font-heading);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.75;
+      font-weight: 600;
+    }
+
+    .btn-randomize {
+      background: var(--color-accent);
+      color: var(--color-text);
+      border: 1px solid rgba(43, 33, 27, 0.18);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+    }
+    .btn-randomize:hover {
+      background: #e198aa;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(43, 33, 27, 0.1);
+    }
+
     .zoom-controls {
       display: flex;
       gap: 6px;
@@ -440,7 +492,7 @@
       width: var(--poster-w);
       height: var(--poster-h);
       background: var(--poster-paper-bg);
-      color: #111111;
+      color: var(--poster-ink-color);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -468,7 +520,7 @@
       left: var(--datum-x);
     }
     .datum-line-v::after {
-      content: 'DATUM RAIL (195px)';
+      content: 'DATUM RAIL';
       position: absolute;
       top: 60px;
       left: 4px;
@@ -484,21 +536,23 @@
       background-size: 100% 24px;
     }
 
+    /* Top Margin Marks: Black blocks with 6px gaps */
     .reg-top-bar {
       position: absolute;
       top: 0;
       left: 0;
       width: 32%;
       height: 38px;
-      background: #111111;
+      background: transparent;
       display: flex;
-      justify-content: space-evenly;
       align-items: stretch;
+      gap: 6px;
       z-index: 50;
     }
     .reg-top-bar span {
-      width: 2px;
-      background: #FFFFFF;
+      flex: 1;
+      height: 100%;
+      background: var(--poster-ink-color);
       display: block;
     }
 
@@ -508,27 +562,28 @@
       right: 0;
       width: 14px;
       height: 120px;
-      background: #111111;
+      background: var(--poster-ink-color);
       z-index: 50;
     }
 
+    /* Left Bottom Edge Bleed Indicator */
     .reg-bottom-assembly {
       position: absolute;
       bottom: 0;
-      left: 14%;
+      left: 0;
       display: flex;
       align-items: flex-end;
       z-index: 50;
     }
     .reg-block-main {
-      width: 85px;
+      width: 140px;
       height: 24px;
-      background: #111111;
+      background: var(--poster-ink-color);
     }
     .reg-block-step {
-      width: 28px;
+      width: 38px;
       height: 14px;
-      background: #111111;
+      background: var(--poster-ink-color);
     }
 
     .monolithic-spot-shape {
@@ -546,14 +601,14 @@
       left: 24px;
       z-index: 3;
       pointer-events: none;
-      transition: top 0.25s ease;
+      transition: top 0.25s ease, left 0.25s ease, right 0.25s ease;
     }
     .circle-top-white {
       top: 672px;
       width: 34px;
       height: 34px;
       border-radius: 50%;
-      background: #FFFFFF;
+      background: var(--poster-paper-bg);
     }
     .circle-bottom-green {
       top: 785px;
@@ -563,6 +618,7 @@
       background: var(--color-spot);
     }
 
+    /* Knockout rules behind subheading/images (z-index 2) */
     .horizontal-rules-stack {
       position: absolute;
       top: 650px;
@@ -571,15 +627,15 @@
       display: flex;
       flex-direction: column;
       gap: 9px;
-      z-index: 10;
+      z-index: 2;
       pointer-events: none;
-      transition: top 0.25s ease;
+      transition: top 0.25s ease, right 0.25s ease, left 0.25s ease;
     }
     .horizontal-rules-stack span {
       display: block;
       width: 100%;
       height: 3px;
-      background: #FFFFFF;
+      background: var(--poster-paper-bg);
     }
 
     .upper-zone {
@@ -594,11 +650,12 @@
     .vertical-rail-grid {
       position: relative;
       display: flex;
+      flex-direction: row; /* Preserves Col 1 -> Col 2 -> Col 3 order */
       justify-content: flex-start;
-      /* All vertical text bottom-aligned to the baseline */
-      align-items: flex-end;
+      align-items: flex-end; /* Bottom-anchored */
       height: var(--photo-size);
       padding-left: 20px;
+      padding-right: 0;
       padding-bottom: 0px;
       gap: 12px;
       z-index: 10;
@@ -608,8 +665,10 @@
     .v-col {
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
+      justify-content: flex-end; /* Text sits at the baseline */
       align-items: center;
+      position: relative;
+      height: 100%;
     }
 
     .v-line {
@@ -621,13 +680,15 @@
       letter-spacing: -0.035em;
       white-space: nowrap;
       font-family: 'Inter', -apple-system, sans-serif;
+      display: inline-flex;
+      flex-direction: row;
     }
 
     .v-word {
-      display: inline;
+      display: inline-block;
     }
     .v-space {
-      display: inline;
+      display: inline-block;
       white-space: pre;
     }
 
@@ -640,6 +701,7 @@
       align-items: flex-start;
       padding-top: 0;
       padding-right: 24px;
+      padding-left: 0;
       z-index: 4;
     }
 
@@ -675,7 +737,6 @@
       transition: margin-top 0.2s ease, font-size 0.2s ease;
     }
 
-    /* Raised closer under the photo and subheading */
     .lower-zone-datum {
       position: relative;
       width: 100%;
@@ -692,6 +753,7 @@
       grid-template-columns: repeat(4, 1fr);
       column-gap: 16px;
       padding-right: 24px;
+      padding-left: 0;
       font-size: 0.49rem;
       line-height: 1.35;
       letter-spacing: -0.005em;
@@ -707,6 +769,60 @@
     }
     .text-col strong {
       font-weight: 700;
+    }
+
+    /* RIGHT-ALIGNED VERTICAL TEXT MODE */
+    .poster-canvas.text-on-right .upper-zone {
+      grid-template-columns: calc(100% - var(--datum-x)) var(--datum-x);
+    }
+    .poster-canvas.text-on-right .upper-zone .vertical-rail-grid {
+      order: 2;
+      padding-left: 0;
+      padding-right: 20px;
+      flex-direction: row; /* Keeps line order unchanged */
+      justify-content: flex-start;
+    }
+    .poster-canvas.text-on-right .upper-zone .visual-stage {
+      order: 1;
+      padding-left: 24px;
+      padding-right: 0;
+      align-items: flex-start;
+    }
+    .poster-canvas.text-on-right .lower-zone-datum {
+      grid-template-columns: calc(100% - var(--datum-x)) var(--datum-x);
+    }
+    .poster-canvas.text-on-right .lower-zone-datum .editorial-columns-grid {
+      order: 1;
+      padding-left: 24px;
+      padding-right: 0;
+    }
+    .poster-canvas.text-on-right .lower-zone-datum > div:not(.editorial-columns-grid) {
+      order: 2;
+    }
+    .poster-canvas.text-on-right .grid-overlay .datum-line-v {
+      left: auto;
+      right: var(--datum-x);
+    }
+    .poster-canvas.text-on-right .circle-assembly {
+      left: auto;
+      right: 24px;
+    }
+    .poster-canvas.text-on-right .horizontal-rules-stack {
+      right: auto;
+      left: 48px;
+    }
+    .poster-canvas.text-on-right .reg-top-bar {
+      left: auto;
+      right: 0;
+    }
+    .poster-canvas.text-on-right .reg-bleed-indicator {
+      right: auto;
+      left: 0;
+    }
+    .poster-canvas.text-on-right .reg-bottom-assembly {
+      left: auto;
+      right: 0;
+      transform: scaleX(-1);
     }
   </style>
 </head>
@@ -752,8 +868,13 @@
 
         <!-- TAB 1: Vertical Text -->
         <div class="tab-content active" id="tab-text">
+          <!-- Text Position Toggle (Right/Left) -->
+          <button class="btn-action secondary" id="btn-toggle-text-align" style="font-weight: 800; letter-spacing: 0.08em; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>⇄</span> Move Text to <span id="align-btn-dir-label">Right</span>
+          </button>
+
           <div class="control-card">
-            <span class="card-label">Column 1 (Outer Left)</span>
+            <span class="card-label">Column 1 (Outer Rail)</span>
             <div class="input-field-group">
               <label>Text Line</label>
               <input type="text" id="text-col-1" value="Columbia University">
@@ -814,7 +935,7 @@
             <div class="input-field-group">
               <div class="slider-control">
                 <label>Final Step Height (Y)</label>
-                <input type="range" id="final-step-slider" min="60" max="500" value="220">
+                <input type="range" id="final-step-slider" min="60" max="1000" value="220">
                 <span class="slider-badge" id="final-step-val">220px</span>
               </div>
             </div>
@@ -829,7 +950,7 @@
               <button class="preset-chip" data-img="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=700&q=80">Brutalist Relief</button>
               <button class="preset-chip" data-img="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=700&q=80">Angular Facets</button>
               <button class="preset-chip" data-img="https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=700&q=80">Concrete Monolith</button>
-              <button class="preset-chip" data-img="https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=700&q=80">Hard Shadows</button>
+              <button class="preset-chip" data-img="https://images.unsplash.com/photo-1486718448742-163732cd1544?auto=format&fit=crop&w=700&q=80">Hard Shadows</button>
             </div>
           </div>
 
@@ -1016,10 +1137,14 @@
               <label>Custom Paper Tone</label>
               <input type="color" id="custom-paper-picker" value="#ffffff" class="color-picker-inline">
             </div>
+            <div class="slider-control">
+              <label>Text & Mark Color</label>
+              <input type="color" id="custom-text-picker" value="#111111" class="color-picker-inline">
+            </div>
           </div>
         </div>
 
-        <!-- TAB 6: Accents (Updated with Wave Calibration) -->
+        <!-- TAB 6: Accents -->
         <div class="tab-content" id="tab-accents">
           <div class="control-card">
             <span class="card-label">Wave Calibration</span>
@@ -1065,7 +1190,7 @@
             </label>
             <label class="checkbox-row">
               <input type="checkbox" id="toggle-bottom-reg" checked>
-              <span>Baseline Multi-Block Cluster</span>
+              <span>Left Bottom Edge Bleed Indicator</span>
             </label>
           </div>
 
@@ -1073,7 +1198,7 @@
             <span class="card-label">Knockout Lines Geometry</span>
             <label class="checkbox-row">
               <input type="checkbox" id="toggle-stripes" checked>
-              <span>Show Horizontal White Rules</span>
+              <span>Show Horizontal Rules</span>
             </label>
             <div class="input-field-group">
               <div class="slider-control">
@@ -1124,16 +1249,27 @@
 
       <!-- Poster Viewport -->
       <section class="stage-wrapper">
-        <div class="stage-toolbar">
-          <label class="checkbox-row" title="Shortcut: Press 'G' key">
-            <input type="checkbox" id="toggle-guides">
-            <span>Show Grid & Datum Overlay (G)</span>
-          </label>
-          <div class="zoom-controls">
-            <span style="font-size: 0.75rem; opacity: 0.7;">ZOOM:</span>
-            <button class="zoom-btn" data-scale="0.6">60%</button>
-            <button class="zoom-btn" data-scale="0.8">80%</button>
-            <button class="zoom-btn" data-scale="1">100%</button>
+        <div class="stage-toolbar-group">
+          <!-- Section 1: Overlay Guides & Zoom Controls -->
+          <div class="stage-toolbar">
+            <label class="checkbox-row" title="Shortcut: Press 'G' key">
+              <input type="checkbox" id="toggle-guides">
+              <span>Show Grid & Datum Overlay (G)</span>
+            </label>
+            <div class="zoom-controls">
+              <span style="font-size: 0.75rem; opacity: 0.7;">ZOOM:</span>
+              <button class="zoom-btn" data-scale="0.6">60%</button>
+              <button class="zoom-btn" data-scale="0.8">80%</button>
+              <button class="zoom-btn" data-scale="1">100%</button>
+            </div>
+          </div>
+
+          <!-- Section 2: Dedicated Random Generation Strip -->
+          <div class="generator-toolbar-strip">
+            <span class="generator-strip-label">Generative Layout Engine</span>
+            <button class="btn-randomize" id="btn-random-generation" title="Randomize Poster Elements & Dimensions">
+              <span>⚄</span> Random Generation
+            </button>
           </div>
         </div>
 
@@ -1148,9 +1284,9 @@
                 <div class="baseline-grid-stripes"></div>
               </div>
 
-              <!-- Registration Calibration Marks -->
+              <!-- Top Calibration Marks (Black segments with 6px gaps) -->
               <div class="reg-top-bar" id="reg-top-bar">
-                <span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
               </div>
               <div class="reg-bleed-indicator" id="reg-bleed-bar"></div>
 
@@ -1163,14 +1299,14 @@
               <div class="circle-assembly circle-top-white" id="circle-top"></div>
               <div class="circle-assembly circle-bottom-green" id="circle-bottom"></div>
 
-              <!-- Layer 5: 3 Horizontal Rules -->
+              <!-- Layer 4: Knockout Horizontal Rules (z-index: 2, sits behind visual stage text) -->
               <div class="horizontal-rules-stack" id="rules-stack">
                 <span></span>
                 <span></span>
                 <span></span>
               </div>
 
-              <!-- Upper Zone: Rigid 2-Column Grid -->
+              <!-- Upper Zone: 2-Column Grid -->
               <section class="upper-zone" id="upper-zone">
                 <aside class="vertical-rail-grid" id="vertical-rail">
                   <div class="v-col" id="col-1"><span class="v-line" id="line-1"></span></div>
@@ -1186,9 +1322,9 @@
                 </div>
               </section>
 
-              <!-- Lower Modular Grid: Left-aligned with Upper Datum Zone (195px) -->
+              <!-- Lower Modular Grid: Aligned with Datum Zone -->
               <footer class="lower-zone-datum" id="lower-zone-footer">
-                <div></div> <!-- Column 1: Blank Datum Buffer (195px) -->
+                <div></div> <!-- Blank Datum Buffer (195px) -->
                 <div class="editorial-columns-grid" id="body-text-grid">
                   <div class="text-col">
                     <p id="footer-p-3">The master's degree historic preservation program provides specialized training for the individual who wishes to be professionally active in preservation as architects, conservators, historians, and planners.</p>
@@ -1210,7 +1346,7 @@
                 </div>
               </footer>
 
-              <!-- Baseline Registration Assembly -->
+              <!-- Left/Right Bottom Edge Bleed Indicator -->
               <div class="reg-bottom-assembly" id="reg-bottom-assembly">
                 <div class="reg-block-main"></div>
                 <div class="reg-block-step"></div>
@@ -1258,6 +1394,8 @@
     const circleTop = document.getElementById('circle-top');
     const circleBottom = document.getElementById('circle-bottom');
 
+    let isTextOnRight = false;
+
     let posterWidth = 600;
     let posterHeight = 1200;
     let photoSize = 381;
@@ -1266,7 +1404,7 @@
 
     // Wave parameters
     let waveCount = 2;
-    let waveRoundness = 0.85; // 0 = sharp / pointy, 1 = smooth curve
+    let waveRoundness = 0.85;
     let waveAmplitude = 32;
     let waveOffset = 0;
 
@@ -1309,7 +1447,6 @@
     const waveOffsetSlider = document.getElementById('wave-offset-slider');
     const waveOffsetVal = document.getElementById('wave-offset-val');
 
-    // Default snap indices: Col 1 starts at Start of Line (behind first letter / baseline), Col 2 at Architecture, Col 3 at Planning
     let selectedSnapIndices = [-1, 3, 1];
 
     function renderLineWords(columnIndex) {
@@ -1338,7 +1475,6 @@
       const prevSel = (selectedSnapIndices[columnIndex] !== undefined) ? selectedSnapIndices[columnIndex] : defaultSnaps[columnIndex];
       selectEl.innerHTML = '';
 
-      // Option to end terrace step right behind the first letter of the line (bottom alignment)
       const startOpt = document.createElement('option');
       startOpt.value = -1;
       startOpt.textContent = 'Start of Line (Behind 1st Letter)';
@@ -1360,18 +1496,18 @@
     }
 
     function buildUniformWavePath(startX, baselineY, targetLeftX, count, amplitude, roundness) {
-      const totalWidth = startX - targetLeftX;
+      const totalWidth = Math.abs(startX - targetLeftX);
       if (count <= 0 || amplitude <= 0) {
         return `H ${targetLeftX}`;
       }
 
       const halfCycles = count * 2;
-      const stepX = totalWidth / halfCycles;
+      const stepX = (targetLeftX - startX) / halfCycles;
       let pathCommands = '';
       let currentX = startX;
 
       for (let i = 0; i < halfCycles; i++) {
-        const nextX = currentX - stepX;
+        const nextX = currentX + stepX;
         const targetY = (i % 2 === 0) ? (baselineY - amplitude) : (baselineY + amplitude);
 
         if (roundness <= 0.02) {
@@ -1380,9 +1516,9 @@
           const prevY = (i === 0) ? baselineY : ((i % 2 === 1) ? (baselineY - amplitude) : (baselineY + amplitude));
           const handleOffset = (stepX * 0.5) * roundness;
 
-          const cp1x = currentX - handleOffset;
+          const cp1x = currentX + handleOffset;
           const cp1y = prevY;
-          const cp2x = nextX + handleOffset;
+          const cp2x = nextX - handleOffset;
           const cp2y = targetY;
 
           pathCommands += ` C ${Math.round(cp1x)},${Math.round(cp1y)} ${Math.round(cp2x)},${Math.round(cp2y)} ${Math.round(nextX)},${Math.round(targetY)}`;
@@ -1398,22 +1534,14 @@
     function recalculateTerrace() {
       const posterRect = poster.getBoundingClientRect();
       const clearance = parseInt(clearanceSlider.value, 10);
-      const rightBoundaryX = posterWidth - 48;
-
       const scale = posterRect.width / posterWidth || 1;
-      const stepMetrics = [];
+      const railRect = rail.getBoundingClientRect();
+      const railBaselinePad = parseInt(railPadSlider.value, 10);
 
-      // Calculate the true bottom alignment baseline directly from the vertical text elements
-      // (ensuring dynamic tracking when Rail Baseline Pad is adjusted)
-      const textBottoms = Array.from(lineElements).map(el => {
-        const words = el.querySelectorAll('.v-word');
-        if (words.length > 0) {
-          // First word is at the bottom in vertical-rl rotate(180deg)
-          return Math.max(el.getBoundingClientRect().bottom, words[0].getBoundingClientRect().bottom);
-        }
-        return el.getBoundingClientRect().bottom;
-      });
-      const railBaselineY = Math.round((Math.max(...textBottoms) - posterRect.top) / scale);
+      // Shared baseline at the bottom of the vertical text rail
+      const railBaselineY = (railRect.bottom - posterRect.top) / scale - railBaselinePad;
+
+      const stepMetrics = [];
 
       for (let i = 0; i < 3; i++) {
         const lineEl = lineElements[i];
@@ -1421,57 +1549,91 @@
         const activeIdx = selectedSnapIndices[i];
         const colContainerRect = lineEl.getBoundingClientRect();
         const relRight = (colContainerRect.right - posterRect.left) / scale;
+        const relLeft = (colContainerRect.left - posterRect.left) / scale;
 
         if (activeIdx === -1) {
-          // 'Start of Line': Step rests exactly at the bottom alignment of the vertical text behind the first letter
+          // Snap behind the first letter (bottom baseline)
           stepMetrics.push({
-            topY: railBaselineY,
-            rightX: Math.round(relRight)
+            topY: Math.round(railBaselineY),
+            rightX: Math.round(relRight),
+            leftX: Math.round(relLeft)
           });
         } else {
           const targetWordSpan = wordSpans[activeIdx] || wordSpans[0];
           if (targetWordSpan) {
             const wordRect = targetWordSpan.getBoundingClientRect();
+            // Since the text reads upwards, the top of the word is wordRect.top
             const relTop = (wordRect.top - posterRect.top) / scale;
 
             stepMetrics.push({
               topY: Math.round(relTop - clearance),
-              rightX: Math.round(relRight)
+              rightX: Math.round(relRight),
+              leftX: Math.round(relLeft)
             });
           }
         }
       }
 
       if (stepMetrics.length === 3) {
-        const s1 = stepMetrics[0];
-        const s2 = stepMetrics[1];
-        const s3 = stepMetrics[2];
+        const s1 = stepMetrics[0]; // Col 1 (Columbia University)
+        const s2 = stepMetrics[1]; // Col 2 (Graduate School of Architecture)
+        const s3 = stepMetrics[2]; // Col 3 (and Planning)
 
         const imageBottom = stagePadTop + photoSize;
         const terraceCutY = Math.min(posterHeight - 120, Math.max(imageBottom + 10, 380)) + waveOffset;
         const terraceWaveBaseY = terraceCutY + 45;
 
-        const waveSvgPath = buildUniformWavePath(rightBoundaryX, terraceWaveBaseY, 0, waveCount, waveAmplitude, waveRoundness);
+        let pathData = '';
 
-        const pathData = `
-          M 24,${s1.topY}
-          H ${s1.rightX + 4}
-          V ${s2.topY}
-          H ${s2.rightX + 4}
-          V ${s3.topY}
-          H ${s3.rightX + 4}
-          V ${finalStepHeight}
-          H ${rightBoundaryX}
-          V ${terraceCutY}
-          H ${rightBoundaryX}
-          V ${terraceWaveBaseY}
-          ${waveSvgPath}
-          V ${Math.max(s1.topY, 460)}
-          H 24
-          Z
-        `.replace(/\s+/g, ' ').trim();
+        if (!isTextOnRight) {
+          // Standard: Left-aligned text stepping left to right (Col 1 -> Col 2 -> Col 3 -> Stage)
+          const rightBoundaryX = posterWidth - 48;
+          const waveSvgPath = buildUniformWavePath(rightBoundaryX, terraceWaveBaseY, 0, waveCount, waveAmplitude, waveRoundness);
 
-        pathElement.setAttribute('d', pathData);
+          pathData = `
+            M 24,${s1.topY}
+            H ${s1.rightX + 4}
+            V ${s2.topY}
+            H ${s2.rightX + 4}
+            V ${s3.topY}
+            H ${s3.rightX + 4}
+            V ${finalStepHeight}
+            H ${rightBoundaryX}
+            V ${terraceCutY}
+            H ${rightBoundaryX}
+            V ${terraceWaveBaseY}
+            ${waveSvgPath}
+            V ${Math.max(s1.topY, 460)}
+            H 24
+            Z
+          `;
+        } else {
+          // Right-aligned: Text maintains Col 1 -> Col 2 -> Col 3 order left-to-right.
+          // Terrace starts at outer right margin, steps leftward across Col 3 -> Col 2 -> Col 1 -> Left Stage
+          const leftBoundaryX = 48;
+          const outerRightX = posterWidth - 24;
+          const waveSvgPath = buildUniformWavePath(leftBoundaryX, terraceWaveBaseY, posterWidth, waveCount, waveAmplitude, waveRoundness);
+
+          pathData = `
+            M ${outerRightX},${s3.topY}
+            H ${s3.leftX - 4}
+            V ${s2.topY}
+            H ${s2.leftX - 4}
+            V ${s1.topY}
+            H ${s1.leftX - 4}
+            V ${finalStepHeight}
+            H ${leftBoundaryX}
+            V ${terraceCutY}
+            H ${leftBoundaryX}
+            V ${terraceWaveBaseY}
+            ${waveSvgPath}
+            V ${Math.max(s3.topY, 460)}
+            H ${outerRightX}
+            Z
+          `;
+        }
+
+        pathElement.setAttribute('d', pathData.replace(/\s+/g, ' ').trim());
       }
     }
 
@@ -1538,11 +1700,24 @@
     function setPaperColor(color) {
       document.documentElement.style.setProperty('--poster-paper-bg', color);
       document.getElementById('custom-paper-picker').value = color;
+      circleTop.style.background = color;
+      rulesStack.querySelectorAll('span').forEach(span => {
+        span.style.background = color;
+      });
       if (color.toLowerCase() === '#262523') {
-        poster.style.color = '#F5F5F5';
-      } else {
-        poster.style.color = '#111111';
+        setTextColor('#F5F5F5');
+      } else if (getComputedStyle(document.documentElement).getPropertyValue('--poster-ink-color').trim().toLowerCase() === '#f5f5f5') {
+        setTextColor('#111111');
       }
+    }
+
+    function setAccentColor(color) {
+      document.documentElement.style.setProperty('--color-accent', '#E8A8B8');
+    }
+
+    function setTextColor(color) {
+      document.documentElement.style.setProperty('--poster-ink-color', color);
+      document.getElementById('custom-text-picker').value = color;
     }
 
     const PRESETS = {
@@ -1553,6 +1728,8 @@
         h2: 'Master of Science in Historic Preservation',
         color: '#b5c7bc',
         paper: '#FFFFFF',
+        accent: '#E8A8B8',
+        text: '#111111',
         img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=700&q=80'
       },
       bauhaus: {
@@ -1562,6 +1739,8 @@
         h2: 'Ausstellung Neue Baukunst & Raumkunst',
         color: '#C36B5E',
         paper: '#FBF8F3',
+        accent: '#E8A8B8',
+        text: '#1F1B18',
         img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=700&q=80'
       },
       zurich: {
@@ -1571,6 +1750,8 @@
         h2: 'Internationale Plakatgestaltung und Neue Grafik',
         color: '#9BB0BC',
         paper: '#F2EEE6',
+        accent: '#E8A8B8',
+        text: '#1A1C1E',
         img: 'https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=700&q=80'
       }
     };
@@ -1587,6 +1768,8 @@
       document.getElementById('image-url-input').value = p.img;
       setSpotColor(p.color);
       setPaperColor(p.paper);
+      setAccentColor('#E8A8B8');
+      if (p.text) setTextColor(p.text);
 
       document.querySelectorAll('[data-color]').forEach(s => {
         s.classList.toggle('active', s.dataset.color.toLowerCase() === p.color.toLowerCase());
@@ -1601,8 +1784,154 @@
       recalculateTerrace();
     }
 
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function randPick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function setVerticalAlignment(onRight) {
+      isTextOnRight = onRight;
+      poster.classList.toggle('text-on-right', isTextOnRight);
+      const alignLabel = document.getElementById('align-btn-dir-label');
+      if (alignLabel) {
+        alignLabel.textContent = isTextOnRight ? 'Left' : 'Right';
+      }
+    }
+
+    function randomizeElements() {
+      setVerticalAlignment(Math.random() > 0.5);
+
+      const ratioChips = Array.from(document.querySelectorAll('.preset-chip[data-w]'));
+      if (ratioChips.length > 0) {
+        const pickedChip = randPick(ratioChips);
+        ratioChips.forEach(c => c.classList.remove('active'));
+        pickedChip.classList.add('active');
+        updatePosterDimensions(pickedChip.dataset.w, pickedChip.dataset.h);
+      }
+
+      for (let i = 0; i < 3; i++) {
+        const sel = selectors[i];
+        if (sel.options.length > 0) {
+          const randomIndex = Math.floor(Math.random() * sel.options.length);
+          const chosenVal = parseInt(sel.options[randomIndex].value, 10);
+          selectedSnapIndices[i] = chosenVal;
+          sel.value = chosenVal;
+        }
+      }
+
+      const newClearance = randInt(4, 26);
+      clearanceSlider.value = newClearance;
+      clearanceVal.textContent = `${newClearance}px`;
+
+      const newRailPad = randInt(0, 60);
+      railPadSlider.value = newRailPad;
+      railPadVal.textContent = `${newRailPad}px`;
+      rail.style.paddingBottom = `${newRailPad}px`;
+
+      const newFontSize = randInt(22, 34);
+      fontSizeSlider.value = newFontSize;
+      fontSizeVal.textContent = `${newFontSize}px`;
+      lineElements.forEach(l => l.style.fontSize = `${newFontSize}px`);
+
+      finalStepHeight = randInt(120, 650);
+      finalStepSlider.value = finalStepHeight;
+      finalStepVal.textContent = `${finalStepHeight}px`;
+
+      waveCount = randInt(1, 6);
+      waveCountSlider.value = waveCount;
+      waveCountVal.textContent = waveCount;
+
+      const newRound = randInt(20, 100);
+      waveRoundness = newRound / 100;
+      waveRoundSlider.value = newRound;
+      waveRoundVal.textContent = `${newRound}%`;
+
+      waveAmplitude = randInt(10, 55);
+      waveAmpSlider.value = waveAmplitude;
+      waveAmpVal.textContent = `${waveAmplitude}px`;
+
+      waveOffset = randInt(-60, 60);
+      waveOffsetSlider.value = waveOffset;
+      waveOffsetVal.textContent = `${waveOffset}px`;
+
+      const spotSwatches = ['#b5c7bc', '#9BB0BC', '#D8C29D', '#C69D8E', '#C36B5E', '#E2DCD2'];
+      const paperSwatches = ['#FFFFFF', '#FBF8F3', '#F2EEE6', '#E6E3DD', '#D3CEC4'];
+      const chosenSpot = randPick(spotSwatches);
+      const chosenPaper = randPick(paperSwatches);
+      setSpotColor(chosenSpot);
+      setPaperColor(chosenPaper);
+      setAccentColor('#E8A8B8');
+      setTextColor('#111111');
+
+      document.querySelectorAll('[data-color]').forEach(s => {
+        s.classList.toggle('active', s.dataset.color.toLowerCase() === chosenSpot.toLowerCase());
+      });
+      document.querySelectorAll('[data-paper]').forEach(s => {
+        s.classList.toggle('active', s.dataset.paper.toLowerCase() === chosenPaper.toLowerCase());
+      });
+
+      const subheadWidth = randInt(50, 90);
+      const subheadFont = randInt(18, 30);
+      const subheadTop = randInt(8, 28);
+      document.getElementById('subhead-width-slider').value = subheadWidth;
+      document.getElementById('subhead-width-val').textContent = `${subheadWidth}%`;
+      posterH2.style.width = `${subheadWidth}%`;
+
+      document.getElementById('subhead-font-slider').value = subheadFont;
+      document.getElementById('subhead-font-val').textContent = `${subheadFont}px`;
+      posterH2.style.fontSize = `${subheadFont}px`;
+
+      document.getElementById('subhead-top-slider').value = subheadTop;
+      document.getElementById('subhead-top-val').textContent = `${subheadTop}px`;
+      posterH2.style.marginTop = `${subheadTop}px`;
+
+      const bodyMargin = randInt(28, 80);
+      document.getElementById('body-margin-slider').value = bodyMargin;
+      document.getElementById('body-margin-val').textContent = `${bodyMargin}px`;
+      lowerZoneFooter.style.marginTop = `${bodyMargin}px`;
+
+      const showTopReg = Math.random() > 0.15;
+      const showBleed = Math.random() > 0.15;
+      const showBottomReg = Math.random() > 0.15;
+      const showStripes = Math.random() > 0.15;
+      const showCircles = Math.random() > 0.15;
+
+      document.getElementById('toggle-top-reg').checked = showTopReg;
+      document.getElementById('reg-top-bar').style.display = showTopReg ? 'flex' : 'none';
+
+      document.getElementById('toggle-bleed-bar').checked = showBleed;
+      document.getElementById('reg-bleed-bar').style.display = showBleed ? 'block' : 'none';
+
+      document.getElementById('toggle-bottom-reg').checked = showBottomReg;
+      document.getElementById('reg-bottom-assembly').style.display = showBottomReg ? 'flex' : 'none';
+
+      document.getElementById('toggle-stripes').checked = showStripes;
+      rulesStack.style.display = showStripes ? 'flex' : 'none';
+
+      document.getElementById('toggle-circles').checked = showCircles;
+      circleTop.style.display = showCircles ? 'block' : 'none';
+      circleBottom.style.display = showCircles ? 'block' : 'none';
+
+      const stripesW = randInt(60, 120);
+      document.getElementById('stripes-w-slider').value = stripesW;
+      document.getElementById('stripes-w-val').textContent = `${stripesW}px`;
+      rulesStack.style.width = `${stripesW}px`;
+
+      setTimeout(recalculateTerrace, 50);
+    }
+
     function initEvents() {
       createTwinkles();
+
+      // Right / Left Text Alignment Toggle Button
+      const toggleAlignBtn = document.getElementById('btn-toggle-text-align');
+      toggleAlignBtn.addEventListener('click', () => {
+        setVerticalAlignment(!isTextOnRight);
+        setTimeout(recalculateTerrace, 40);
+      });
 
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1809,6 +2138,9 @@
         setPaperColor(e.target.value);
         document.querySelectorAll('[data-paper]').forEach(s => s.classList.remove('active'));
       });
+      document.getElementById('custom-text-picker').addEventListener('input', (e) => {
+        setTextColor(e.target.value);
+      });
 
       // Accents controls
       const regTopBar = document.getElementById('reg-top-bar');
@@ -1835,7 +2167,6 @@
       document.getElementById('stripes-w-slider').addEventListener('input', (e) => {
         const w = parseInt(e.target.value, 10);
         rulesStack.style.width = `${w}px`;
-        rulesStack.style.right = `48px`;
         document.getElementById('stripes-w-val').textContent = `${w}px`;
       });
 
@@ -1867,6 +2198,9 @@
           }
         }
       });
+
+      // Random Generation Button
+      document.getElementById('btn-random-generation').addEventListener('click', randomizeElements);
 
       // Zoom
       document.querySelectorAll('.zoom-btn').forEach(btn => {
@@ -1912,17 +2246,43 @@
         const svgPath = pathElement.getAttribute('d');
         const spotColor = getComputedStyle(document.documentElement).getPropertyValue('--color-spot').trim();
         const paperBg = getComputedStyle(document.documentElement).getPropertyValue('--poster-paper-bg').trim() || '#FFFFFF';
+        const inkColor = getComputedStyle(document.documentElement).getPropertyValue('--poster-ink-color').trim() || '#111111';
+
+        const topBarW = posterWidth * 0.32;
+        const gap = 6;
+        const blockW = (topBarW - gap * 3) / 4;
+        let topBarSvg = '';
+        for (let i = 0; i < 4; i++) {
+          const x = isTextOnRight ? (posterWidth - topBarW + (blockW + gap) * i) : ((blockW + gap) * i);
+          topBarSvg += `<rect x="${x}" y="0" width="${blockW}" height="38" fill="${inkColor}" />\n  `;
+        }
+
+        const circleX = isTextOnRight ? (posterWidth - 41) : 41;
+        const rulesX = isTextOnRight ? 48 : (posterWidth - 48 - parseInt(rulesStack.style.width || 84));
+        const bleedX = isTextOnRight ? 0 : (posterWidth - 14);
+
+        let bottomRegSvg = '';
+        if (isTextOnRight) {
+          bottomRegSvg = `
+          <rect x="${posterWidth - 140}" y="${posterHeight - 24}" width="140" height="24" fill="${inkColor}" />
+          <rect x="${posterWidth - 178}" y="${posterHeight - 14}" width="38" height="14" fill="${inkColor}" />`;
+        } else {
+          bottomRegSvg = `
+          <rect x="0" y="${posterHeight - 24}" width="140" height="24" fill="${inkColor}" />
+          <rect x="140" y="${posterHeight - 14}" width="38" height="14" fill="${inkColor}" />`;
+        }
 
         const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${posterWidth} ${posterHeight}" width="${posterWidth}" height="${posterHeight}">
   <rect width="${posterWidth}" height="${posterHeight}" fill="${paperBg}" />
   <path d="${svgPath}" fill="${spotColor}" />
-  <circle cx="41" cy="${parseInt(circleTop.style.top || 672) + 17}" r="17" fill="#FFFFFF" />
-  <circle cx="41" cy="${parseInt(circleBottom.style.top || 785) + 17}" r="17" fill="${spotColor}" />
-  <rect x="${posterWidth - 48 - parseInt(rulesStack.style.width || 84)}" y="${parseInt(rulesStack.style.top || 650)}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="#FFFFFF" />
-  <rect x="${posterWidth - 48 - parseInt(rulesStack.style.width || 84)}" y="${parseInt(rulesStack.style.top || 650) + 12}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="#FFFFFF" />
-  <rect x="${posterWidth - 48 - parseInt(rulesStack.style.width || 84)}" y="${parseInt(rulesStack.style.top || 650) + 24}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="#FFFFFF" />
-  <rect x="0" y="0" width="${Math.round(posterWidth * 0.32)}" height="38" fill="#111111" />
-  <rect x="${posterWidth - 14}" y="0" width="14" height="120" fill="#111111" />
+  <circle cx="${circleX}" cy="${parseInt(circleTop.style.top || 672) + 17}" r="17" fill="${paperBg}" />
+  <circle cx="${circleX}" cy="${parseInt(circleBottom.style.top || 785) + 17}" r="17" fill="${spotColor}" />
+  <rect x="${rulesX}" y="${parseInt(rulesStack.style.top || 650)}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="${paperBg}" />
+  <rect x="${rulesX}" y="${parseInt(rulesStack.style.top || 650) + 12}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="${paperBg}" />
+  <rect x="${rulesX}" y="${parseInt(rulesStack.style.top || 650) + 24}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="${paperBg}" />
+  ${topBarSvg}
+  <rect x="${bleedX}" y="0" width="14" height="120" fill="${inkColor}" />
+  ${bottomRegSvg}
 </svg>`;
         downloadFile(svgContent, 'architectural_vector_framework.svg', 'image/svg+xml');
       });
@@ -1936,6 +2296,7 @@
         ctx.scale(2, 2);
 
         const paperBg = getComputedStyle(document.documentElement).getPropertyValue('--poster-paper-bg').trim() || '#FFFFFF';
+        const inkColor = getComputedStyle(document.documentElement).getPropertyValue('--poster-ink-color').trim() || '#111111';
         ctx.fillStyle = paperBg;
         ctx.fillRect(0, 0, posterWidth, posterHeight);
 
@@ -1945,23 +2306,54 @@
         ctx.fill(p2d);
 
         if (regTopBar.style.display !== 'none') {
-          ctx.fillStyle = '#111111';
-          ctx.fillRect(0, 0, Math.round(posterWidth * 0.32), 38);
-        }
-        if (regBleedBar.style.display !== 'none') {
-          ctx.fillStyle = '#111111';
-          ctx.fillRect(posterWidth - 14, 0, 14, 120);
+          ctx.fillStyle = inkColor;
+          const topBarW = posterWidth * 0.32;
+          const gap = 6;
+          const blockW = (topBarW - gap * 3) / 4;
+          for (let i = 0; i < 4; i++) {
+            const x = isTextOnRight ? (posterWidth - topBarW + (blockW + gap) * i) : ((blockW + gap) * i);
+            ctx.fillRect(x, 0, blockW, 38);
+          }
         }
 
+        if (regBleedBar.style.display !== 'none') {
+          ctx.fillStyle = inkColor;
+          const bleedX = isTextOnRight ? 0 : (posterWidth - 14);
+          ctx.fillRect(bleedX, 0, 14, 120);
+        }
+
+        if (regBottomAssembly.style.display !== 'none') {
+          ctx.fillStyle = inkColor;
+          if (isTextOnRight) {
+            ctx.fillRect(posterWidth - 140, posterHeight - 24, 140, 24);
+            ctx.fillRect(posterWidth - 178, posterHeight - 14, 38, 14);
+          } else {
+            ctx.fillRect(0, posterHeight - 24, 140, 24);
+            ctx.fillRect(140, posterHeight - 14, 38, 14);
+          }
+        }
+
+        // Draw Rules stack BEFORE text so it stays in the background
+        if (rulesStack.style.display !== 'none') {
+          ctx.fillStyle = paperBg;
+          const rW = parseInt(rulesStack.style.width || 84);
+          const rY = parseInt(rulesStack.style.top || 650);
+          const rX = isTextOnRight ? 48 : (posterWidth - 48 - rW);
+          ctx.fillRect(rX, rY, rW, 3);
+          ctx.fillRect(rX, rY + 12, rW, 3);
+          ctx.fillRect(rX, rY + 24, rW, 3);
+        }
+
+        const circleX = isTextOnRight ? (posterWidth - 41) : 41;
         if (circleTop.style.display !== 'none') {
-          ctx.fillStyle = '#FFFFFF';
+          ctx.fillStyle = paperBg;
           ctx.beginPath();
-          ctx.arc(41, parseInt(circleTop.style.top || 672) + 17, 17, 0, Math.PI * 2);
+          ctx.arc(circleX, parseInt(circleTop.style.top || 672) + 17, 17, 0, Math.PI * 2);
           ctx.fill();
 
           ctx.fillStyle = spotColor;
           ctx.beginPath();
-          ctx.arc(41, parseInt(circleBottom.style.top || 785) + 17, 17, 0, Math.PI * 2);
+          ctx.arc(circleX, parseInt(circleBottom.style.top || 785) + 17, 17, 0, Math.PI * 2);
           ctx.fill();
         }
 
@@ -1970,13 +2362,14 @@
         img.onload = () => {
           ctx.save();
           ctx.filter = `grayscale(${graySlider.value}%) contrast(${contrastSlider.value}%)`;
-          ctx.drawImage(img, 195, stagePadTop, photoSize, photoSize);
+          const photoDrawX = isTextOnRight ? 24 : 195;
+          ctx.drawImage(img, photoDrawX, stagePadTop, photoSize, photoSize);
           ctx.restore();
 
-          ctx.fillStyle = '#111111';
+          ctx.fillStyle = inkColor;
           const fontSize = parseInt(subheadFontSlider.value, 10);
           ctx.font = `700 ${fontSize}px "Inter", sans-serif`;
-          ctx.fillText(posterH2.textContent.slice(0, 42), 195, stagePadTop + photoSize + 22 + fontSize);
+          ctx.fillText(posterH2.textContent.slice(0, 42), photoDrawX, stagePadTop + photoSize + 22 + fontSize);
 
           canvas.toBlob((blob) => {
             const url = URL.createObjectURL(blob);
