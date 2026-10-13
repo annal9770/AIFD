@@ -160,6 +160,8 @@
     }
 
     .console-panel {
+      position: sticky;
+      top: 24px;
       background: #FFFFFF;
       border: 2px solid var(--color-accent);
       border-radius: 20px;
@@ -386,11 +388,22 @@
       box-shadow: 0 6px 14px rgba(43, 33, 27, 0.12);
     }
 
+    /* Sticky preview wrapper that follows scroll and expands to full poster height */
     .stage-wrapper {
+      position: sticky;
+      top: 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 16px;
+      width: 100%;
+    }
+
+    @media (max-width: 1120px) {
+      .console-panel,
+      .stage-wrapper {
+        position: static;
+      }
     }
 
     .stage-toolbar-group {
@@ -483,8 +496,9 @@
       justify-content: center;
       align-items: flex-start;
       width: 100%;
-      overflow: auto;
-      max-height: 85vh;
+      overflow-x: auto;
+      overflow-y: visible;
+      transition: min-height 0.2s ease;
     }
 
     .poster-canvas-scaler {
@@ -644,15 +658,15 @@
       background: var(--poster-paper-bg);
     }
 
+    /* Allow vertical text to extend past the top of the picture without clipping */
     .vertical-rail-grid {
       position: relative;
       display: flex;
       flex-direction: row;
       justify-content: flex-start;
       align-items: flex-end;
-      height: var(--photo-size) !important;
-      max-height: var(--photo-size) !important;
-      overflow: hidden;
+      height: var(--photo-size);
+      overflow: visible;
       gap: 12px;
       z-index: 10;
       transition: height 0.25s ease;
@@ -664,6 +678,7 @@
       align-items: center;
       position: relative;
       height: 100%;
+      overflow: visible;
     }
     .v-line {
       writing-mode: vertical-rl;
@@ -820,8 +835,8 @@
     .poster-canvas[data-grid-mode="gerstner-band"] .vertical-rail-grid {
       grid-column: 1 / span 2;
       grid-row: 2 / span 2;
-      height: 220px !important;
-      max-height: 220px !important;
+      height: 220px;
+      overflow: visible;
       align-self: start;
       order: 2;
     }
@@ -1420,6 +1435,7 @@
 
     const poster = document.getElementById('poster');
     const posterScaler = document.getElementById('poster-scaler');
+    const stageViewport = document.getElementById('stage-viewport');
     const pathElement = document.getElementById('dynamic-terrace-path');
     const posterSvgShape = document.getElementById('poster-svg-shape');
     const rail = document.getElementById('vertical-rail');
@@ -1435,6 +1451,7 @@
 
     let currentGridMode = 'gsapp-datum';
     let isTextOnRight = false;
+    let currentScale = 1;
 
     let posterWidth = 600;
     let posterHeight = 1200;
@@ -1480,6 +1497,13 @@
     const waveAmpVal = document.getElementById('wave-amp-val');
     const waveOffsetSlider = document.getElementById('wave-offset-slider');
     const waveOffsetVal = document.getElementById('wave-offset-val');
+
+    function syncStageViewportHeight() {
+      if (!stageViewport || !posterScaler) return;
+      const scaledPosterHeight = Math.round(posterHeight * currentScale);
+      posterScaler.style.height = `${scaledPosterHeight}px`;
+      stageViewport.style.minHeight = `${scaledPosterHeight + 68}px`;
+    }
 
     function renderGridOverlayColumns(colCount) {
       gridOverlay.innerHTML = '';
@@ -1775,6 +1799,8 @@
       document.getElementById('top-circle-val').textContent = `${circleTopY}px`;
       document.getElementById('bot-circle-slider').value = circleBotY;
       document.getElementById('bot-circle-val').textContent = `${circleBotY}px`;
+
+      syncStageViewportHeight();
     }
 
     function updatePosterDimensions(w, h) {
@@ -1962,9 +1988,9 @@
       photoSizeSlider.value = photoSize;
       photoSizeVal.textContent = `${photoSize}px`;
 
-      const railHeight = (chosenMode === 'gerstner-band') ? 220 : photoSize;
+      const railAllowance = (chosenMode === 'gerstner-band') ? 220 : (photoSize + stagePadTop - 45);
       const longestLineCharCount = Math.max(...activeTexts.slice(0, terraceCount).map(t => t.length), 8);
-      const maxAllowedFontSize = Math.floor(railHeight / (longestLineCharCount * 0.62));
+      const maxAllowedFontSize = Math.floor(railAllowance / (longestLineCharCount * 0.62));
       const safeFontSize = Math.min(26, Math.max(12, maxAllowedFontSize));
 
       fontSizeSlider.value = safeFontSize;
@@ -2070,6 +2096,7 @@
       createTwinkles();
       renderGridOverlayColumns(6);
       buildTerraceDOM();
+      syncStageViewportHeight();
 
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -2365,9 +2392,10 @@
 
       document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          const sc = parseFloat(btn.dataset.scale);
-          posterScaler.style.transform = `scale(${sc})`;
-          document.getElementById('scale-indicator').textContent = `${Math.round(sc * 100)}% Zoom`;
+          currentScale = parseFloat(btn.dataset.scale);
+          posterScaler.style.transform = `scale(${currentScale})`;
+          document.getElementById('scale-indicator').textContent = `${Math.round(currentScale * 100)}% Zoom`;
+          syncStageViewportHeight();
           setTimeout(recalculateTerrace, 160);
         });
       });
@@ -2421,7 +2449,7 @@
       });
 
       // -------------------------------------------------------------
-      // 2. SVG EXPORTER (From svg.html: Vector-Native Generator)
+      // 2. SVG EXPORTER
       // -------------------------------------------------------------
 
       async function getProcessedHeroImageDataUrl() {
@@ -2464,7 +2492,6 @@
         };
       }
 
-      // Native Vector SVG Generator with Mode-Aware Layout
       async function generateIllustratorNativeSvg() {
         const posterRect = poster.getBoundingClientRect();
         const activeScale = posterRect.width / posterWidth || 1;
@@ -2649,7 +2676,7 @@
       });
 
       // -------------------------------------------------------------
-      // 3. PNG EXPORTER (Original Pixel-Accurate Canvas Exporter from png.html)
+      // 3. PNG EXPORTER
       // -------------------------------------------------------------
 
       async function getHeroImageDataUrl() {
@@ -2704,7 +2731,6 @@
           ctx.fill(new Path2D(pathData));
         }
 
-        // Helper: Convert viewport-scaled rect to unscaled 1:1 canvas coordinates
         function getUnscaledCoords(el) {
           const r = el.getBoundingClientRect();
           return {
@@ -2800,7 +2826,7 @@
           }
         }
 
-        // 9. Vertical Rail Texts (Matches CSS reading order and baseline)
+        // 9. Vertical Rail Texts
         const vCols = rail.querySelectorAll('.v-col');
         vCols.forEach(col => {
           const line = col.querySelector('.v-line');
