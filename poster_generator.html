@@ -2647,7 +2647,7 @@
         downloadFile(svgContent, `architectural_poster_${currentGridMode}_${posterWidth}x${posterHeight}.svg`, 'image/svg+xml;charset=utf-8');
       });
 
-      // 3. PNG EXPORTER (Exact Preview-Clone Direct Rasterizer with Fallback)
+      // 3. PNG EXPORTER (Self-inlining base64 + html-to-image rasterization)
       document.getElementById('btn-export-png').addEventListener('click', async () => {
         const btn = document.getElementById('btn-export-png');
         const origText = btn.textContent;
@@ -2658,14 +2658,29 @@
           gridOverlay.classList.remove('visible');
         }
 
+        const originalSrc = heroImg.getAttribute('src');
+
         try {
+          // Pre-inline the hero image into base64 so html-to-image won't fail CORS/taint checks
+          if (heroImg && heroImg.src && !heroImg.src.startsWith('data:')) {
+            try {
+              const base64Photo = await getProcessedHeroImageDataUrl();
+              if (base64Photo) {
+                heroImg.src = base64Photo;
+              }
+            } catch (e) {
+              console.warn('Could not inline image via base64; proceeding with original source', e);
+            }
+          }
+
           if (typeof htmlToImage !== 'undefined') {
-            // High-fidelity rasterization directly from the preview DOM
             const dataUrl = await htmlToImage.toPng(poster, {
               pixelRatio: 2,
               width: posterWidth,
               height: posterHeight,
-              cacheBust: true,
+              cacheBust: false,
+              skipAutoScale: true,
+              imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
               style: {
                 transform: 'none',
                 transformOrigin: 'top left',
@@ -2679,74 +2694,16 @@
             a.download = `architectural_poster_${currentGridMode}_${posterWidth}x${posterHeight}.png`;
             a.click();
           } else {
-            // Fallback via XMLSerializer ForeignObject
-            const clone = poster.cloneNode(true);
-            const ov = clone.querySelector('.grid-overlay');
-            const bl = clone.querySelector('.baseline-grid-stripes');
-            if (ov) ov.remove();
-            if (bl) bl.remove();
-
-            const computedRoot = getComputedStyle(document.documentElement);
-            const varsToKeep = [
-              '--poster-w', '--poster-h', '--datum-x', '--color-spot', '--poster-paper-bg',
-              '--poster-ink-color', '--stage-pad-top', '--photo-size', '--grid-cols',
-              '--grid-gutter', '--grid-margin-x', '--grid-margin-y', '--baseline-unit'
-            ];
-            let inlineVars = '';
-            varsToKeep.forEach(v => {
-              inlineVars += `${v}: ${computedRoot.getPropertyValue(v).trim()}; `;
-            });
-            clone.style.cssText += inlineVars;
-
-            const styleContent = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
-            const xhtml = `
-              <div xmlns="http://www.w3.org/1999/xhtml">
-                <style>
-                  ${styleContent}
-                  #poster { transform: none !important; margin: 0 !important; box-shadow: none !important; }
-                </style>
-                ${new XMLSerializer().serializeToString(clone)}
-              </div>
-            `;
-
-            const svgString = `
-              <svg xmlns="http://www.w3.org/2000/svg" width="${posterWidth}" height="${posterHeight}">
-                <foreignObject width="100%" height="100%">
-                  ${xhtml}
-                </foreignObject>
-              </svg>
-            `;
-
-            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(svgBlob);
-
-            const scaleFactor = 2;
-            const canvas = document.createElement('canvas');
-            canvas.width = posterWidth * scaleFactor;
-            canvas.height = posterHeight * scaleFactor;
-            const ctx = canvas.getContext('2d');
-            ctx.scale(scaleFactor, scaleFactor);
-
-            const img = new Image();
-            img.onload = () => {
-              ctx.drawImage(img, 0, 0);
-              URL.revokeObjectURL(url);
-              canvas.toBlob((pngBlob) => {
-                if (!pngBlob) return;
-                const dl = URL.createObjectURL(pngBlob);
-                const a = document.createElement('a');
-                a.href = dl;
-                a.download = `architectural_poster_${currentGridMode}_${posterWidth}x${posterHeight}.png`;
-                a.click();
-                URL.revokeObjectURL(dl);
-              }, 'image/png');
-            };
-            img.src = url;
+            throw new Error('htmlToImage library is not loaded');
           }
         } catch (err) {
           console.error('PNG export failed:', err);
-          alert('Could not complete PNG export. Verify that remote images allow CORS.');
+          alert('PNG export failed. If opening directly via file://, run using a local server (e.g., npx serve or python -m http.server) to allow canvas image rasterization.');
         } finally {
+          // Restore original image source attribute
+          if (originalSrc && !originalSrc.startsWith('data:')) {
+            heroImg.src = originalSrc;
+          }
           if (guidesWereActive) {
             gridOverlay.classList.add('visible');
           }
