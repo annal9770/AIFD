@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Poster Variations & Style</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --text: #2B211B;
+      --accent: #E8A8B8;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Source Sans Pro', sans-serif;
+      margin: 0;
+      position: relative;
+      overflow-x: hidden;
+    }
+    .sparkles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .sparkle {
+      position: absolute;
+      color: var(--accent);
+      opacity: .2;
+      font-size: 18px;
+      animation: twinkle 6s ease-in-out infinite;
+    }
+    .sparkle:nth-child(2n) { animation-duration: 8s; }
+    .sparkle:nth-child(3n) { animation-duration: 5s; }
+    .sparkle:nth-child(4n) { animation-delay: -3s; }
+    .sparkle:nth-child(5n) { animation-delay: -5s; }
+    @keyframes twinkle {
+      0%, 100% { opacity: .15; transform: scale(.7) rotate(0deg); }
+      50% { opacity: .35; transform: scale(1.15) rotate(12deg); }
+    }
+    .wrapper {
+      max-width: 1200px;
+      margin: auto;
+      padding: 96px 24px;
+      position: relative;
+      z-index: 1;
+    }
+    h1 {
+      font-family: Oswald, sans-serif;
+      font-size: clamp(60px, 8vw, 100px);
+      text-align: center;
+      margin: 0;
+      line-height: 1.1;
+    }
+    .sub {
+      text-align: center;
+      font-size: 24px;
+      margin: 12px 0 36px;
+    }
+
+    /* Markdown File Dropdown Section */
+    .docs-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 56px;
+    }
+    .docs-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+    .doc-toggle-btn {
+      background: var(--accent);
+      color: var(--text);
+      font-family: 'Source Sans Pro', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 28px;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .doc-toggle-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(43, 33, 27, 0.12);
+    }
+    .doc-drawer {
+      width: 100%;
+      box-sizing: border-box;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .4s ease, padding .3s ease;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      background: #fff;
+    }
+    .doc-drawer.open {
+      max-height: 480px;
+      overflow-y: auto;
+      border: 2px solid var(--accent);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    /* 3 Top, 2 Bottom Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 32px;
+    }
+    .card {
+      grid-column: span 2;
+    }
+    .card:nth-child(4) {
+      grid-column: 2 / span 2;
+    }
+    .card:nth-child(5) {
+      grid-column: 4 / span 2;
+    }
+
+    .thumb {
+      width: 100%;
+      height: 380px;
+      object-fit: cover;
+      border-radius: 24px;
+      cursor: pointer;
+      transition: transform .3s ease-out, box-shadow .3s ease-out, filter .3s ease-out;
+      display: block;
+      background-color: #eee;
+    }
+    .thumb:hover {
+      transform: translateY(-4px) scale(1.015);
+      box-shadow: 0 16px 36px rgba(43, 33, 27, .18);
+      filter: brightness(1.04);
+    }
+    .label {
+      margin-top: 20px;
+      text-align: center;
+      font-family: 'Source Sans Pro', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .num {
+      color: var(--accent);
+    }
+
+    /* Lightbox Modal */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(43, 33, 27, .94);
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .lightbox.active {
+      display: flex;
+    }
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 64px;
+      cursor: pointer;
+      line-height: 1;
+      user-select: none;
+    }
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 56px;
+      height: 56px;
+      border: none;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--text);
+      font-size: 34px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .3s ease-out, box-shadow .3s ease-out;
+    }
+    .nav-arrow:hover {
+      transform: translateY(-50%) scale(1.08);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .25);
+    }
+    .prev { left: 24px; }
+    .next { right: 24px; }
+
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .card, .card:nth-child(4), .card:nth-child(5) {
+        grid-column: span 1;
+      }
+    }
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .card, .card:nth-child(4), .card:nth-child(5) {
+        grid-column: span 1;
+      }
+      .nav-arrow {
+        width: 48px;
+        height: 48px;
+        font-size: 28px;
+      }
+      .prev { left: 12px; }
+      .next { right: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sparkles" aria-hidden="true">
+    <span class="sparkle" style="left:7%;top:12%">✦</span>
+    <span class="sparkle" style="left:18%;top:67%">✧</span>
+    <span class="sparkle" style="left:31%;top:26%">✦</span>
+    <span class="sparkle" style="left:44%;top:82%">✧</span>
+    <span class="sparkle" style="left:58%;top:16%">✦</span>
+    <span class="sparkle" style="left:69%;top:55%">✧</span>
+    <span class="sparkle" style="left:83%;top:32%">✦</span>
+    <span class="sparkle" style="left:92%;top:75%">✧</span>
+    <span class="sparkle" style="left:12%;top:90%">✦</span>
+    <span class="sparkle" style="left:76%;top:91%">✦</span>
+  </div>
+
+  <div class="wrapper">
+    <h1>Poster Variations & Style</h1>
+    <p class="sub">5 Variations with Style & Markdown Discussion</p>
+
+    <!-- Markdown File Viewers -->
+    <div class="docs-section">
+      <div class="docs-btn-group">
+        <button class="doc-toggle-btn" id="btn-skills" onclick="toggleDoc('skills', 'skills.md')">View skills.md</button>
+        <button class="doc-toggle-btn" id="btn-handoff" onclick="toggleDoc('handoff', 'handoff_poster.md')">View handoff_poster.md</button>
+      </div>
+      <div id="drawer-skills" class="doc-drawer"></div>
+      <div id="drawer-handoff" class="doc-drawer"></div>
+    </div>
+
+    <!-- 5 Poster Cards -->
+    <div id="gallery" class="grid"></div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div id="lb" class="lightbox">
+    <div id="close" class="close">×</div>
+    <button id="prev" class="nav-arrow prev" aria-label="Previous image">‹</button>
+    <img id="big" alt="Full view poster">
+    <button id="next" class="nav-arrow next" aria-label="Next image">›</button>
+  </div>
+
+  <script>
+    // Connected to .png image assets
+    const images = [
+      'poster_1.png',
+      'poster_2.png',
+      'poster_3.png',
+      'poster_4.png',
+      'poster_5.png'
+    ];
+
+    const labels = [
+      ["01", "Poster Variation 1"],
+      ["02", "Poster Variation 2"],
+      ["03", "Poster Variation 3"],
+      ["04", "Poster Variation 4"],
+      ["05", "Poster Variation 5"]
+    ];
+
+    // Fallback content in case the HTML file is opened locally via file:// where fetch is restricted
+    const fallbackContent = {
+      skills: `# Architectural Poster Design System: Willi Kunz Columbia GSAPP Deconstruction\n\nThis document details the visual logic, spatial ratios, and layout behaviors observed directly in the Willi Kunz exhibition poster for the Columbia University Graduate School of Architecture and Planning Historic Preservation program.\n\n---\n\n## 1. Canvas Geometry and Core Division Units\nThe format uses a tall 1 to 2 vertical proportion, roughly 600px wide by 1230px tall in digital space.\n- The leftmost three columns form an open spine and negative margin, occupying the first 37.5 percent of the width.\n- The remaining five columns contain all the primary visual and informational content, taking up the right 62.5 percent of the sheet.\nThe design intentionally bleeds to the raw trim of the paper. Solid black registration tabs touch the top and bottom borders directly, while the body text stays well clear of the edges.\n\n---\n\n## 2. The Primary Vertical Datum Axis\nA strict plumb line runs vertically down the poster at the 37.5 percent mark, exactly three columns in from the left.\nThis single line anchors three separate elements:\n- The left crop edge of the architectural photograph aligns flush to it.\n- The left edge of the horizontal headline block, Master of Science in Historic Preservation, snaps directly to it.\n- The start of the body text field below aligns directly along the same boundary.\n\n---\n\n## 3. Modular Text Grid\nThe informational section in the lower quadrant does not run across the full width. Instead, it uses an asymmetrical three-column schedule:\n- Column 1 contains program overview and curriculum details.\n- Column 2 covers research centers, Avery Library, and appointments.\n- Column 3 covers admissions, deadlines, and contact details.\n\n---\n\n## 4. The Green Tint Plate, Terrace Step, and Spatial Layers\n- Stepped Terrace Motif: Behind the rotated vertical university title, the tint plate breaks into rigid 90-degree stair treads and risers.\n- Planar Shadow Depth: Solid unfeathered cast shadow offset down and left.\n- Undulating Wave Transition: Relaxes into a gentle wave before terminating at the right edge.\n- Binder Punch & Cutouts: Architectural portfolio binder holes and knockout drafting lines.\n\n---\n\n## 5. Typographic Hierarchy and Weight Relationships\n- Level 1: Rotated Institutional Title (condensed extra-bold, ~4x body size).\n- Level 2: Horizontal Headline (bold, ~2.5x body size).\n- Level 3: Body Text (ragged right, generous leading).\n\n---\n\n## 6. Registration Marks and Intentional Grid Breaks\nNotches and registration tabs hanging from top and bottom sheet edges to celebrate lithographic printing.`,
+
+      handoff: `# Project Handoff: Architectural Poster Generator Web App\n\n## 1. Project Goal\nDevelop a web application that programmatically generates design variations of an iconic late-1970s / 1980s architectural exhibition poster (reference: Columbia University Graduate School of Architecture and Planning - Master of Science in Historic Preservation).\n\n---\n\n## 2. Completed Milestones\n1. Typographic & Historical DNA Analysis:\n   - Style: Late Modernist Swiss / Weingartian New Wave hybrid.\n   - Type family: High x-height, zero-contrast neo-grotesque sans-serif.\n   - Hierarchy: Primary vertical anchor (~5x), horizontal hook (~3x), 3-column body grid (1x).\n2. Structural Breakdown & Natural Language Specification:\n   - Grid collision analysis, spatial tension, tactile drafting marks.\n3. Core Prototype Code:\n   - 1:2 canvas, vertical-rl text orientation, CSS clip-path wave separator, registration accents.\n4. Design Rules Extracted:\n   - Rules, mathematical constraints, and tint scales committed to skills.md.\n\n---\n\n## 3. Current Architecture & Tech Choices\n- Core Font: Inter / Instrument Sans.\n- Layout Engine: CSS Grid & Flexbox, writing-mode: vertical-rl.\n- Color Logic: Monochromatic ink + 1 institutional pastel spot tone.\n\n---\n\n## 4. Immediate Next Steps\n- Generator Controls UI (sliders/inputs for headlines, tints, photo contrast).\n- Variation Engine (wave/stepped dividers, shift image across column tracks).\n- Export Pipeline (client-side export to high-res SVG or print-ready PDF/PNG).`
+    };
+
+    // Tracks loaded contents
+    const docContents = {};
+
+    // Asynchronously loads markdown file (falling back gracefully to bundled text if offline/local CORS)
+    async function loadDocFile(key, filename) {
+      if (docContents[key]) return docContents[key];
+      try {
+        const response = await fetch(filename);
+        if (!response.ok) throw new Error(`Status ${response.status}`);
+        const text = await response.text();
+        docContents[key] = text;
+        return text;
+      } catch (err) {
+        docContents[key] = fallbackContent[key];
+        return docContents[key];
+      }
+    }
+
+    async function toggleDoc(key, filename) {
+      const drawer = document.getElementById(`drawer-${key}`);
+      const btn = document.getElementById(`btn-${key}`);
+      const isOpen = drawer.classList.contains('open');
+
+      if (!isOpen) {
+        if (!drawer.textContent.trim()) {
+          drawer.textContent = 'Loading ' + filename + '...';
+          const content = await loadDocFile(key, filename);
+          drawer.textContent = content;
+        }
+        drawer.classList.add('open');
+        btn.textContent = `Hide ${filename}`;
+      } else {
+        drawer.classList.remove('open');
+        btn.textContent = `View ${filename}`;
+      }
+    }
+
+    // Build Poster Grid
+    let currentIndex = 0;
+    const gallery = document.getElementById('gallery');
+
+    images.forEach((img, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img class="thumb" src="${img}" alt="Poster ${i + 1}">
+        <div class="label"><span class="num">${labels[i][0]}</span> — ${labels[i][1]}</div>
+      `;
+      card.querySelector('.thumb').onclick = () => {
+        currentIndex = i;
+        document.getElementById('big').src = images[currentIndex];
+        document.getElementById('lb').classList.add('active');
+      };
+      gallery.appendChild(card);
+    });
+
+    // Lightbox Controls
+    const showImage = (step) => {
+      currentIndex = (currentIndex + step + images.length) % images.length;
+      document.getElementById('big').src = images[currentIndex];
+    };
+
+    document.getElementById('prev').onclick = () => showImage(-1);
+    document.getElementById('next').onclick = () => showImage(1);
+    document.getElementById('close').onclick = () => document.getElementById('lb').classList.remove('active');
+
+    document.addEventListener('keydown', (e) => {
+      if (!document.getElementById('lb').classList.contains('active')) return;
+      if (e.key === 'ArrowLeft') showImage(-1);
+      if (e.key === 'ArrowRight') showImage(1);
+      if (e.key === 'Escape') document.getElementById('lb').classList.remove('active');
+    });
+  </script>
+</body>
+</html>

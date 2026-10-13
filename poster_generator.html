@@ -8,8 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <!-- html-to-image for exact DOM pixel-matching PNG export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/htmlToImage.min.js"></script>
 
   <style>
     :root {
@@ -2382,6 +2380,50 @@
          ROBUST EXPORTERS (HTML, SVG, PNG)
       -------------------------------------------------------------- */
 
+      // 1. STANDALONE HTML EXPORTER
+      document.getElementById('btn-export-html').addEventListener('click', () => {
+        const posterClone = poster.cloneNode(true);
+        const overlay = posterClone.querySelector('.grid-overlay');
+        const baseline = posterClone.querySelector('.baseline-grid-stripes');
+        if (overlay) overlay.remove();
+        if (baseline) baseline.remove();
+
+        const computedRoot = getComputedStyle(document.documentElement);
+        const varsToKeep = [
+          '--poster-w', '--poster-h', '--datum-x', '--color-spot', '--poster-paper-bg',
+          '--poster-ink-color', '--stage-pad-top', '--photo-size', '--grid-cols',
+          '--grid-gutter', '--grid-margin-x', '--grid-margin-y', '--baseline-unit'
+        ];
+        
+        let inlineVars = '';
+        varsToKeep.forEach(v => {
+          inlineVars += `${v}: ${computedRoot.getPropertyValue(v).trim()}; `;
+        });
+        posterClone.style.cssText += inlineVars;
+
+        const fullCss = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
+        const htmlDoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Architectural Poster</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    ${fullCss}
+    body { background: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 40px; margin: 0; }
+  </style>
+</head>
+<body>
+  ${posterClone.outerHTML}
+</body>
+</html>`;
+        downloadFile(htmlDoc, 'architectural_poster.html', 'text/html');
+      });
+
+      // -------------------------------------------------------------
+      // 2. SVG EXPORTER (From svg.html: Vector-Native Generator)
+      // -------------------------------------------------------------
+
       async function getProcessedHeroImageDataUrl() {
         if (!heroImg || !heroImg.src) return '';
 
@@ -2601,112 +2643,273 @@
 </svg>`;
       }
 
-      // 1. STANDALONE HTML EXPORTER
-      document.getElementById('btn-export-html').addEventListener('click', () => {
-        const posterClone = poster.cloneNode(true);
-        const overlay = posterClone.querySelector('.grid-overlay');
-        const baseline = posterClone.querySelector('.baseline-grid-stripes');
-        if (overlay) overlay.remove();
-        if (baseline) baseline.remove();
-
-        const computedRoot = getComputedStyle(document.documentElement);
-        const varsToKeep = [
-          '--poster-w', '--poster-h', '--datum-x', '--color-spot', '--poster-paper-bg',
-          '--poster-ink-color', '--stage-pad-top', '--photo-size', '--grid-cols',
-          '--grid-gutter', '--grid-margin-x', '--grid-margin-y', '--baseline-unit'
-        ];
-        
-        let inlineVars = '';
-        varsToKeep.forEach(v => {
-          inlineVars += `${v}: ${computedRoot.getPropertyValue(v).trim()}; `;
-        });
-        posterClone.style.cssText += inlineVars;
-
-        const fullCss = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
-        const htmlDoc = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Architectural Poster</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <style>
-    ${fullCss}
-    body { background: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 40px; margin: 0; }
-  </style>
-</head>
-<body>
-  ${posterClone.outerHTML}
-</body>
-</html>`;
-        downloadFile(htmlDoc, 'architectural_poster.html', 'text/html');
-      });
-
-      // 2. SVG EXPORTER
       document.getElementById('btn-export-svg').addEventListener('click', async () => {
         const svgContent = await generateIllustratorNativeSvg();
         downloadFile(svgContent, `architectural_poster_${currentGridMode}_${posterWidth}x${posterHeight}.svg`, 'image/svg+xml;charset=utf-8');
       });
 
-      // 3. PNG EXPORTER (Self-inlining base64 + html-to-image rasterization)
+      // -------------------------------------------------------------
+      // 3. PNG EXPORTER (Original Pixel-Accurate Canvas Exporter from png.html)
+      // -------------------------------------------------------------
+
+      async function getHeroImageDataUrl() {
+        if (!heroImg || !heroImg.src) return '';
+        if (heroImg.src.startsWith('data:')) return heroImg.src;
+
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const c = document.createElement('canvas');
+            c.width = img.naturalWidth || 600;
+            c.height = img.naturalHeight || 600;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            try {
+              resolve(c.toDataURL('image/png'));
+            } catch (err) {
+              resolve(heroImg.src);
+            }
+          };
+          img.onerror = () => resolve(heroImg.src);
+          img.src = heroImg.src;
+        });
+      }
+
+      async function exportExactDOMToCanvas() {
+        const scaleFactor = 2; // Crisp 2x export
+        const canvas = document.createElement('canvas');
+        canvas.width = posterWidth * scaleFactor;
+        canvas.height = posterHeight * scaleFactor;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(scaleFactor, scaleFactor);
+
+        // Capture current viewport scale factor
+        const posterRect = poster.getBoundingClientRect();
+        const activeScale = posterRect.width / posterWidth || 1;
+
+        const computedRoot = getComputedStyle(document.documentElement);
+        const paperBg = computedRoot.getPropertyValue('--poster-paper-bg').trim() || '#FFFFFF';
+        const inkColor = computedRoot.getPropertyValue('--poster-ink-color').trim() || '#111111';
+        const spotColor = computedRoot.getPropertyValue('--color-spot').trim() || '#b5c7bc';
+
+        // 1. Background
+        ctx.fillStyle = paperBg;
+        ctx.fillRect(0, 0, posterWidth, posterHeight);
+
+        // 2. Spot vector shape
+        const pathData = pathElement.getAttribute('d');
+        if (pathData) {
+          ctx.fillStyle = spotColor;
+          ctx.fill(new Path2D(pathData));
+        }
+
+        // Helper: Convert viewport-scaled rect to unscaled 1:1 canvas coordinates
+        function getUnscaledCoords(el) {
+          const r = el.getBoundingClientRect();
+          return {
+            x: (r.left - posterRect.left) / activeScale,
+            y: (r.top - posterRect.top) / activeScale,
+            w: r.width / activeScale,
+            h: r.height / activeScale,
+            bottom: (r.bottom - posterRect.top) / activeScale,
+            right: (r.right - posterRect.left) / activeScale
+          };
+        }
+
+        // 3. Top Registration Bar
+        if (regTopBar && getComputedStyle(regTopBar).display !== 'none') {
+          ctx.fillStyle = inkColor;
+          regTopBar.querySelectorAll('span').forEach(span => {
+            const pos = getUnscaledCoords(span);
+            ctx.fillRect(pos.x, pos.y, pos.w, pos.h);
+          });
+        }
+
+        // 4. Bleed Bar Indicator
+        if (regBleedBar && getComputedStyle(regBleedBar).display !== 'none') {
+          ctx.fillStyle = inkColor;
+          const pos = getUnscaledCoords(regBleedBar);
+          ctx.fillRect(pos.x, pos.y, pos.w, pos.h);
+        }
+
+        // 5. Bottom Registration Assembly
+        if (regBleedAssembly && getComputedStyle(regBleedAssembly).display !== 'none') {
+          ctx.fillStyle = inkColor;
+          const mainBlock = regBleedAssembly.querySelector('.reg-block-main');
+          const stepBlock = regBleedAssembly.querySelector('.reg-block-step');
+          [mainBlock, stepBlock].forEach(block => {
+            if (block) {
+              const pos = getUnscaledCoords(block);
+              ctx.fillRect(pos.x, pos.y, pos.w, pos.h);
+            }
+          });
+        }
+
+        // 6. Knockout Rules
+        if (rulesStack && getComputedStyle(rulesStack).display !== 'none') {
+          ctx.fillStyle = paperBg;
+          rulesStack.querySelectorAll('span').forEach(span => {
+            const pos = getUnscaledCoords(span);
+            ctx.fillRect(pos.x, pos.y, pos.w, pos.h);
+          });
+        }
+
+        // 7. Circle Assemblies
+        if (circleTop && getComputedStyle(circleTop).display !== 'none') {
+          const rTop = getUnscaledCoords(circleTop);
+          const rBot = getUnscaledCoords(circleBottom);
+
+          ctx.fillStyle = paperBg;
+          ctx.beginPath();
+          ctx.arc(rTop.x + rTop.w / 2, rTop.y + rTop.h / 2, rTop.w / 2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = spotColor;
+          ctx.beginPath();
+          ctx.arc(rBot.x + rBot.w / 2, rBot.y + rBot.h / 2, rBot.w / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 8. Hero Photo
+        if (heroImg && heroImg.src) {
+          const pPos = getUnscaledCoords(photoWrapper);
+          try {
+            const base64 = await getHeroImageDataUrl();
+            await new Promise((res) => {
+              const img = new Image();
+              img.onload = () => {
+                ctx.save();
+                const gray = document.getElementById('filter-gray-slider').value;
+                const cont = document.getElementById('filter-contrast-slider').value;
+                ctx.filter = `grayscale(${gray}%) contrast(${cont}%)`;
+                ctx.drawImage(img, pPos.x, pPos.y, pPos.w, pPos.h);
+                ctx.restore();
+                res();
+              };
+              img.onerror = () => {
+                ctx.fillStyle = '#d8d8d8';
+                ctx.fillRect(pPos.x, pPos.y, pPos.w, pPos.h);
+                res();
+              };
+              img.src = base64;
+            });
+          } catch (err) {
+            ctx.fillStyle = '#d8d8d8';
+            ctx.fillRect(pPos.x, pPos.y, pPos.w, pPos.h);
+          }
+        }
+
+        // 9. Vertical Rail Texts (Matches CSS reading order and baseline)
+        const vCols = rail.querySelectorAll('.v-col');
+        vCols.forEach(col => {
+          const line = col.querySelector('.v-line');
+          if (!line) return;
+
+          const lPos = getUnscaledCoords(line);
+          const fSize = parseFloat(fontSizeSlider.value) || 24;
+
+          ctx.save();
+          ctx.font = `800 ${fSize}px "Inter", sans-serif`;
+          ctx.fillStyle = inkColor;
+          ctx.textBaseline = 'alphabetic';
+
+          ctx.translate(lPos.x + fSize * 0.85, lPos.bottom);
+          ctx.rotate(-Math.PI / 2);
+
+          const fullText = Array.from(line.querySelectorAll('.v-word, .v-space')).map(s => s.textContent).join('');
+          ctx.fillText(fullText, 0, 0);
+          ctx.restore();
+        });
+
+        // 10. Headline Block
+        if (posterH2) {
+          const hPos = getUnscaledCoords(posterH2);
+          const hSize = parseFloat(getComputedStyle(posterH2).fontSize) || 24;
+          const hLineHeight = parseFloat(getComputedStyle(posterH2).lineHeight) || hSize * 1.15;
+          ctx.font = `700 ${hSize}px "Inter", sans-serif`;
+          ctx.fillStyle = inkColor;
+          ctx.textBaseline = 'top';
+
+          const words = posterH2.textContent.trim().split(/\s+/);
+          let line = '';
+          let curY = hPos.y;
+
+          for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            if (ctx.measureText(testLine).width > hPos.w && n > 0) {
+              ctx.fillText(line.trim(), hPos.x, curY);
+              line = words[n] + ' ';
+              curY += hLineHeight;
+            } else {
+              line = testLine;
+            }
+          }
+          ctx.fillText(line.trim(), hPos.x, curY);
+        }
+
+        // 11. Editorial 4-Column Body Text
+        bodyTextGrid.querySelectorAll('.text-col').forEach(col => {
+          const cPos = getUnscaledCoords(col);
+          let curY = cPos.y;
+
+          col.querySelectorAll('p').forEach(p => {
+            const comp = getComputedStyle(p);
+            const bSize = parseFloat(comp.fontSize) || 7.5;
+            const bLineHeight = parseFloat(comp.lineHeight) || bSize * 1.35;
+
+            Array.from(p.childNodes).forEach(node => {
+              const isBold = node.nodeName === 'STRONG';
+              const paragraphs = (node.textContent || '').split('\n');
+
+              paragraphs.forEach(paraText => {
+                const words = paraText.trim().split(/\s+/).filter(Boolean);
+                let line = '';
+                ctx.font = `${isBold ? '700' : '400'} ${bSize}px "Inter", sans-serif`;
+                ctx.fillStyle = inkColor;
+                ctx.textBaseline = 'top';
+
+                for (let n = 0; n < words.length; n++) {
+                  const testLine = line + words[n] + ' ';
+                  if (ctx.measureText(testLine).width > cPos.w && n > 0) {
+                    ctx.fillText(line.trim(), cPos.x, curY);
+                    line = words[n] + ' ';
+                    curY += bLineHeight;
+                  } else {
+                    line = testLine;
+                  }
+                }
+                if (line.trim().length > 0) {
+                  ctx.fillText(line.trim(), cPos.x, curY);
+                  curY += bLineHeight;
+                }
+              });
+            });
+          });
+        });
+
+        return canvas;
+      }
+
       document.getElementById('btn-export-png').addEventListener('click', async () => {
         const btn = document.getElementById('btn-export-png');
         const origText = btn.textContent;
         btn.textContent = 'Exporting...';
 
-        const guidesWereActive = gridOverlay.classList.contains('visible');
-        if (guidesWereActive) {
-          gridOverlay.classList.remove('visible');
-        }
-
-        const originalSrc = heroImg.getAttribute('src');
-
         try {
-          // Pre-inline the hero image into base64 so html-to-image won't fail CORS/taint checks
-          if (heroImg && heroImg.src && !heroImg.src.startsWith('data:')) {
-            try {
-              const base64Photo = await getProcessedHeroImageDataUrl();
-              if (base64Photo) {
-                heroImg.src = base64Photo;
-              }
-            } catch (e) {
-              console.warn('Could not inline image via base64; proceeding with original source', e);
-            }
-          }
-
-          if (typeof htmlToImage !== 'undefined') {
-            const dataUrl = await htmlToImage.toPng(poster, {
-              pixelRatio: 2,
-              width: posterWidth,
-              height: posterHeight,
-              cacheBust: false,
-              skipAutoScale: true,
-              imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
-              style: {
-                transform: 'none',
-                transformOrigin: 'top left',
-                margin: '0',
-                boxShadow: 'none'
-              }
-            });
-
+          const canvas = await exportExactDOMToCanvas();
+          canvas.toBlob((pngBlob) => {
+            if (!pngBlob) return;
+            const downloadUrl = URL.createObjectURL(pngBlob);
             const a = document.createElement('a');
-            a.href = dataUrl;
+            a.href = downloadUrl;
             a.download = `architectural_poster_${currentGridMode}_${posterWidth}x${posterHeight}.png`;
             a.click();
-          } else {
-            throw new Error('htmlToImage library is not loaded');
-          }
+            URL.revokeObjectURL(downloadUrl);
+            btn.textContent = origText;
+          }, 'image/png');
         } catch (err) {
-          console.error('PNG export failed:', err);
-          alert('PNG export failed. If opening directly via file://, run using a local server (e.g., npx serve or python -m http.server) to allow canvas image rasterization.');
-        } finally {
-          // Restore original image source attribute
-          if (originalSrc && !originalSrc.startsWith('data:')) {
-            heroImg.src = originalSrc;
-          }
-          if (guidesWereActive) {
-            gridOverlay.classList.add('visible');
-          }
+          console.error('Export error:', err);
           btn.textContent = origText;
         }
       });
