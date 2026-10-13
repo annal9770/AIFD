@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Architectural Poster Generator Studio Pro</title>
+  <title>Architectural Poster Generator Studio Pro — Unified Exporter</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- html-to-image for exact DOM pixel-matching PNG export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/htmlToImage.min.js"></script>
 
   <style>
     :root {
@@ -27,9 +29,14 @@
       --poster-ink-color: #111111;
       --poster-scale: 1;
 
-      /* Dynamic Visual Stage Coordinates */
       --stage-pad-top: 300px;
       --photo-size: 381px;
+
+      --grid-cols: 6;
+      --grid-gutter: 16px;
+      --grid-margin-x: 28px;
+      --grid-margin-y: 36px;
+      --baseline-unit: 12px;
     }
 
     * {
@@ -75,7 +82,7 @@
     .site-wrapper {
       position: relative;
       z-index: 1;
-      max-width: 1380px;
+      max-width: 1420px;
       margin: 0 auto;
       padding: 40px 28px 96px 28px;
       display: flex;
@@ -137,18 +144,18 @@
     }
     .hero-description {
       font-size: 1.05rem;
-      max-width: 720px;
+      max-width: 780px;
       line-height: 1.5;
       opacity: 0.9;
     }
 
     .workspace-grid {
       display: grid;
-      grid-template-columns: 480px 1fr;
+      grid-template-columns: 500px 1fr;
       gap: 36px;
       align-items: start;
     }
-    @media (max-width: 1080px) {
+    @media (max-width: 1120px) {
       .workspace-grid {
         grid-template-columns: 1fr;
       }
@@ -189,12 +196,12 @@
       background: transparent;
       border: none;
       font-family: var(--font-heading);
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--color-text);
       opacity: 0.55;
-      padding: 6px 12px;
+      padding: 6px 10px;
       cursor: pointer;
       border-radius: 8px;
       transition: all 0.2s ease;
@@ -487,15 +494,23 @@
       transition: transform 0.15s ease-out;
     }
 
+    /* -------------------------------------------------------------
+       MODULAR GRID POSTER CANVAS CORE
+    -------------------------------------------------------------- */
     .poster-canvas {
       position: relative;
       width: var(--poster-w);
       height: var(--poster-h);
+      max-height: var(--poster-h);
       background: var(--poster-paper-bg);
       color: var(--poster-ink-color);
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(var(--grid-cols), 1fr);
+      grid-template-rows: auto auto minmax(0, 1fr);
+      column-gap: var(--grid-gutter);
+      row-gap: 12px;
+      padding: var(--stage-pad-top) var(--grid-margin-x) 46px var(--grid-margin-x) !important;
       flex-shrink: 0;
       box-shadow: 0 18px 45px rgba(43, 33, 27, 0.12);
       transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -507,36 +522,31 @@
       pointer-events: none;
       z-index: 100;
       display: none;
+      grid-template-columns: repeat(var(--grid-cols), 1fr);
+      column-gap: var(--grid-gutter);
+      padding: 0 var(--grid-margin-x);
     }
     .grid-overlay.visible {
-      display: block;
+      display: grid;
     }
-    .datum-line-v {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background: rgba(0, 102, 255, 0.4);
-      left: var(--datum-x);
-    }
-    .datum-line-v::after {
-      content: 'DATUM RAIL';
-      position: absolute;
-      top: 60px;
-      left: 4px;
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: #0066FF;
-      letter-spacing: 0.05em;
+    .grid-overlay-col {
+      background: rgba(0, 102, 255, 0.03);
+      border-left: 1px dashed rgba(0, 102, 255, 0.28);
+      border-right: 1px dashed rgba(0, 102, 255, 0.28);
+      height: 100%;
     }
     .baseline-grid-stripes {
       position: absolute;
       inset: 0;
       background-image: linear-gradient(to bottom, rgba(255, 0, 102, 0.08) 1px, transparent 1px);
-      background-size: 100% 24px;
+      background-size: 100% var(--baseline-unit);
+      pointer-events: none;
+      display: none;
+    }
+    .grid-overlay.visible + .baseline-grid-stripes {
+      display: block;
     }
 
-    /* Top Margin Marks: Black blocks with 6px gaps */
     .reg-top-bar {
       position: absolute;
       top: 0;
@@ -548,6 +558,7 @@
       align-items: stretch;
       gap: 6px;
       z-index: 50;
+      transition: left 0.2s, right 0.2s;
     }
     .reg-top-bar span {
       flex: 1;
@@ -555,7 +566,6 @@
       background: var(--poster-ink-color);
       display: block;
     }
-
     .reg-bleed-indicator {
       position: absolute;
       top: 0;
@@ -564,9 +574,8 @@
       height: 120px;
       background: var(--poster-ink-color);
       z-index: 50;
+      transition: left 0.2s, right 0.2s;
     }
-
-    /* Left Bottom Edge Bleed Indicator */
     .reg-bottom-assembly {
       position: absolute;
       bottom: 0;
@@ -574,6 +583,7 @@
       display: flex;
       align-items: flex-end;
       z-index: 50;
+      transition: left 0.2s, right 0.2s, transform 0.2s;
     }
     .reg-block-main {
       width: 140px;
@@ -617,8 +627,6 @@
       border-radius: 50%;
       background: var(--color-spot);
     }
-
-    /* Knockout rules behind subheading/images (z-index 2) */
     .horizontal-rules-stack {
       position: absolute;
       top: 650px;
@@ -638,39 +646,27 @@
       background: var(--poster-paper-bg);
     }
 
-    .upper-zone {
-      position: relative;
-      display: grid;
-      grid-template-columns: var(--datum-x) calc(100% - var(--datum-x));
-      z-index: 4;
-      padding-top: var(--stage-pad-top);
-      transition: padding-top 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
     .vertical-rail-grid {
       position: relative;
       display: flex;
-      flex-direction: row; /* Preserves Col 1 -> Col 2 -> Col 3 order */
+      flex-direction: row;
       justify-content: flex-start;
-      align-items: flex-end; /* Bottom-anchored */
-      height: var(--photo-size);
-      padding-left: 20px;
-      padding-right: 0;
-      padding-bottom: 0px;
+      align-items: flex-end;
+      height: var(--photo-size) !important;
+      max-height: var(--photo-size) !important;
+      overflow: hidden;
       gap: 12px;
       z-index: 10;
       transition: height 0.25s ease;
     }
-
     .v-col {
       display: flex;
       flex-direction: column;
-      justify-content: flex-end; /* Text sits at the baseline */
+      justify-content: flex-end;
       align-items: center;
       position: relative;
       height: 100%;
     }
-
     .v-line {
       writing-mode: vertical-rl;
       transform: rotate(180deg);
@@ -683,14 +679,8 @@
       display: inline-flex;
       flex-direction: row;
     }
-
-    .v-word {
-      display: inline-block;
-    }
-    .v-space {
-      display: inline-block;
-      white-space: pre;
-    }
+    .v-word { display: inline-block; }
+    .v-space { display: inline-block; white-space: pre; }
 
     .visual-stage {
       position: relative;
@@ -699,22 +689,17 @@
       flex-direction: column;
       justify-content: flex-start;
       align-items: flex-start;
-      padding-top: 0;
-      padding-right: 24px;
-      padding-left: 0;
       z-index: 4;
     }
-
     .hero-photo-wrapper {
       position: relative;
-      width: var(--photo-size);
+      width: 100%;
+      max-width: var(--photo-size);
       height: var(--photo-size);
-      max-width: 100%;
-      z-index: 4;
       background: #d8d8d8;
       overflow: hidden;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-      transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .hero-photo-wrapper img {
       width: 100%;
@@ -724,105 +709,162 @@
       filter: grayscale(100%) contrast(115%);
     }
 
+    .headline-block {
+      z-index: 10;
+      width: 100%;
+    }
     .hook-h2 {
-      margin-top: 18px;
       font-size: 1.55rem;
       font-weight: 700;
       line-height: 1.08;
       letter-spacing: -0.025em;
-      width: 65%;
+      width: 75%;
+      max-width: 100%;
       text-align: left;
-      z-index: 10;
       font-family: 'Inter', -apple-system, sans-serif;
       transition: margin-top 0.2s ease, font-size 0.2s ease;
-    }
-
-    .lower-zone-datum {
-      position: relative;
-      width: 100%;
-      margin-top: 48px;
-      display: grid;
-      grid-template-columns: var(--datum-x) calc(100% - var(--datum-x));
-      padding-bottom: 24px;
-      z-index: 10;
-      transition: margin-top 0.2s ease;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .editorial-columns-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      column-gap: 16px;
-      padding-right: 24px;
-      padding-left: 0;
+      column-gap: var(--grid-gutter);
       font-size: 0.49rem;
       line-height: 1.35;
       letter-spacing: -0.005em;
       font-family: 'Inter', -apple-system, sans-serif;
+      z-index: 10;
+      align-self: start;
+      max-width: 100%;
+      overflow: hidden;
+      max-height: calc(var(--poster-h) - var(--stage-pad-top) - var(--photo-size) - 100px);
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
-
     .text-col {
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       text-align: left;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
     }
-    .text-col strong {
-      font-weight: 700;
+    .text-col strong { font-weight: 700; }
+
+    /* MODULAR GRID MODES */
+    .poster-canvas[data-grid-mode="gsapp-datum"] .vertical-rail-grid {
+      grid-column: 1 / span 2;
+      grid-row: 1;
+      align-self: end;
+      order: 1;
+    }
+    .poster-canvas[data-grid-mode="gsapp-datum"] .visual-stage {
+      grid-column: 3 / -1;
+      grid-row: 1;
+      order: 2;
+    }
+    .poster-canvas[data-grid-mode="gsapp-datum"] .headline-block {
+      grid-column: 3 / -1;
+      grid-row: 2;
+      order: 3;
+    }
+    .poster-canvas[data-grid-mode="gsapp-datum"] .editorial-columns-grid {
+      grid-column: 3 / -1;
+      grid-row: 3;
+      order: 4;
+      margin-top: 14px;
     }
 
-    /* RIGHT-ALIGNED VERTICAL TEXT MODE */
-    .poster-canvas.text-on-right .upper-zone {
-      grid-template-columns: calc(100% - var(--datum-x)) var(--datum-x);
-    }
-    .poster-canvas.text-on-right .upper-zone .vertical-rail-grid {
-      order: 2;
-      padding-left: 0;
-      padding-right: 20px;
-      flex-direction: row; /* Keeps line order unchanged */
-      justify-content: flex-start;
-    }
-    .poster-canvas.text-on-right .upper-zone .visual-stage {
+    .poster-canvas[data-grid-mode="inverted-rail"] .visual-stage {
+      grid-column: 1 / span 4;
+      grid-row: 1;
       order: 1;
-      padding-left: 24px;
-      padding-right: 0;
-      align-items: flex-start;
     }
-    .poster-canvas.text-on-right .lower-zone-datum {
-      grid-template-columns: calc(100% - var(--datum-x)) var(--datum-x);
-    }
-    .poster-canvas.text-on-right .lower-zone-datum .editorial-columns-grid {
-      order: 1;
-      padding-left: 24px;
-      padding-right: 0;
-    }
-    .poster-canvas.text-on-right .lower-zone-datum > div:not(.editorial-columns-grid) {
+    .poster-canvas[data-grid-mode="inverted-rail"] .vertical-rail-grid {
+      grid-column: 5 / -1;
+      grid-row: 1;
+      align-self: end;
       order: 2;
     }
-    .poster-canvas.text-on-right .grid-overlay .datum-line-v {
-      left: auto;
-      right: var(--datum-x);
+    .poster-canvas[data-grid-mode="inverted-rail"] .headline-block {
+      grid-column: 1 / span 4;
+      grid-row: 2;
+      order: 3;
     }
-    .poster-canvas.text-on-right .circle-assembly {
-      left: auto;
-      right: 24px;
+    .poster-canvas[data-grid-mode="inverted-rail"] .editorial-columns-grid {
+      grid-column: 1 / span 4;
+      grid-row: 3;
+      order: 4;
+      margin-top: 14px;
     }
-    .poster-canvas.text-on-right .horizontal-rules-stack {
-      right: auto;
-      left: 48px;
+    .poster-canvas[data-grid-mode="inverted-rail"] .circle-assembly { left: auto; right: 24px; }
+    .poster-canvas[data-grid-mode="inverted-rail"] .horizontal-rules-stack { right: auto; left: 48px; }
+    .poster-canvas[data-grid-mode="inverted-rail"] .reg-top-bar { left: auto; right: 0; }
+    .poster-canvas[data-grid-mode="inverted-rail"] .reg-bleed-indicator { right: auto; left: 0; }
+    .poster-canvas[data-grid-mode="inverted-rail"] .reg-bottom-assembly { left: auto; right: 0; transform: scaleX(-1); }
+
+    .poster-canvas[data-grid-mode="gerstner-band"] {
+      padding-top: var(--stage-pad-top) !important;
     }
-    .poster-canvas.text-on-right .reg-top-bar {
-      left: auto;
-      right: 0;
+    .poster-canvas[data-grid-mode="gerstner-band"] .visual-stage {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      order: 1;
+      margin-bottom: 12px;
     }
-    .poster-canvas.text-on-right .reg-bleed-indicator {
-      right: auto;
-      left: 0;
+    .poster-canvas[data-grid-mode="gerstner-band"] .hero-photo-wrapper {
+      max-width: 100%;
+      height: var(--photo-size);
     }
-    .poster-canvas.text-on-right .reg-bottom-assembly {
-      left: auto;
-      right: 0;
-      transform: scaleX(-1);
+    .poster-canvas[data-grid-mode="gerstner-band"] .vertical-rail-grid {
+      grid-column: 1 / span 2;
+      grid-row: 2 / span 2;
+      height: 220px !important;
+      max-height: 220px !important;
+      align-self: start;
+      order: 2;
+    }
+    .poster-canvas[data-grid-mode="gerstner-band"] .headline-block {
+      grid-column: 3 / -1;
+      grid-row: 2;
+      order: 3;
+    }
+    .poster-canvas[data-grid-mode="gerstner-band"] .editorial-columns-grid {
+      grid-column: 3 / -1;
+      grid-row: 3;
+      order: 4;
+      margin-top: 10px;
+      max-height: calc(var(--poster-h) - var(--stage-pad-top) - var(--photo-size) - 90px);
+    }
+
+    .poster-canvas[data-grid-mode="zurich-equal"] .vertical-rail-grid {
+      grid-column: 1 / span 2;
+      grid-row: 1;
+      align-self: end;
+      order: 1;
+    }
+    .poster-canvas[data-grid-mode="zurich-equal"] .visual-stage {
+      grid-column: 3 / -1;
+      grid-row: 1;
+      order: 2;
+    }
+    .poster-canvas[data-grid-mode="zurich-equal"] .headline-block {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      order: 3;
+      margin-top: 12px;
+    }
+    .poster-canvas[data-grid-mode="zurich-equal"] .headline-block .hook-h2 {
+      width: 100%;
+    }
+    .poster-canvas[data-grid-mode="zurich-equal"] .editorial-columns-grid {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      order: 4;
+      margin-top: 12px;
     }
   </style>
 </head>
@@ -844,7 +886,7 @@
       </div>
       <h1 class="hero-title">Architectural Poster Studio</h1>
       <p class="hero-description">
-        Modular grid typesetting workbench. Select dynamic word-boundaries to terrace the monolithic form, configure aspect ratios, and export print-ready SVGs, PNGs, or standalone HTML.
+        Modular grid typesetting workbench. Select dynamic terraces (1 to 5 steps), structural layout modes, and export vector-exact SVGs, high-res PNGs, or clean HTML.
       </p>
     </header>
 
@@ -858,7 +900,8 @@
         </div>
 
         <nav class="tab-nav">
-          <button class="tab-btn active" data-tab="tab-text">Vertical Text</button>
+          <button class="tab-btn active" data-tab="tab-grid">Grid Matrix</button>
+          <button class="tab-btn" data-tab="tab-text">Terraces (1-5)</button>
           <button class="tab-btn" data-tab="tab-image">Imagery</button>
           <button class="tab-btn" data-tab="tab-editorial">Body Text</button>
           <button class="tab-btn" data-tab="tab-ratio">Ratio</button>
@@ -866,48 +909,67 @@
           <button class="tab-btn" data-tab="tab-accents">Accents</button>
         </nav>
 
-        <!-- TAB 1: Vertical Text -->
-        <div class="tab-content active" id="tab-text">
-          <!-- Text Position Toggle (Right/Left) -->
+        <!-- TAB 0: Grid Matrix -->
+        <div class="tab-content active" id="tab-grid">
+          <div class="control-card">
+            <span class="card-label">Modular Grid Modes</span>
+            <div class="preset-chip-grid">
+              <button class="preset-chip active" data-grid="gsapp-datum">GSAPP Asymmetric</button>
+              <button class="preset-chip" data-grid="inverted-rail">Inverted Right Rail</button>
+              <button class="preset-chip" data-grid="gerstner-band">Gerstner Band</button>
+              <button class="preset-chip" data-grid="zurich-equal">Zürich Symmetric</button>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Grid Matrix Dimensions</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Matrix Columns</label>
+                <input type="range" id="grid-cols-slider" min="3" max="12" step="1" value="6">
+                <span class="slider-badge" id="grid-cols-val">6 Cols</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Column Gutter</label>
+                <input type="range" id="grid-gutter-slider" min="8" max="32" step="2" value="16">
+                <span class="slider-badge" id="grid-gutter-val">16px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Horizontal Margin</label>
+                <input type="range" id="grid-margin-slider" min="16" max="52" step="2" value="28">
+                <span class="slider-badge" id="grid-margin-val">28px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Baseline Metric</label>
+                <input type="range" id="grid-baseline-slider" min="6" max="24" step="2" value="12">
+                <span class="slider-badge" id="grid-baseline-val">12px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 1: Terraces (1 to 5 dynamic lines) -->
+        <div class="tab-content" id="tab-text">
           <button class="btn-action secondary" id="btn-toggle-text-align" style="font-weight: 800; letter-spacing: 0.08em; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <span>⇄</span> Move Text to <span id="align-btn-dir-label">Right</span>
           </button>
 
           <div class="control-card">
-            <span class="card-label">Column 1 (Outer Rail)</span>
-            <div class="input-field-group">
-              <label>Text Line</label>
-              <input type="text" id="text-col-1" value="Columbia University">
-            </div>
-            <div class="input-field-group">
-              <label>Snap Terrace To:</label>
-              <select id="snap-col-1"></select>
+            <span class="card-label">Terrace Architecture</span>
+            <div class="slider-control">
+              <label>Active Steps (Columns)</label>
+              <input type="range" id="terrace-count-slider" min="1" max="5" step="1" value="3">
+              <span class="slider-badge" id="terrace-count-val">3 Steps</span>
             </div>
           </div>
 
-          <div class="control-card">
-            <span class="card-label">Column 2 (Center Rail)</span>
-            <div class="input-field-group">
-              <label>Text Line</label>
-              <input type="text" id="text-col-2" value="Graduate School of Architecture">
-            </div>
-            <div class="input-field-group">
-              <label>Snap Terrace To:</label>
-              <select id="snap-col-2"></select>
-            </div>
-          </div>
-
-          <div class="control-card">
-            <span class="card-label">Column 3 (Inner Datum)</span>
-            <div class="input-field-group">
-              <label>Text Line</label>
-              <input type="text" id="text-col-3" value="and Planning">
-            </div>
-            <div class="input-field-group">
-              <label>Snap Terrace To:</label>
-              <select id="snap-col-3"></select>
-            </div>
-          </div>
+          <div id="rail-inputs-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
 
           <div class="control-card">
             <span class="card-label">Terrace Calibration</span>
@@ -928,8 +990,8 @@
             <div class="input-field-group">
               <div class="slider-control">
                 <label>Font Size</label>
-                <input type="range" id="font-size-slider" min="18" max="38" value="29">
-                <span class="slider-badge" id="font-size-val">29px</span>
+                <input type="range" id="font-size-slider" min="14" max="34" value="24">
+                <span class="slider-badge" id="font-size-val">24px</span>
               </div>
             </div>
             <div class="input-field-group">
@@ -971,14 +1033,14 @@
             <div class="input-field-group">
               <div class="slider-control">
                 <label>Photo Size</label>
-                <input type="range" id="photo-size-slider" min="180" max="450" value="381">
+                <input type="range" id="photo-size-slider" min="140" max="450" value="381">
                 <span class="slider-badge" id="photo-size-val">381px</span>
               </div>
             </div>
             <div class="input-field-group">
               <div class="slider-control">
                 <label>Top Elevation (Y)</label>
-                <input type="range" id="photo-top-slider" min="60" max="420" value="300">
+                <input type="range" id="photo-top-slider" min="30" max="420" value="300">
                 <span class="slider-badge" id="photo-top-val">300px</span>
               </div>
             </div>
@@ -1003,7 +1065,7 @@
           </div>
 
           <div class="control-card">
-            <span class="card-label">Subheading Hook</span>
+            <span class="card-label">Headline Hook</span>
             <div class="input-field-group">
               <label>Headline Text</label>
               <textarea id="h2-text-input">Master of Science in Historic Preservation</textarea>
@@ -1011,15 +1073,15 @@
             <div class="input-field-group">
               <div class="slider-control">
                 <label>Width Boundary</label>
-                <input type="range" id="subhead-width-slider" min="40" max="100" value="65">
-                <span class="slider-badge" id="subhead-width-val">65%</span>
+                <input type="range" id="subhead-width-slider" min="40" max="100" value="75">
+                <span class="slider-badge" id="subhead-width-val">75%</span>
               </div>
             </div>
             <div class="input-field-group">
               <div class="slider-control">
                 <label>Font Size</label>
-                <input type="range" id="subhead-font-slider" min="16" max="36" value="25">
-                <span class="slider-badge" id="subhead-font-val">25px</span>
+                <input type="range" id="subhead-font-slider" min="14" max="36" value="24">
+                <span class="slider-badge" id="subhead-font-val">24px</span>
               </div>
             </div>
             <div class="input-field-group">
@@ -1039,14 +1101,14 @@
             <div class="input-field-group">
               <div class="slider-control">
                 <label>Font Size</label>
-                <input type="range" id="body-font-slider" min="6" max="12" step="0.5" value="7.8">
-                <span class="slider-badge" id="body-font-val">7.8px</span>
+                <input type="range" id="body-font-slider" min="5" max="12" step="0.5" value="7.5">
+                <span class="slider-badge" id="body-font-val">7.5px</span>
               </div>
             </div>
             <div class="input-field-group">
               <div class="slider-control">
                 <label>Distance Below Header</label>
-                <input type="range" id="body-margin-slider" min="16" max="140" value="48">
+                <input type="range" id="body-margin-slider" min="8" max="140" value="48">
                 <span class="slider-badge" id="body-margin-val">48px</span>
               </div>
             </div>
@@ -1250,11 +1312,10 @@
       <!-- Poster Viewport -->
       <section class="stage-wrapper">
         <div class="stage-toolbar-group">
-          <!-- Section 1: Overlay Guides & Zoom Controls -->
           <div class="stage-toolbar">
             <label class="checkbox-row" title="Shortcut: Press 'G' key">
               <input type="checkbox" id="toggle-guides">
-              <span>Show Grid & Datum Overlay (G)</span>
+              <span>Show Modular Matrix & Baseline (G)</span>
             </label>
             <div class="zoom-controls">
               <span style="font-size: 0.75rem; opacity: 0.7;">ZOOM:</span>
@@ -1264,7 +1325,6 @@
             </div>
           </div>
 
-          <!-- Section 2: Dedicated Random Generation Strip -->
           <div class="generator-toolbar-strip">
             <span class="generator-strip-label">Generative Layout Engine</span>
             <button class="btn-randomize" id="btn-random-generation" title="Randomize Poster Elements & Dimensions">
@@ -1276,77 +1336,60 @@
         <div class="stage-canvas-outer" id="stage-viewport">
           <div class="poster-canvas-scaler" id="poster-scaler">
             
-            <main class="poster-canvas" id="poster">
-              
-              <!-- Architectural Calibration Guides -->
-              <div class="grid-overlay" id="grid-overlay">
-                <div class="datum-line-v"></div>
-                <div class="baseline-grid-stripes"></div>
-              </div>
+            <main class="poster-canvas" id="poster" data-grid-mode="gsapp-datum">
+              <div class="grid-overlay" id="grid-overlay"></div>
+              <div class="baseline-grid-stripes" id="baseline-stripes"></div>
 
-              <!-- Top Calibration Marks (Black segments with 6px gaps) -->
               <div class="reg-top-bar" id="reg-top-bar">
                 <span></span><span></span><span></span><span></span>
               </div>
               <div class="reg-bleed-indicator" id="reg-bleed-bar"></div>
 
-              <!-- Layer 2: Monolithic Spot Vector Shape -->
               <svg class="monolithic-spot-shape" viewBox="0 0 600 1200" preserveAspectRatio="none" id="poster-svg-shape">
                 <path id="dynamic-terrace-path" d="" fill="var(--color-spot)" />
               </svg>
 
-              <!-- Layer 3: Circle Cutouts -->
               <div class="circle-assembly circle-top-white" id="circle-top"></div>
               <div class="circle-assembly circle-bottom-green" id="circle-bottom"></div>
 
-              <!-- Layer 4: Knockout Horizontal Rules (z-index: 2, sits behind visual stage text) -->
               <div class="horizontal-rules-stack" id="rules-stack">
                 <span></span>
                 <span></span>
                 <span></span>
               </div>
 
-              <!-- Upper Zone: 2-Column Grid -->
-              <section class="upper-zone" id="upper-zone">
-                <aside class="vertical-rail-grid" id="vertical-rail">
-                  <div class="v-col" id="col-1"><span class="v-line" id="line-1"></span></div>
-                  <div class="v-col" id="col-2"><span class="v-line" id="line-2"></span></div>
-                  <div class="v-col" id="col-3"><span class="v-line" id="line-3"></span></div>
-                </aside>
+              <aside class="vertical-rail-grid" id="vertical-rail"></aside>
 
-                <div class="visual-stage" id="visual-stage">
-                  <div class="hero-photo-wrapper" id="photo-wrapper">
-                    <img id="poster-hero-img" crossorigin="anonymous" src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=700&q=80" alt="Architectural relief detail">
-                  </div>
-                  <h2 class="hook-h2" id="poster-h2">Master of Science in Historic Preservation</h2>
+              <div class="visual-stage" id="visual-stage">
+                <div class="hero-photo-wrapper" id="photo-wrapper">
+                  <img id="poster-hero-img" crossorigin="anonymous" src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=700&q=80" alt="Architectural relief detail">
                 </div>
-              </section>
+              </div>
 
-              <!-- Lower Modular Grid: Aligned with Datum Zone -->
-              <footer class="lower-zone-datum" id="lower-zone-footer">
-                <div></div> <!-- Blank Datum Buffer (195px) -->
-                <div class="editorial-columns-grid" id="body-text-grid">
-                  <div class="text-col">
-                    <p id="footer-p-3">The master's degree historic preservation program provides specialized training for the individual who wishes to be professionally active in preservation as architects, conservators, historians, and planners.</p>
-                  </div>
-                  <div class="text-col">
-                    <p id="footer-p-4">There is also a four-year joint degree program offering qualified students the opportunity to work simultaneously toward master's degrees in architecture and historic preservation.</p>
-                  </div>
-                  <div class="text-col">
-                    <p id="footer-p-5">As part of the Graduate School of Architecture and Planning, the program draws upon the resources of its master's programs in architecture, real estate development, and urban planning.</p>
-                  </div>
-                  <div class="text-col">
-                    <p id="footer-p-6"><strong>Bulletin and application forms may be obtained from:</strong><br>
-                    Dean of Admissions<br>
-                    GSAP, 400 Avery Hall<br>
-                    Columbia University<br>
-                    New York, NY 10027<br>
-                    (212) 280-3414</p>
-                  </div>
+              <div class="headline-block" id="headline-block">
+                <h2 class="hook-h2" id="poster-h2">Master of Science in Historic Preservation</h2>
+              </div>
+
+              <div class="editorial-columns-grid" id="body-text-grid">
+                <div class="text-col">
+                  <p id="footer-p-3">The master's degree historic preservation program provides specialized training for the individual who wishes to be professionally active in preservation as architects, conservators, historians, and planners.</p>
                 </div>
-              </footer>
+                <div class="text-col">
+                  <p id="footer-p-4">There is also a four-year joint degree program offering qualified students the opportunity to work simultaneously toward master's degrees in architecture and historic preservation.</p>
+                </div>
+                <div class="text-col">
+                  <p id="footer-p-5">As part of the Graduate School of Architecture and Planning, the program draws upon the resources of its master's programs in architecture, real estate development, and urban planning.</p>
+                </div>
+                <div class="text-col">
+                  <p id="footer-p-6"><strong>Bulletin and application forms may be obtained from:</strong><br>
+                  Dean of Admissions<br>
+                  GSAP, 400 Avery Hall<br>
+                  Columbia University<br>
+                  New York, NY 10027<br>
+                  (212) 280-3414</p>
+                </div>
+              </div>
 
-              <!-- Left/Right Bottom Edge Bleed Indicator -->
               <div class="reg-bottom-assembly" id="reg-bottom-assembly">
                 <div class="reg-block-main"></div>
                 <div class="reg-block-step"></div>
@@ -1384,16 +1427,15 @@
     const rail = document.getElementById('vertical-rail');
     const heroImg = document.getElementById('poster-hero-img');
     const photoWrapper = document.getElementById('photo-wrapper');
-    const visualStage = document.getElementById('visual-stage');
     const posterH2 = document.getElementById('poster-h2');
     const gridOverlay = document.getElementById('grid-overlay');
     const bodyTextGrid = document.getElementById('body-text-grid');
-    const lowerZoneFooter = document.getElementById('lower-zone-footer');
 
     const rulesStack = document.getElementById('rules-stack');
     const circleTop = document.getElementById('circle-top');
     const circleBottom = document.getElementById('circle-bottom');
 
+    let currentGridMode = 'gsapp-datum';
     let isTextOnRight = false;
 
     let posterWidth = 600;
@@ -1402,27 +1444,21 @@
     let stagePadTop = 300;
     let finalStepHeight = 220;
 
-    // Wave parameters
     let waveCount = 2;
     let waveRoundness = 0.85;
     let waveAmplitude = 32;
     let waveOffset = 0;
 
-    const inputs = [
-      document.getElementById('text-col-1'),
-      document.getElementById('text-col-2'),
-      document.getElementById('text-col-3')
+    let terraceCount = 3;
+    const defaultLines = [
+      "Columbia University",
+      "Graduate School of Architecture",
+      "and Planning",
+      "Preservation Research Laboratory",
+      "Studio Archive Series"
     ];
-    const selectors = [
-      document.getElementById('snap-col-1'),
-      document.getElementById('snap-col-2'),
-      document.getElementById('snap-col-3')
-    ];
-    const lineElements = [
-      document.getElementById('line-1'),
-      document.getElementById('line-2'),
-      document.getElementById('line-3')
-    ];
+    let activeTexts = [...defaultLines];
+    let selectedSnapIndices = [-1, 3, 1, 0, 1];
 
     const clearanceSlider = document.getElementById('clearance-slider');
     const clearanceVal = document.getElementById('clearance-val');
@@ -1447,19 +1483,80 @@
     const waveOffsetSlider = document.getElementById('wave-offset-slider');
     const waveOffsetVal = document.getElementById('wave-offset-val');
 
-    let selectedSnapIndices = [-1, 3, 1];
+    function renderGridOverlayColumns(colCount) {
+      gridOverlay.innerHTML = '';
+      for (let i = 0; i < colCount; i++) {
+        const colDiv = document.createElement('div');
+        colDiv.className = 'grid-overlay-col';
+        gridOverlay.appendChild(colDiv);
+      }
+    }
 
-    function renderLineWords(columnIndex) {
-      const text = inputs[columnIndex].value.trim();
-      const words = text.split(/\s+/).filter(Boolean);
-      const lineEl = lineElements[columnIndex];
-      const selectEl = selectors[columnIndex];
+    function buildTerraceDOM() {
+      const inputsContainer = document.getElementById('rail-inputs-container');
+      inputsContainer.innerHTML = '';
+      rail.innerHTML = '';
 
+      for (let i = 0; i < terraceCount; i++) {
+        const colDiv = document.createElement('div');
+        colDiv.className = 'v-col';
+        colDiv.id = `col-${i}`;
+        const lineSpan = document.createElement('span');
+        lineSpan.className = 'v-line';
+        lineSpan.id = `line-${i}`;
+        colDiv.appendChild(lineSpan);
+        rail.appendChild(colDiv);
+
+        const card = document.createElement('div');
+        card.className = 'control-card';
+        const tierLabel = (i === 0) ? 'Outer Rail' : ((i === terraceCount - 1) ? 'Inner Datum' : 'Intermediate Tier');
+        card.innerHTML = `
+          <span class="card-label">Step ${i + 1} (${tierLabel})</span>
+          <div class="input-field-group">
+            <label>Text Line</label>
+            <input type="text" id="text-col-${i}" value="${activeTexts[i] || `Terrace Tier ${i + 1}`}">
+          </div>
+          <div class="input-field-group">
+            <label>Snap Terrace To:</label>
+            <select id="snap-col-${i}"></select>
+          </div>
+        `;
+        inputsContainer.appendChild(card);
+
+        const textInput = card.querySelector(`#text-col-${i}`);
+        const snapSelect = card.querySelector(`#snap-col-${i}`);
+
+        textInput.addEventListener('input', (e) => {
+          activeTexts[i] = e.target.value;
+          renderLineWords(i);
+          recalculateTerrace();
+        });
+
+        snapSelect.addEventListener('change', (e) => {
+          selectedSnapIndices[i] = parseInt(e.target.value, 10);
+          recalculateTerrace();
+        });
+
+        renderLineWords(i);
+      }
+
+      const curFontSize = parseInt(fontSizeSlider.value, 10) || 24;
+      document.querySelectorAll('.v-line').forEach(l => l.style.fontSize = `${curFontSize}px`);
+      recalculateTerrace();
+    }
+
+    function renderLineWords(i) {
+      const lineEl = document.getElementById(`line-${i}`);
+      const selectEl = document.getElementById(`snap-col-${i}`);
+      const inputEl = document.getElementById(`text-col-${i}`);
+      if (!lineEl || !selectEl || !inputEl) return;
+
+      const words = inputEl.value.trim().split(/\s+/).filter(Boolean);
       lineEl.innerHTML = '';
+
       words.forEach((word, wIdx) => {
         const span = document.createElement('span');
         span.className = 'v-word';
-        span.dataset.wordIndex = wIdx;
         span.textContent = word;
         lineEl.appendChild(span);
 
@@ -1471,14 +1568,8 @@
         }
       });
 
-      const defaultSnaps = [-1, 3, 1];
-      const prevSel = (selectedSnapIndices[columnIndex] !== undefined) ? selectedSnapIndices[columnIndex] : defaultSnaps[columnIndex];
-      selectEl.innerHTML = '';
-
-      const startOpt = document.createElement('option');
-      startOpt.value = -1;
-      startOpt.textContent = 'Start of Line (Behind 1st Letter)';
-      selectEl.appendChild(startOpt);
+      const prevSel = (selectedSnapIndices[i] !== undefined) ? selectedSnapIndices[i] : -1;
+      selectEl.innerHTML = '<option value="-1">Start of Line (Behind 1st Letter)</option>';
 
       words.forEach((word, wIdx) => {
         const opt = document.createElement('option');
@@ -1491,12 +1582,11 @@
       if (validIdx !== -1 && validIdx >= words.length) {
         validIdx = Math.max(0, words.length - 1);
       }
-      selectedSnapIndices[columnIndex] = validIdx;
+      selectedSnapIndices[i] = validIdx;
       selectEl.value = validIdx;
     }
 
     function buildUniformWavePath(startX, baselineY, targetLeftX, count, amplitude, roundness) {
-      const totalWidth = Math.abs(startX - targetLeftX);
       if (count <= 0 || amplitude <= 0) {
         return `H ${targetLeftX}`;
       }
@@ -1537,114 +1627,129 @@
       const scale = posterRect.width / posterWidth || 1;
       const railRect = rail.getBoundingClientRect();
       const railBaselinePad = parseInt(railPadSlider.value, 10);
-
-      // Shared baseline at the bottom of the vertical text rail
       const railBaselineY = (railRect.bottom - posterRect.top) / scale - railBaselinePad;
 
       const stepMetrics = [];
 
-      for (let i = 0; i < 3; i++) {
-        const lineEl = lineElements[i];
+      for (let i = 0; i < terraceCount; i++) {
+        const lineEl = document.getElementById(`line-${i}`);
+        if (!lineEl) continue;
+
         const wordSpans = lineEl.querySelectorAll('.v-word');
         const activeIdx = selectedSnapIndices[i];
-        const colContainerRect = lineEl.getBoundingClientRect();
-        const relRight = (colContainerRect.right - posterRect.left) / scale;
-        const relLeft = (colContainerRect.left - posterRect.left) / scale;
+        const colRect = lineEl.getBoundingClientRect();
+        const relRight = (colRect.right - posterRect.left) / scale;
+        const relLeft = (colRect.left - posterRect.left) / scale;
 
-        if (activeIdx === -1) {
-          // Snap behind the first letter (bottom baseline)
+        if (activeIdx === -1 || wordSpans.length === 0) {
           stepMetrics.push({
             topY: Math.round(railBaselineY),
             rightX: Math.round(relRight),
             leftX: Math.round(relLeft)
           });
         } else {
-          const targetWordSpan = wordSpans[activeIdx] || wordSpans[0];
-          if (targetWordSpan) {
-            const wordRect = targetWordSpan.getBoundingClientRect();
-            // Since the text reads upwards, the top of the word is wordRect.top
-            const relTop = (wordRect.top - posterRect.top) / scale;
+          const targetWord = wordSpans[activeIdx] || wordSpans[0];
+          const wordRect = targetWord.getBoundingClientRect();
+          const relTop = (wordRect.top - posterRect.top) / scale;
 
-            stepMetrics.push({
-              topY: Math.round(relTop - clearance),
-              rightX: Math.round(relRight),
-              leftX: Math.round(relLeft)
-            });
+          stepMetrics.push({
+            topY: Math.round(relTop - clearance),
+            rightX: Math.round(relRight),
+            leftX: Math.round(relLeft)
+          });
+        }
+      }
+
+      if (stepMetrics.length === 0) return;
+
+      const photoRect = photoWrapper.getBoundingClientRect();
+      const relPhotoBottom = (photoRect.bottom - posterRect.top) / scale;
+      const terraceCutY = Math.min(posterHeight - 120, Math.max(relPhotoBottom + 10, 380)) + waveOffset;
+      const terraceWaveBaseY = terraceCutY + 45;
+
+      let pathData = '';
+
+      if (!isTextOnRight) {
+        const rightBoundaryX = posterWidth - 48;
+        const waveSvgPath = buildUniformWavePath(rightBoundaryX, terraceWaveBaseY, 0, waveCount, waveAmplitude, waveRoundness);
+
+        let stepsCommands = `M 24,${stepMetrics[0].topY} `;
+        for (let i = 0; i < stepMetrics.length; i++) {
+          stepsCommands += `H ${stepMetrics[i].rightX + 4} `;
+          if (i < stepMetrics.length - 1) {
+            stepsCommands += `V ${stepMetrics[i + 1].topY} `;
           }
         }
-      }
 
-      if (stepMetrics.length === 3) {
-        const s1 = stepMetrics[0]; // Col 1 (Columbia University)
-        const s2 = stepMetrics[1]; // Col 2 (Graduate School of Architecture)
-        const s3 = stepMetrics[2]; // Col 3 (and Planning)
+        pathData = `
+          ${stepsCommands}
+          V ${finalStepHeight}
+          H ${rightBoundaryX}
+          V ${terraceCutY}
+          H ${rightBoundaryX}
+          V ${terraceWaveBaseY}
+          ${waveSvgPath}
+          V ${Math.max(stepMetrics[0].topY, 460)}
+          H 24
+          Z
+        `;
+      } else {
+        const leftBoundaryX = 48;
+        const outerRightX = posterWidth - 24;
+        const waveSvgPath = buildUniformWavePath(leftBoundaryX, terraceWaveBaseY, posterWidth, waveCount, waveAmplitude, waveRoundness);
 
-        const imageBottom = stagePadTop + photoSize;
-        const terraceCutY = Math.min(posterHeight - 120, Math.max(imageBottom + 10, 380)) + waveOffset;
-        const terraceWaveBaseY = terraceCutY + 45;
-
-        let pathData = '';
-
-        if (!isTextOnRight) {
-          // Standard: Left-aligned text stepping left to right (Col 1 -> Col 2 -> Col 3 -> Stage)
-          const rightBoundaryX = posterWidth - 48;
-          const waveSvgPath = buildUniformWavePath(rightBoundaryX, terraceWaveBaseY, 0, waveCount, waveAmplitude, waveRoundness);
-
-          pathData = `
-            M 24,${s1.topY}
-            H ${s1.rightX + 4}
-            V ${s2.topY}
-            H ${s2.rightX + 4}
-            V ${s3.topY}
-            H ${s3.rightX + 4}
-            V ${finalStepHeight}
-            H ${rightBoundaryX}
-            V ${terraceCutY}
-            H ${rightBoundaryX}
-            V ${terraceWaveBaseY}
-            ${waveSvgPath}
-            V ${Math.max(s1.topY, 460)}
-            H 24
-            Z
-          `;
-        } else {
-          // Right-aligned: Text maintains Col 1 -> Col 2 -> Col 3 order left-to-right.
-          // Terrace starts at outer right margin, steps leftward across Col 3 -> Col 2 -> Col 1 -> Left Stage
-          const leftBoundaryX = 48;
-          const outerRightX = posterWidth - 24;
-          const waveSvgPath = buildUniformWavePath(leftBoundaryX, terraceWaveBaseY, posterWidth, waveCount, waveAmplitude, waveRoundness);
-
-          pathData = `
-            M ${outerRightX},${s3.topY}
-            H ${s3.leftX - 4}
-            V ${s2.topY}
-            H ${s2.leftX - 4}
-            V ${s1.topY}
-            H ${s1.leftX - 4}
-            V ${finalStepHeight}
-            H ${leftBoundaryX}
-            V ${terraceCutY}
-            H ${leftBoundaryX}
-            V ${terraceWaveBaseY}
-            ${waveSvgPath}
-            V ${Math.max(s3.topY, 460)}
-            H ${outerRightX}
-            Z
-          `;
+        const lastIdx = stepMetrics.length - 1;
+        let stepsCommands = `M ${outerRightX},${stepMetrics[lastIdx].topY} `;
+        for (let i = lastIdx; i >= 0; i--) {
+          stepsCommands += `H ${stepMetrics[i].leftX - 4} `;
+          if (i > 0) {
+            stepsCommands += `V ${stepMetrics[i - 1].topY} `;
+          }
         }
 
-        pathElement.setAttribute('d', pathData.replace(/\s+/g, ' ').trim());
+        pathData = `
+          ${stepsCommands}
+          V ${finalStepHeight}
+          H ${leftBoundaryX}
+          V ${terraceCutY}
+          H ${leftBoundaryX}
+          V ${terraceWaveBaseY}
+          ${waveSvgPath}
+          V ${Math.max(stepMetrics[lastIdx].topY, 460)}
+          H ${outerRightX}
+          Z
+        `;
       }
+
+      pathElement.setAttribute('d', pathData.replace(/\s+/g, ' ').trim());
+    }
+
+    function setGridMode(mode) {
+      currentGridMode = mode;
+      poster.setAttribute('data-grid-mode', mode);
+      isTextOnRight = (mode === 'inverted-rail');
+
+      const alignLabel = document.getElementById('align-btn-dir-label');
+      if (alignLabel) {
+        alignLabel.textContent = isTextOnRight ? 'Left' : 'Right';
+      }
+
+      document.querySelectorAll('.preset-chip[data-grid]').forEach(c => {
+        c.classList.toggle('active', c.dataset.grid === mode);
+      });
+
+      setTimeout(recalculateTerrace, 60);
     }
 
     function autoScaleLayoutByRatio() {
-      const availableStageWidth = posterWidth - 195 - 24;
+      const marginX = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-margin-x')) || 28;
+      const availableStageWidth = posterWidth - 195 - marginX;
       const heightRatio = posterHeight / 1200;
 
       if (posterHeight < 1100) {
-        const targetSize = Math.round(Math.min(availableStageWidth, (posterHeight * 0.35)));
-        photoSize = Math.max(190, targetSize);
-        stagePadTop = Math.round(Math.max(120, 300 * heightRatio));
+        const targetSize = Math.round(Math.min(availableStageWidth, (posterHeight * 0.32)));
+        photoSize = Math.max(140, targetSize);
+        stagePadTop = Math.round(Math.max(50, 220 * heightRatio));
       } else {
         photoSize = Math.min(381, availableStageWidth);
         stagePadTop = 300;
@@ -1664,8 +1769,8 @@
       document.getElementById('stripes-y-slider').value = rulesY;
       document.getElementById('stripes-y-val').textContent = `${rulesY}px`;
 
-      const circleTopY = Math.round(imageBottom + 85);
-      const circleBotY = Math.round(imageBottom + 195);
+      const circleTopY = Math.round(imageBottom + 65);
+      const circleBotY = Math.round(imageBottom + 155);
       circleTop.style.top = `${circleTopY}px`;
       circleBottom.style.top = `${circleBotY}px`;
       document.getElementById('top-circle-slider').value = circleTopY;
@@ -1722,36 +1827,33 @@
 
     const PRESETS = {
       gsapp: {
-        col1: 'Columbia University',
-        col2: 'Graduate School of Architecture',
-        col3: 'and Planning',
+        lines: ['Columbia University', 'Graduate School of Architecture', 'and Planning'],
         h2: 'Master of Science in Historic Preservation',
         color: '#b5c7bc',
         paper: '#FFFFFF',
         accent: '#E8A8B8',
         text: '#111111',
+        grid: 'gsapp-datum',
         img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=700&q=80'
       },
       bauhaus: {
-        col1: 'Staatliches Bauhaus',
-        col2: 'Hochschule für Gestaltung',
-        col3: 'Weimar & Dessau',
+        lines: ['Staatliches Bauhaus', 'Hochschule für Gestaltung', 'Weimar & Dessau', 'Meisterhäuser Architektur'],
         h2: 'Ausstellung Neue Baukunst & Raumkunst',
         color: '#C36B5E',
         paper: '#FBF8F3',
         accent: '#E8A8B8',
         text: '#1F1B18',
+        grid: 'gerstner-band',
         img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=700&q=80'
       },
       zurich: {
-        col1: 'Konstruktive Kunst',
-        col2: 'Zürcher Schule der Konkreten',
-        col3: 'Typografie 1958',
+        lines: ['Konstruktive Kunst', 'Zürcher Schule der Konkreten', 'Typografie 1958', 'Plakatgestaltung International', 'Neue Grafik Zürich'],
         h2: 'Internationale Plakatgestaltung und Neue Grafik',
         color: '#9BB0BC',
         paper: '#F2EEE6',
         accent: '#E8A8B8',
         text: '#1A1C1E',
+        grid: 'zurich-equal',
         img: 'https://images.unsplash.com/photo-1509356843151-3e7d96241e11?auto=format&fit=crop&w=700&q=80'
       }
     };
@@ -1759,9 +1861,15 @@
     function applyPreset(key) {
       const p = PRESETS[key];
       if (!p) return;
-      inputs[0].value = p.col1;
-      inputs[1].value = p.col2;
-      inputs[2].value = p.col3;
+
+      terraceCount = p.lines.length;
+      document.getElementById('terrace-count-slider').value = terraceCount;
+      document.getElementById('terrace-count-val').textContent = `${terraceCount} Steps`;
+
+      for (let i = 0; i < terraceCount; i++) {
+        activeTexts[i] = p.lines[i];
+      }
+
       posterH2.textContent = p.h2;
       document.getElementById('h2-text-input').value = p.h2;
       heroImg.src = p.img;
@@ -1770,6 +1878,7 @@
       setPaperColor(p.paper);
       setAccentColor('#E8A8B8');
       if (p.text) setTextColor(p.text);
+      if (p.grid) setGridMode(p.grid);
 
       document.querySelectorAll('[data-color]').forEach(s => {
         s.classList.toggle('active', s.dataset.color.toLowerCase() === p.color.toLowerCase());
@@ -1778,82 +1887,145 @@
         s.classList.toggle('active', s.dataset.paper.toLowerCase() === p.paper.toLowerCase());
       });
 
-      for (let i = 0; i < 3; i++) {
-        renderLineWords(i);
-      }
-      recalculateTerrace();
+      buildTerraceDOM();
     }
 
     function randInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-
     function randPick(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function setVerticalAlignment(onRight) {
-      isTextOnRight = onRight;
-      poster.classList.toggle('text-on-right', isTextOnRight);
-      const alignLabel = document.getElementById('align-btn-dir-label');
-      if (alignLabel) {
-        alignLabel.textContent = isTextOnRight ? 'Left' : 'Right';
-      }
-    }
-
     function randomizeElements() {
-      setVerticalAlignment(Math.random() > 0.5);
-
       const ratioChips = Array.from(document.querySelectorAll('.preset-chip[data-w]'));
+      let chosenW = 600, chosenH = 1200;
       if (ratioChips.length > 0) {
         const pickedChip = randPick(ratioChips);
         ratioChips.forEach(c => c.classList.remove('active'));
         pickedChip.classList.add('active');
-        updatePosterDimensions(pickedChip.dataset.w, pickedChip.dataset.h);
+        chosenW = parseInt(pickedChip.dataset.w, 10);
+        chosenH = parseInt(pickedChip.dataset.h, 10);
+        updatePosterDimensions(chosenW, chosenH);
       }
 
-      for (let i = 0; i < 3; i++) {
-        const sel = selectors[i];
-        if (sel.options.length > 0) {
-          const randomIndex = Math.floor(Math.random() * sel.options.length);
-          const chosenVal = parseInt(sel.options[randomIndex].value, 10);
-          selectedSnapIndices[i] = chosenVal;
-          sel.value = chosenVal;
-        }
+      const modes = ['gsapp-datum', 'inverted-rail', 'gerstner-band', 'zurich-equal'];
+      const chosenMode = randPick(modes);
+      setGridMode(chosenMode);
+
+      const minSafeMarginX = Math.max(22, Math.round(chosenW * 0.045));
+      const maxSafeMarginX = Math.min(42, Math.round(chosenW * 0.07));
+      const safeMarginX = randInt(minSafeMarginX, maxSafeMarginX);
+      document.documentElement.style.setProperty('--grid-margin-x', `${safeMarginX}px`);
+      document.getElementById('grid-margin-slider').value = safeMarginX;
+      document.getElementById('grid-margin-val').textContent = `${safeMarginX}px`;
+
+      const safeGutter = randInt(12, 18);
+      document.documentElement.style.setProperty('--grid-gutter', `${safeGutter}px`);
+      document.getElementById('grid-gutter-slider').value = safeGutter;
+      document.getElementById('grid-gutter-val').textContent = `${safeGutter}px`;
+
+      const safeCols = randPick([4, 6, 8]);
+      document.documentElement.style.setProperty('--grid-cols', safeCols);
+      document.getElementById('grid-cols-slider').value = safeCols;
+      document.getElementById('grid-cols-val').textContent = `${safeCols} Cols`;
+      renderGridOverlayColumns(safeCols);
+
+      terraceCount = randInt(1, 5);
+      document.getElementById('terrace-count-slider').value = terraceCount;
+      document.getElementById('terrace-count-val').textContent = `${terraceCount} Steps`;
+
+      const isCompact = chosenH <= 850;
+      const isUltraCompact = chosenH <= 650;
+      const availableVSpace = chosenH - 96;
+
+      if (isUltraCompact) {
+        stagePadTop = randInt(35, 55);
+      } else if (isCompact) {
+        stagePadTop = (chosenMode === 'gerstner-band') ? randInt(35, 75) : randInt(55, 80);
+      } else {
+        stagePadTop = (chosenMode === 'gerstner-band') ? randInt(40, 160) : randInt(140, 240);
       }
+      document.documentElement.style.setProperty('--stage-pad-top', `${stagePadTop}px`);
+      photoTopSlider.value = stagePadTop;
+      photoTopVal.textContent = `${stagePadTop}px`;
 
-      const newClearance = randInt(4, 26);
-      clearanceSlider.value = newClearance;
-      clearanceVal.textContent = `${newClearance}px`;
+      const maxPhotoAllowance = availableVSpace - stagePadTop - (isUltraCompact ? 130 : (isCompact ? 170 : 250));
+      const maxPhotoWidth = (chosenMode === 'gerstner-band')
+        ? (chosenW - safeMarginX * 2)
+        : Math.min(380, chosenW - safeMarginX * 2 - (terraceCount * 36));
 
-      const newRailPad = randInt(0, 60);
-      railPadSlider.value = newRailPad;
-      railPadVal.textContent = `${newRailPad}px`;
-      rail.style.paddingBottom = `${newRailPad}px`;
+      if (chosenMode === 'gerstner-band') {
+        photoSize = Math.max(120, Math.min(220, Math.round(maxPhotoAllowance * 0.65)));
+      } else {
+        photoSize = Math.max(120, Math.min(maxPhotoWidth, maxPhotoAllowance));
+      }
+      document.documentElement.style.setProperty('--photo-size', `${photoSize}px`);
+      photoSizeSlider.value = photoSize;
+      photoSizeVal.textContent = `${photoSize}px`;
 
-      const newFontSize = randInt(22, 34);
-      fontSizeSlider.value = newFontSize;
-      fontSizeVal.textContent = `${newFontSize}px`;
-      lineElements.forEach(l => l.style.fontSize = `${newFontSize}px`);
+      const railHeight = (chosenMode === 'gerstner-band') ? 220 : photoSize;
+      const longestLineCharCount = Math.max(...activeTexts.slice(0, terraceCount).map(t => t.length), 8);
+      const maxAllowedFontSize = Math.floor(railHeight / (longestLineCharCount * 0.62));
+      const safeFontSize = Math.min(26, Math.max(12, maxAllowedFontSize));
 
-      finalStepHeight = randInt(120, 650);
+      fontSizeSlider.value = safeFontSize;
+      fontSizeVal.textContent = `${safeFontSize}px`;
+
+      railPadSlider.value = 0;
+      railPadVal.textContent = '0px';
+      rail.style.paddingBottom = '0px';
+
+      const safeClearance = randInt(4, 12);
+      clearanceSlider.value = safeClearance;
+      clearanceVal.textContent = `${safeClearance}px`;
+
+      finalStepHeight = Math.round(stagePadTop + (photoSize * 0.4));
       finalStepSlider.value = finalStepHeight;
       finalStepVal.textContent = `${finalStepHeight}px`;
 
-      waveCount = randInt(1, 6);
+      const subheadFont = isUltraCompact ? randInt(14, 17) : (isCompact ? randInt(17, 20) : randInt(21, 25));
+      const subheadTop = isUltraCompact ? 6 : randInt(8, 14);
+      const subheadWidth = (chosenMode === 'zurich-equal') ? 100 : randInt(65, 85);
+
+      document.getElementById('subhead-width-slider').value = subheadWidth;
+      document.getElementById('subhead-width-val').textContent = `${subheadWidth}%`;
+      posterH2.style.width = `${subheadWidth}%`;
+
+      document.getElementById('subhead-font-slider').value = subheadFont;
+      document.getElementById('subhead-font-val').textContent = `${subheadFont}px`;
+      posterH2.style.fontSize = `${subheadFont}px`;
+
+      document.getElementById('subhead-top-slider').value = subheadTop;
+      document.getElementById('subhead-top-val').textContent = `${subheadTop}px`;
+      posterH2.style.marginTop = `${subheadTop}px`;
+
+      const bodyFontSize = isUltraCompact ? 5.2 : (isCompact ? 6.2 : 7.2);
+      const bodyMargin = isUltraCompact ? 8 : (isCompact ? 12 : randInt(16, 28));
+
+      document.getElementById('body-font-slider').value = bodyFontSize;
+      document.getElementById('body-font-val').textContent = `${bodyFontSize}px`;
+      bodyTextGrid.style.fontSize = `${bodyFontSize}px`;
+
+      document.getElementById('body-margin-slider').value = bodyMargin;
+      document.getElementById('body-margin-val').textContent = `${bodyMargin}px`;
+      bodyTextGrid.style.marginTop = `${bodyMargin}px`;
+
+      waveCount = randInt(1, 4);
       waveCountSlider.value = waveCount;
       waveCountVal.textContent = waveCount;
 
-      const newRound = randInt(20, 100);
+      const newRound = randInt(30, 95);
       waveRoundness = newRound / 100;
       waveRoundSlider.value = newRound;
       waveRoundVal.textContent = `${newRound}%`;
 
-      waveAmplitude = randInt(10, 55);
+      const maxWaveAmp = isCompact ? 14 : 26;
+      waveAmplitude = randInt(6, maxWaveAmp);
       waveAmpSlider.value = waveAmplitude;
       waveAmpVal.textContent = `${waveAmplitude}px`;
 
-      waveOffset = randInt(-60, 60);
+      waveOffset = isCompact ? randInt(-8, 4) : randInt(-16, 16);
       waveOffsetSlider.value = waveOffset;
       waveOffsetVal.textContent = `${waveOffset}px`;
 
@@ -1873,65 +2045,33 @@
         s.classList.toggle('active', s.dataset.paper.toLowerCase() === chosenPaper.toLowerCase());
       });
 
-      const subheadWidth = randInt(50, 90);
-      const subheadFont = randInt(18, 30);
-      const subheadTop = randInt(8, 28);
-      document.getElementById('subhead-width-slider').value = subheadWidth;
-      document.getElementById('subhead-width-val').textContent = `${subheadWidth}%`;
-      posterH2.style.width = `${subheadWidth}%`;
+      for (let i = 0; i < terraceCount; i++) {
+        selectedSnapIndices[i] = randInt(-1, 3);
+      }
+      buildTerraceDOM();
 
-      document.getElementById('subhead-font-slider').value = subheadFont;
-      document.getElementById('subhead-font-val').textContent = `${subheadFont}px`;
-      posterH2.style.fontSize = `${subheadFont}px`;
+      const imageBottom = stagePadTop + photoSize;
+      const rulesY = Math.min(chosenH - 90, Math.round(imageBottom + 12));
+      rulesStack.style.top = `${rulesY}px`;
+      document.getElementById('stripes-y-slider').value = rulesY;
+      document.getElementById('stripes-y-val').textContent = `${rulesY}px`;
 
-      document.getElementById('subhead-top-slider').value = subheadTop;
-      document.getElementById('subhead-top-val').textContent = `${subheadTop}px`;
-      posterH2.style.marginTop = `${subheadTop}px`;
+      const circleTopY = Math.min(chosenH - 75, Math.round(imageBottom + (isCompact ? 30 : 60)));
+      const circleBotY = Math.min(chosenH - 42, circleTopY + (isCompact ? 30 : 80));
+      circleTop.style.top = `${circleTopY}px`;
+      circleBottom.style.top = `${circleBotY}px`;
+      document.getElementById('top-circle-slider').value = circleTopY;
+      document.getElementById('top-circle-val').textContent = `${circleTopY}px`;
+      document.getElementById('bot-circle-slider').value = circleBotY;
+      document.getElementById('bot-circle-val').textContent = `${circleBotY}px`;
 
-      const bodyMargin = randInt(28, 80);
-      document.getElementById('body-margin-slider').value = bodyMargin;
-      document.getElementById('body-margin-val').textContent = `${bodyMargin}px`;
-      lowerZoneFooter.style.marginTop = `${bodyMargin}px`;
-
-      const showTopReg = Math.random() > 0.15;
-      const showBleed = Math.random() > 0.15;
-      const showBottomReg = Math.random() > 0.15;
-      const showStripes = Math.random() > 0.15;
-      const showCircles = Math.random() > 0.15;
-
-      document.getElementById('toggle-top-reg').checked = showTopReg;
-      document.getElementById('reg-top-bar').style.display = showTopReg ? 'flex' : 'none';
-
-      document.getElementById('toggle-bleed-bar').checked = showBleed;
-      document.getElementById('reg-bleed-bar').style.display = showBleed ? 'block' : 'none';
-
-      document.getElementById('toggle-bottom-reg').checked = showBottomReg;
-      document.getElementById('reg-bottom-assembly').style.display = showBottomReg ? 'flex' : 'none';
-
-      document.getElementById('toggle-stripes').checked = showStripes;
-      rulesStack.style.display = showStripes ? 'flex' : 'none';
-
-      document.getElementById('toggle-circles').checked = showCircles;
-      circleTop.style.display = showCircles ? 'block' : 'none';
-      circleBottom.style.display = showCircles ? 'block' : 'none';
-
-      const stripesW = randInt(60, 120);
-      document.getElementById('stripes-w-slider').value = stripesW;
-      document.getElementById('stripes-w-val').textContent = `${stripesW}px`;
-      rulesStack.style.width = `${stripesW}px`;
-
-      setTimeout(recalculateTerrace, 50);
+      setTimeout(recalculateTerrace, 60);
     }
 
     function initEvents() {
       createTwinkles();
-
-      // Right / Left Text Alignment Toggle Button
-      const toggleAlignBtn = document.getElementById('btn-toggle-text-align');
-      toggleAlignBtn.addEventListener('click', () => {
-        setVerticalAlignment(!isTextOnRight);
-        setTimeout(recalculateTerrace, 40);
-      });
+      renderGridOverlayColumns(6);
+      buildTerraceDOM();
 
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1942,19 +2082,53 @@
         });
       });
 
-      for (let i = 0; i < 3; i++) {
-        renderLineWords(i);
-        inputs[i].addEventListener('input', () => {
-          renderLineWords(i);
-          recalculateTerrace();
-        });
-        selectors[i].addEventListener('change', (e) => {
-          selectedSnapIndices[i] = parseInt(e.target.value, 10);
-          recalculateTerrace();
+      const toggleAlignBtn = document.getElementById('btn-toggle-text-align');
+      if (toggleAlignBtn) {
+        toggleAlignBtn.addEventListener('click', () => {
+          const targetMode = isTextOnRight ? 'gsapp-datum' : 'inverted-rail';
+          setGridMode(targetMode);
         });
       }
 
-      // Vertical text calibration
+      const terraceSlider = document.getElementById('terrace-count-slider');
+      terraceSlider.addEventListener('input', (e) => {
+        terraceCount = parseInt(e.target.value, 10);
+        document.getElementById('terrace-count-val').textContent = `${terraceCount} Steps`;
+        buildTerraceDOM();
+      });
+
+      document.querySelectorAll('.preset-chip[data-grid]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          setGridMode(chip.dataset.grid);
+        });
+      });
+
+      const gridColsSlider = document.getElementById('grid-cols-slider');
+      gridColsSlider.addEventListener('input', (e) => {
+        const cols = parseInt(e.target.value, 10);
+        document.documentElement.style.setProperty('--grid-cols', cols);
+        document.getElementById('grid-cols-val').textContent = `${cols} Cols`;
+        renderGridOverlayColumns(cols);
+      });
+
+      const gridGutterSlider = document.getElementById('grid-gutter-slider');
+      gridGutterSlider.addEventListener('input', (e) => {
+        document.documentElement.style.setProperty('--grid-gutter', `${e.target.value}px`);
+        document.getElementById('grid-gutter-val').textContent = `${e.target.value}px`;
+      });
+
+      const gridMarginSlider = document.getElementById('grid-margin-slider');
+      gridMarginSlider.addEventListener('input', (e) => {
+        document.documentElement.style.setProperty('--grid-margin-x', `${e.target.value}px`);
+        document.getElementById('grid-margin-val').textContent = `${e.target.value}px`;
+      });
+
+      const gridBaselineSlider = document.getElementById('grid-baseline-slider');
+      gridBaselineSlider.addEventListener('input', (e) => {
+        document.documentElement.style.setProperty('--baseline-unit', `${e.target.value}px`);
+        document.getElementById('grid-baseline-val').textContent = `${e.target.value}px`;
+      });
+
       clearanceSlider.addEventListener('input', (e) => {
         clearanceVal.textContent = `${e.target.value}px`;
         recalculateTerrace();
@@ -1966,7 +2140,7 @@
       });
       fontSizeSlider.addEventListener('input', (e) => {
         fontSizeVal.textContent = `${e.target.value}px`;
-        lineElements.forEach(l => l.style.fontSize = `${e.target.value}px`);
+        document.querySelectorAll('.v-line').forEach(l => l.style.fontSize = `${e.target.value}px`);
         recalculateTerrace();
       });
       finalStepSlider.addEventListener('input', (e) => {
@@ -1975,7 +2149,6 @@
         recalculateTerrace();
       });
 
-      // Photo geometry
       photoSizeSlider.addEventListener('input', (e) => {
         photoSize = parseInt(e.target.value, 10);
         document.documentElement.style.setProperty('--photo-size', `${photoSize}px`);
@@ -1989,7 +2162,6 @@
         recalculateTerrace();
       });
 
-      // Angular Abstract Presets
       document.querySelectorAll('.preset-chip[data-img]').forEach(chip => {
         chip.addEventListener('click', () => {
           document.querySelectorAll('.preset-chip[data-img]').forEach(c => c.classList.remove('active'));
@@ -2012,7 +2184,6 @@
         }
       });
 
-      // Image Filters
       const graySlider = document.getElementById('filter-gray-slider');
       const contrastSlider = document.getElementById('filter-contrast-slider');
       function updateFilters() {
@@ -2023,7 +2194,6 @@
       graySlider.addEventListener('input', updateFilters);
       contrastSlider.addEventListener('input', updateFilters);
 
-      // Subheading Hook
       document.getElementById('h2-text-input').addEventListener('input', (e) => {
         posterH2.textContent = e.target.value;
       });
@@ -2044,7 +2214,6 @@
         document.getElementById('subhead-top-val').textContent = `${e.target.value}px`;
       });
 
-      // Body Text
       const bodyFontSlider = document.getElementById('body-font-slider');
       const bodyMarginSlider = document.getElementById('body-margin-slider');
 
@@ -2053,7 +2222,7 @@
         document.getElementById('body-font-val').textContent = `${e.target.value}px`;
       });
       bodyMarginSlider.addEventListener('input', (e) => {
-        lowerZoneFooter.style.marginTop = `${e.target.value}px`;
+        bodyTextGrid.style.marginTop = `${e.target.value}px`;
         document.getElementById('body-margin-val').textContent = `${e.target.value}px`;
       });
 
@@ -2070,7 +2239,6 @@
         document.getElementById('footer-p-6').textContent = e.target.value;
       });
 
-      // Ratio Sliders
       document.querySelectorAll('.preset-chip[data-w]').forEach(chip => {
         chip.addEventListener('click', () => {
           document.querySelectorAll('.preset-chip[data-w]').forEach(c => c.classList.remove('active'));
@@ -2091,7 +2259,6 @@
         updatePosterDimensions(posterWidth, e.target.value);
       });
 
-      // Wave Calibration Sliders
       waveCountSlider.addEventListener('input', (e) => {
         waveCount = parseInt(e.target.value, 10);
         waveCountVal.textContent = waveCount;
@@ -2113,7 +2280,6 @@
         recalculateTerrace();
       });
 
-      // Palette
       document.querySelectorAll('[data-color]').forEach(swatch => {
         swatch.addEventListener('click', () => {
           document.querySelectorAll('[data-color]').forEach(s => s.classList.remove('active'));
@@ -2142,10 +2308,9 @@
         setTextColor(e.target.value);
       });
 
-      // Accents controls
       const regTopBar = document.getElementById('reg-top-bar');
       const regBleedBar = document.getElementById('reg-bleed-bar');
-      const regBottomAssembly = document.getElementById('reg-bottom-assembly');
+      const regBleedAssembly = document.getElementById('reg-bottom-assembly');
 
       document.getElementById('toggle-top-reg').addEventListener('change', (e) => {
         regTopBar.style.display = e.target.checked ? 'flex' : 'none';
@@ -2154,7 +2319,7 @@
         regBleedBar.style.display = e.target.checked ? 'block' : 'none';
       });
       document.getElementById('toggle-bottom-reg').addEventListener('change', (e) => {
-        regBottomAssembly.style.display = e.target.checked ? 'flex' : 'none';
+        regBleedAssembly.style.display = e.target.checked ? 'flex' : 'none';
       });
 
       document.getElementById('toggle-stripes').addEventListener('change', (e) => {
@@ -2184,7 +2349,6 @@
         document.getElementById('bot-circle-val').textContent = `${e.target.value}px`;
       });
 
-      // Guides
       const guidesCheckbox = document.getElementById('toggle-guides');
       function setGuides(visible) {
         guidesCheckbox.checked = visible;
@@ -2199,10 +2363,8 @@
         }
       });
 
-      // Random Generation Button
       document.getElementById('btn-random-generation').addEventListener('click', randomizeElements);
 
-      // Zoom
       document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const sc = parseFloat(btn.dataset.scale);
@@ -2212,23 +2374,261 @@
         });
       });
 
-      // Style Presets
       document.querySelectorAll('.preset-btn').forEach(btn => {
         btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
       });
 
-      // Standalone HTML Exporter
+      /* -------------------------------------------------------------
+         ROBUST EXPORTERS (HTML, SVG, PNG)
+      -------------------------------------------------------------- */
+
+      async function getProcessedHeroImageDataUrl() {
+        if (!heroImg || !heroImg.src) return '';
+
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const c = document.createElement('canvas');
+            c.width = img.naturalWidth || 600;
+            c.height = img.naturalHeight || 600;
+            const ctx = c.getContext('2d');
+            
+            const gray = document.getElementById('filter-gray-slider').value;
+            const cont = document.getElementById('filter-contrast-slider').value;
+            ctx.filter = `grayscale(${gray}%) contrast(${cont}%)`;
+            
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            try {
+              resolve(c.toDataURL('image/png'));
+            } catch (err) {
+              resolve(heroImg.src);
+            }
+          };
+          img.onerror = () => resolve(heroImg.src);
+          img.src = heroImg.src;
+        });
+      }
+
+      function getCoords(el, posterRect, activeScale) {
+        const r = el.getBoundingClientRect();
+        return {
+          x: (r.left - posterRect.left) / activeScale,
+          y: (r.top - posterRect.top) / activeScale,
+          w: r.width / activeScale,
+          h: r.height / activeScale,
+          bottom: (r.bottom - posterRect.top) / activeScale,
+          right: (r.right - posterRect.left) / activeScale
+        };
+      }
+
+      // Native Vector SVG Generator with Mode-Aware Layout
+      async function generateIllustratorNativeSvg() {
+        const posterRect = poster.getBoundingClientRect();
+        const activeScale = posterRect.width / posterWidth || 1;
+
+        const computedRoot = getComputedStyle(document.documentElement);
+        const paperBg = computedRoot.getPropertyValue('--poster-paper-bg').trim() || '#FFFFFF';
+        const inkColor = computedRoot.getPropertyValue('--poster-ink-color').trim() || '#111111';
+        const spotColor = computedRoot.getPropertyValue('--color-spot').trim() || '#b5c7bc';
+
+        let svgDefs = [];
+        let svgElements = [];
+
+        // 1. Paper Background
+        svgElements.push(`<rect width="${posterWidth}" height="${posterHeight}" fill="${paperBg}" />`);
+
+        // 2. Dynamic Spot Vector Shape
+        const pathD = pathElement.getAttribute('d');
+        if (pathD) {
+          svgElements.push(`<path d="${pathD}" fill="${spotColor}" />`);
+        }
+
+        // 3. Top Registration Bar
+        if (regTopBar && getComputedStyle(regTopBar).display !== 'none') {
+          regTopBar.querySelectorAll('span').forEach(span => {
+            const p = getCoords(span, posterRect, activeScale);
+            svgElements.push(`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" fill="${inkColor}" />`);
+          });
+        }
+
+        // 4. Bleed Indicator Bar
+        if (regBleedBar && getComputedStyle(regBleedBar).display !== 'none') {
+          const p = getCoords(regBleedBar, posterRect, activeScale);
+          svgElements.push(`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" fill="${inkColor}" />`);
+        }
+
+        // 5. Bottom Registration Assembly
+        if (regBleedAssembly && getComputedStyle(regBleedAssembly).display !== 'none') {
+          const mainBlock = regBleedAssembly.querySelector('.reg-block-main');
+          const stepBlock = regBleedAssembly.querySelector('.reg-block-step');
+          [mainBlock, stepBlock].forEach(block => {
+            if (block) {
+              const p = getCoords(block, posterRect, activeScale);
+              svgElements.push(`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" fill="${inkColor}" />`);
+            }
+          });
+        }
+
+        // 6. Knockout Rules
+        if (rulesStack && getComputedStyle(rulesStack).display !== 'none') {
+          rulesStack.querySelectorAll('span').forEach(span => {
+            const p = getCoords(span, posterRect, activeScale);
+            svgElements.push(`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" fill="${paperBg}" />`);
+          });
+        }
+
+        // 7. Circle Assemblies
+        if (circleTop && getComputedStyle(circleTop).display !== 'none') {
+          const rTop = getCoords(circleTop, posterRect, activeScale);
+          const rBot = getCoords(circleBottom, posterRect, activeScale);
+          svgElements.push(`<circle cx="${rTop.x + rTop.w / 2}" cy="${rTop.y + rTop.h / 2}" r="${rTop.w / 2}" fill="${paperBg}" />`);
+          svgElements.push(`<circle cx="${rBot.x + rBot.w / 2}" cy="${rBot.y + rBot.h / 2}" r="${rBot.w / 2}" fill="${spotColor}" />`);
+        }
+
+        // 8. Hero Photo with Grayscale and ClipPath
+        if (heroImg && heroImg.src) {
+          const p = getCoords(photoWrapper, posterRect, activeScale);
+          const base64 = await getProcessedHeroImageDataUrl();
+          if (base64) {
+            svgDefs.push(`
+              <clipPath id="heroPhotoClip">
+                <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" />
+              </clipPath>
+            `);
+            svgElements.push(`<image clip-path="url(#heroPhotoClip)" xlink:href="${base64}" href="${base64}" x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" preserveAspectRatio="xMidYMid slice" />`);
+          }
+        }
+
+        // 9. Vertical Rail Texts
+        const fSize = parseFloat(fontSizeSlider.value) || 24;
+        rail.querySelectorAll('.v-col').forEach(col => {
+          const line = col.querySelector('.v-line');
+          if (!line) return;
+          const p = getCoords(line, posterRect, activeScale);
+          const fullText = Array.from(line.querySelectorAll('.v-word, .v-space')).map(s => s.textContent).join('');
+          const tx = p.x + fSize * 0.85;
+          const ty = p.bottom;
+          svgElements.push(`<text x="${tx}" y="${ty}" font-family="'Inter', -apple-system, sans-serif" font-weight="800" font-size="${fSize}" fill="${inkColor}" transform="rotate(-90, ${tx}, ${ty})">${fullText}</text>`);
+        });
+
+        // 10. Headline Block
+        let h2BottomY = 0;
+        if (posterH2) {
+          const p = getCoords(posterH2, posterRect, activeScale);
+          const hSize = parseFloat(getComputedStyle(posterH2).fontSize) || 24;
+          const hLineHeight = parseFloat(getComputedStyle(posterH2).lineHeight) || hSize * 1.15;
+          const words = posterH2.textContent.trim().split(/\s+/);
+          
+          let lines = [];
+          let curLine = '';
+          const approxCharWidth = hSize * 0.58;
+          words.forEach(w => {
+            if ((curLine + w).length * approxCharWidth > p.w && curLine.length > 0) {
+              lines.push(curLine.trim());
+              curLine = w + ' ';
+            } else {
+              curLine += w + ' ';
+            }
+          });
+          if (curLine.trim()) lines.push(curLine.trim());
+
+          let textGroup = `<text font-family="'Inter', -apple-system, sans-serif" font-weight="700" font-size="${hSize}" fill="${inkColor}">`;
+          lines.forEach((l, idx) => {
+            const lineY = p.y + hSize * 0.88 + idx * hLineHeight;
+            textGroup += `<tspan x="${p.x}" y="${lineY}">${l}</tspan>`;
+          });
+          textGroup += `</text>`;
+          svgElements.push(textGroup);
+          h2BottomY = p.y + lines.length * hLineHeight;
+        }
+
+        // 11. Editorial 4-Column Body Text
+        const bodyCols = bodyTextGrid.querySelectorAll('.text-col');
+        bodyCols.forEach(col => {
+          const cPos = getCoords(col, posterRect, activeScale);
+          const colW = cPos.w;
+          let runningY = Math.max(cPos.y, h2BottomY + 14);
+
+          col.querySelectorAll('p').forEach(p => {
+            const comp = getComputedStyle(p);
+            const bSize = parseFloat(comp.fontSize) || 7.5;
+            const bLineHeight = parseFloat(comp.lineHeight) || bSize * 1.35;
+            const approxCharWidth = bSize * 0.52;
+
+            Array.from(p.childNodes).forEach(node => {
+              const isBold = node.nodeName === 'STRONG';
+              const rawLines = (node.textContent || '').split('\n').filter(Boolean);
+
+              rawLines.forEach(rawText => {
+                const words = rawText.trim().split(/\s+/).filter(Boolean);
+                let lines = [];
+                let curLine = '';
+
+                words.forEach(w => {
+                  if ((curLine + w).length * approxCharWidth > colW && curLine.length > 0) {
+                    lines.push(curLine.trim());
+                    curLine = w + ' ';
+                  } else {
+                    curLine += w + ' ';
+                  }
+                });
+                if (curLine.trim()) lines.push(curLine.trim());
+
+                if (lines.length > 0) {
+                  let textGroup = `<text font-family="'Inter', -apple-system, sans-serif" font-weight="${isBold ? '700' : '400'}" font-size="${bSize}" fill="${inkColor}">`;
+                  lines.forEach(l => {
+                    runningY += bLineHeight;
+                    textGroup += `<tspan x="${cPos.x}" y="${runningY}">${l}</tspan>`;
+                  });
+                  textGroup += `</text>`;
+                  svgElements.push(textGroup);
+                }
+              });
+            });
+            runningY += 4;
+          });
+        });
+
+        return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${posterWidth}" height="${posterHeight}" viewBox="0 0 ${posterWidth} ${posterHeight}">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&amp;display=swap');
+    </style>
+    ${svgDefs.join('\n')}
+  </defs>
+  ${svgElements.join('\n')}
+</svg>`;
+      }
+
+      // 1. STANDALONE HTML EXPORTER
       document.getElementById('btn-export-html').addEventListener('click', () => {
         const posterClone = poster.cloneNode(true);
         const overlay = posterClone.querySelector('.grid-overlay');
+        const baseline = posterClone.querySelector('.baseline-grid-stripes');
         if (overlay) overlay.remove();
+        if (baseline) baseline.remove();
+
+        const computedRoot = getComputedStyle(document.documentElement);
+        const varsToKeep = [
+          '--poster-w', '--poster-h', '--datum-x', '--color-spot', '--poster-paper-bg',
+          '--poster-ink-color', '--stage-pad-top', '--photo-size', '--grid-cols',
+          '--grid-gutter', '--grid-margin-x', '--grid-margin-y', '--baseline-unit'
+        ];
+        
+        let inlineVars = '';
+        varsToKeep.forEach(v => {
+          inlineVars += `${v}: ${computedRoot.getPropertyValue(v).trim()}; `;
+        });
+        posterClone.style.cssText += inlineVars;
+
         const fullCss = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
         const htmlDoc = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <title>Architectural Poster</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Oswald:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <style>
     ${fullCss}
     body { background: #222; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 40px; margin: 0; }
@@ -2241,149 +2641,117 @@
         downloadFile(htmlDoc, 'architectural_poster.html', 'text/html');
       });
 
-      // SVG Exporter
-      document.getElementById('btn-export-svg').addEventListener('click', () => {
-        const svgPath = pathElement.getAttribute('d');
-        const spotColor = getComputedStyle(document.documentElement).getPropertyValue('--color-spot').trim();
-        const paperBg = getComputedStyle(document.documentElement).getPropertyValue('--poster-paper-bg').trim() || '#FFFFFF';
-        const inkColor = getComputedStyle(document.documentElement).getPropertyValue('--poster-ink-color').trim() || '#111111';
-
-        const topBarW = posterWidth * 0.32;
-        const gap = 6;
-        const blockW = (topBarW - gap * 3) / 4;
-        let topBarSvg = '';
-        for (let i = 0; i < 4; i++) {
-          const x = isTextOnRight ? (posterWidth - topBarW + (blockW + gap) * i) : ((blockW + gap) * i);
-          topBarSvg += `<rect x="${x}" y="0" width="${blockW}" height="38" fill="${inkColor}" />\n  `;
-        }
-
-        const circleX = isTextOnRight ? (posterWidth - 41) : 41;
-        const rulesX = isTextOnRight ? 48 : (posterWidth - 48 - parseInt(rulesStack.style.width || 84));
-        const bleedX = isTextOnRight ? 0 : (posterWidth - 14);
-
-        let bottomRegSvg = '';
-        if (isTextOnRight) {
-          bottomRegSvg = `
-          <rect x="${posterWidth - 140}" y="${posterHeight - 24}" width="140" height="24" fill="${inkColor}" />
-          <rect x="${posterWidth - 178}" y="${posterHeight - 14}" width="38" height="14" fill="${inkColor}" />`;
-        } else {
-          bottomRegSvg = `
-          <rect x="0" y="${posterHeight - 24}" width="140" height="24" fill="${inkColor}" />
-          <rect x="140" y="${posterHeight - 14}" width="38" height="14" fill="${inkColor}" />`;
-        }
-
-        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${posterWidth} ${posterHeight}" width="${posterWidth}" height="${posterHeight}">
-  <rect width="${posterWidth}" height="${posterHeight}" fill="${paperBg}" />
-  <path d="${svgPath}" fill="${spotColor}" />
-  <circle cx="${circleX}" cy="${parseInt(circleTop.style.top || 672) + 17}" r="17" fill="${paperBg}" />
-  <circle cx="${circleX}" cy="${parseInt(circleBottom.style.top || 785) + 17}" r="17" fill="${spotColor}" />
-  <rect x="${rulesX}" y="${parseInt(rulesStack.style.top || 650)}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="${paperBg}" />
-  <rect x="${rulesX}" y="${parseInt(rulesStack.style.top || 650) + 12}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="${paperBg}" />
-  <rect x="${rulesX}" y="${parseInt(rulesStack.style.top || 650) + 24}" width="${parseInt(rulesStack.style.width || 84)}" height="3" fill="${paperBg}" />
-  ${topBarSvg}
-  <rect x="${bleedX}" y="0" width="14" height="120" fill="${inkColor}" />
-  ${bottomRegSvg}
-</svg>`;
-        downloadFile(svgContent, 'architectural_vector_framework.svg', 'image/svg+xml');
+      // 2. SVG EXPORTER
+      document.getElementById('btn-export-svg').addEventListener('click', async () => {
+        const svgContent = await generateIllustratorNativeSvg();
+        downloadFile(svgContent, `architectural_poster_${currentGridMode}_${posterWidth}x${posterHeight}.svg`, 'image/svg+xml;charset=utf-8');
       });
 
-      // PNG Exporter
-      document.getElementById('btn-export-png').addEventListener('click', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = posterWidth * 2;
-        canvas.height = posterHeight * 2;
-        const ctx = canvas.getContext('2d');
-        ctx.scale(2, 2);
+      // 3. PNG EXPORTER (Exact Preview-Clone Direct Rasterizer with Fallback)
+      document.getElementById('btn-export-png').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-export-png');
+        const origText = btn.textContent;
+        btn.textContent = 'Exporting...';
 
-        const paperBg = getComputedStyle(document.documentElement).getPropertyValue('--poster-paper-bg').trim() || '#FFFFFF';
-        const inkColor = getComputedStyle(document.documentElement).getPropertyValue('--poster-ink-color').trim() || '#111111';
-        ctx.fillStyle = paperBg;
-        ctx.fillRect(0, 0, posterWidth, posterHeight);
-
-        const spotColor = getComputedStyle(document.documentElement).getPropertyValue('--color-spot').trim();
-        const p2d = new Path2D(pathElement.getAttribute('d'));
-        ctx.fillStyle = spotColor;
-        ctx.fill(p2d);
-
-        if (regTopBar.style.display !== 'none') {
-          ctx.fillStyle = inkColor;
-          const topBarW = posterWidth * 0.32;
-          const gap = 6;
-          const blockW = (topBarW - gap * 3) / 4;
-          for (let i = 0; i < 4; i++) {
-            const x = isTextOnRight ? (posterWidth - topBarW + (blockW + gap) * i) : ((blockW + gap) * i);
-            ctx.fillRect(x, 0, blockW, 38);
-          }
+        const guidesWereActive = gridOverlay.classList.contains('visible');
+        if (guidesWereActive) {
+          gridOverlay.classList.remove('visible');
         }
 
-        if (regBleedBar.style.display !== 'none') {
-          ctx.fillStyle = inkColor;
-          const bleedX = isTextOnRight ? 0 : (posterWidth - 14);
-          ctx.fillRect(bleedX, 0, 14, 120);
-        }
+        try {
+          if (typeof htmlToImage !== 'undefined') {
+            // High-fidelity rasterization directly from the preview DOM
+            const dataUrl = await htmlToImage.toPng(poster, {
+              pixelRatio: 2,
+              width: posterWidth,
+              height: posterHeight,
+              cacheBust: true,
+              style: {
+                transform: 'none',
+                transformOrigin: 'top left',
+                margin: '0',
+                boxShadow: 'none'
+              }
+            });
 
-        if (regBottomAssembly.style.display !== 'none') {
-          ctx.fillStyle = inkColor;
-          if (isTextOnRight) {
-            ctx.fillRect(posterWidth - 140, posterHeight - 24, 140, 24);
-            ctx.fillRect(posterWidth - 178, posterHeight - 14, 38, 14);
-          } else {
-            ctx.fillRect(0, posterHeight - 24, 140, 24);
-            ctx.fillRect(140, posterHeight - 14, 38, 14);
-          }
-        }
-
-        // Draw Rules stack BEFORE text so it stays in the background
-        if (rulesStack.style.display !== 'none') {
-          ctx.fillStyle = paperBg;
-          const rW = parseInt(rulesStack.style.width || 84);
-          const rY = parseInt(rulesStack.style.top || 650);
-          const rX = isTextOnRight ? 48 : (posterWidth - 48 - rW);
-          ctx.fillRect(rX, rY, rW, 3);
-          ctx.fillRect(rX, rY + 12, rW, 3);
-          ctx.fillRect(rX, rY + 24, rW, 3);
-        }
-
-        const circleX = isTextOnRight ? (posterWidth - 41) : 41;
-        if (circleTop.style.display !== 'none') {
-          ctx.fillStyle = paperBg;
-          ctx.beginPath();
-          ctx.arc(circleX, parseInt(circleTop.style.top || 672) + 17, 17, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = spotColor;
-          ctx.beginPath();
-          ctx.arc(circleX, parseInt(circleBottom.style.top || 785) + 17, 17, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          ctx.save();
-          ctx.filter = `grayscale(${graySlider.value}%) contrast(${contrastSlider.value}%)`;
-          const photoDrawX = isTextOnRight ? 24 : 195;
-          ctx.drawImage(img, photoDrawX, stagePadTop, photoSize, photoSize);
-          ctx.restore();
-
-          ctx.fillStyle = inkColor;
-          const fontSize = parseInt(subheadFontSlider.value, 10);
-          ctx.font = `700 ${fontSize}px "Inter", sans-serif`;
-          ctx.fillText(posterH2.textContent.slice(0, 42), photoDrawX, stagePadTop + photoSize + 22 + fontSize);
-
-          canvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `architectural_poster_${posterWidth}x${posterHeight}.png`;
+            a.href = dataUrl;
+            a.download = `architectural_poster_${currentGridMode}_${posterWidth}x${posterHeight}.png`;
             a.click();
-            URL.revokeObjectURL(url);
-          });
-        };
-        img.onerror = () => {
-          alert('Note: Image CORS restricted direct rasterization. Saved SVG or HTML instead!');
-        };
-        img.src = heroImg.src;
+          } else {
+            // Fallback via XMLSerializer ForeignObject
+            const clone = poster.cloneNode(true);
+            const ov = clone.querySelector('.grid-overlay');
+            const bl = clone.querySelector('.baseline-grid-stripes');
+            if (ov) ov.remove();
+            if (bl) bl.remove();
+
+            const computedRoot = getComputedStyle(document.documentElement);
+            const varsToKeep = [
+              '--poster-w', '--poster-h', '--datum-x', '--color-spot', '--poster-paper-bg',
+              '--poster-ink-color', '--stage-pad-top', '--photo-size', '--grid-cols',
+              '--grid-gutter', '--grid-margin-x', '--grid-margin-y', '--baseline-unit'
+            ];
+            let inlineVars = '';
+            varsToKeep.forEach(v => {
+              inlineVars += `${v}: ${computedRoot.getPropertyValue(v).trim()}; `;
+            });
+            clone.style.cssText += inlineVars;
+
+            const styleContent = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
+            const xhtml = `
+              <div xmlns="http://www.w3.org/1999/xhtml">
+                <style>
+                  ${styleContent}
+                  #poster { transform: none !important; margin: 0 !important; box-shadow: none !important; }
+                </style>
+                ${new XMLSerializer().serializeToString(clone)}
+              </div>
+            `;
+
+            const svgString = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="${posterWidth}" height="${posterHeight}">
+                <foreignObject width="100%" height="100%">
+                  ${xhtml}
+                </foreignObject>
+              </svg>
+            `;
+
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            const scaleFactor = 2;
+            const canvas = document.createElement('canvas');
+            canvas.width = posterWidth * scaleFactor;
+            canvas.height = posterHeight * scaleFactor;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(scaleFactor, scaleFactor);
+
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0);
+              URL.revokeObjectURL(url);
+              canvas.toBlob((pngBlob) => {
+                if (!pngBlob) return;
+                const dl = URL.createObjectURL(pngBlob);
+                const a = document.createElement('a');
+                a.href = dl;
+                a.download = `architectural_poster_${currentGridMode}_${posterWidth}x${posterHeight}.png`;
+                a.click();
+                URL.revokeObjectURL(dl);
+              }, 'image/png');
+            };
+            img.src = url;
+          }
+        } catch (err) {
+          console.error('PNG export failed:', err);
+          alert('Could not complete PNG export. Verify that remote images allow CORS.');
+        } finally {
+          if (guidesWereActive) {
+            gridOverlay.classList.add('visible');
+          }
+          btn.textContent = origText;
+        }
       });
 
       function downloadFile(content, fileName, contentType) {
