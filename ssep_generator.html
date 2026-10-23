@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baruch SSEP Mission Patch Studio — Generative Emblem Workbench</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&family=Michroma&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Studio Workbench UI Colors (Matched to Poster Generator Studio Pro) */
+      --color-bg: #FAF7F2;
+      --color-text: #2B211B;
+      --color-accent: #FFCC00;
+      --color-accent-border: #002D62;
+      
+      --font-heading: 'Oswald', -apple-system, sans-serif;
+      --font-body: 'Source Sans 3', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-patch: 'Michroma', sans-serif;
+
+      /* Mission Patch Canvas Variables (3.5" x 3.5" / 1000 x 1000 px internal coordinate system) */
+      --patch-display-size: 660px;
+      --patch-scale: 1;
+      --patch-bg: #001A38;
+      --patch-paw-primary: #FFFFFF;
+      --patch-paw-secondary: #7BAFD4;
+      --patch-ring-gold: #FFCC00;
+      --patch-text-color: #FFFFFF;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Starfield Background */
+    .twinkle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .twinkle-star {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #004B87;
+      opacity: 0;
+      animation: twinkleFade ease-in-out infinite alternate;
+    }
+    @keyframes twinkleFade {
+      0% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 0.35; transform: scale(1.15); }
+      100% { opacity: 0; transform: scale(0.5); }
+    }
+
+    .site-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 36px 28px 96px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    /* Studio Header */
+    .hero-header {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-bottom: 3px solid var(--color-accent-border);
+      padding-bottom: 24px;
+    }
+    .hero-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .hero-byline {
+      font-family: var(--font-heading);
+      font-size: 1.02rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-accent-border);
+      font-weight: 700;
+    }
+    .preset-pill-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .preset-btn {
+      background: #FFFFFF;
+      border: 1.5px solid rgba(0, 45, 98, 0.25);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--color-text);
+      transition: all 0.2s ease;
+    }
+    .preset-btn:hover, .preset-btn.active {
+      background: var(--color-accent);
+      border-color: var(--color-accent-border);
+      color: #001A38;
+    }
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: clamp(36px, 5.5vw, 76px);
+      line-height: 0.95;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      color: #001A38;
+    }
+    .hero-description {
+      font-size: 1.04rem;
+      max-width: 860px;
+      line-height: 1.5;
+      opacity: 0.9;
+    }
+
+    /* Two-Column Workbench Layout */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 500px 1fr;
+      gap: 36px;
+      align-items: start;
+    }
+    @media (max-width: 1140px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Console Panel */
+    .console-panel {
+      position: sticky;
+      top: 24px;
+      background: #FFFFFF;
+      border: 2px solid var(--color-accent-border);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 10px 30px rgba(0, 26, 56, 0.06);
+    }
+
+    .console-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .console-title {
+      font-family: var(--font-heading);
+      font-size: 1.55rem;
+      line-height: 1.0;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: #001A38;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(43, 33, 27, 0.14);
+      padding-bottom: 10px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      font-family: var(--font-heading);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text);
+      opacity: 0.62;
+      padding: 6px 11px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      opacity: 0.95;
+      background: rgba(0, 45, 98, 0.06);
+    }
+    .tab-btn.active {
+      opacity: 1;
+      background: var(--color-accent);
+      border-color: var(--color-accent-border);
+      color: #001A38;
+      font-weight: 700;
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .tab-content.active {
+      display: flex;
+    }
+
+    .control-card {
+      background: #FAF7F2;
+      border: 1px solid rgba(0, 45, 98, 0.14);
+      border-radius: 14px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .card-label {
+      font-family: var(--font-heading);
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #002D62;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .input-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .input-field-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0.85;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+    .checkbox-row input[type="checkbox"] {
+      accent-color: #002D62;
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+    }
+
+    input[type="text"], select {
+      background: #FFFFFF;
+      border: 1px solid rgba(43, 33, 27, 0.22);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      border-radius: 10px;
+      outline: none;
+      transition: border 0.2s ease;
+      width: 100%;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: #002D62;
+      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.35);
+    }
+
+    .slider-control {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .slider-control label {
+      min-width: 135px;
+    }
+    .slider-control input[type="range"] {
+      flex: 1;
+      accent-color: #002D62;
+      height: 5px;
+      cursor: pointer;
+    }
+    .slider-badge {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      width: 58px;
+      text-align: right;
+      font-weight: 600;
+      color: #002D62;
+    }
+
+    .preset-chip-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .preset-chip {
+      background: #FFFFFF;
+      border: 1px solid rgba(43, 33, 27, 0.2);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--color-text);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+    .preset-chip:hover, .preset-chip.active {
+      border-color: #002D62;
+      background: #FFF6CC;
+    }
+
+    .swatches-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .swatch-item {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 2px solid rgba(43, 33, 27, 0.22);
+      cursor: pointer;
+      transition: transform 0.18s;
+    }
+    .swatch-item.active, .swatch-item:hover {
+      border-color: #001A38;
+      transform: scale(1.14);
+    }
+    .color-picker-inline {
+      border: 1px solid rgba(0,0,0,0.2);
+      width: 34px;
+      height: 30px;
+      border-radius: 6px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    /* Export Buttons */
+    .export-button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .btn-action {
+      background: var(--color-accent);
+      color: #001A38;
+      border: 1.5px solid #002D62;
+      border-radius: 12px;
+      padding: 11px 14px;
+      min-height: 44px;
+      font-family: var(--font-heading);
+      font-size: 0.92rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+      width: 100%;
+    }
+    .btn-action.secondary {
+      background: #FFFFFF;
+      color: var(--color-text);
+      border: 1.5px solid rgba(43, 33, 27, 0.28);
+    }
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 26, 56, 0.14);
+    }
+
+    /* Right Viewport Stage */
+    .stage-wrapper {
+      position: sticky;
+      top: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+    }
+    @media (max-width: 1140px) {
+      .console-panel,
+      .stage-wrapper {
+        position: static;
+      }
+    }
+
+    .stage-toolbar-group {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stage-toolbar {
+      width: 100%;
+      background: #FFFFFF;
+      border: 1.5px solid rgba(0, 45, 98, 0.18);
+      border-radius: 12px;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .generator-toolbar-strip {
+      width: 100%;
+      background: #FAF7F2;
+      border: 1.5px dashed rgba(0, 45, 98, 0.35);
+      border-radius: 12px;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .generator-strip-label {
+      font-family: var(--font-heading);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #002D62;
+      font-weight: 700;
+    }
+
+    .btn-randomize {
+      background: var(--color-accent);
+      color: #001A38;
+      border: 1.5px solid #002D62;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-family: var(--font-heading);
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+    }
+    .btn-randomize:hover {
+      background: #ffd633;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 26, 56, 0.12);
+    }
+
+    .zoom-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .zoom-btn {
+      background: #FAF7F2;
+      border: 1px solid rgba(43, 33, 27, 0.2);
+      border-radius: 6px;
+      padding: 4px 9px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 600;
+    }
+    .zoom-btn:hover, .zoom-btn.active {
+      background: var(--color-accent);
+      border-color: #002D62;
+    }
+
+    /* Stage Outer Frame */
+    .stage-canvas-outer {
+      position: relative;
+      background: #E5E0D5;
+      border: 2px solid var(--color-accent-border);
+      border-radius: 20px;
+      padding: 36px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 740px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .patch-canvas-scaler {
+      transform-origin: center center;
+      transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 3.5" x 3.5" Square Mission Patch Container */
+    .patch-frame {
+      width: var(--patch-display-size);
+      height: var(--patch-display-size);
+      max-width: 86vw;
+      max-height: 86vw;
+      background: var(--patch-bg);
+      box-shadow: 0 24px 60px rgba(0, 18, 40, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .patch-frame svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Small-Scale Recognizability Badge (3.5" / Reduced Scale Check) */
+    .mini-scale-card {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(6px);
+      border: 2px solid #002D62;
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 12px 28px rgba(0, 26, 56, 0.18);
+      z-index: 20;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .mini-scale-card.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+    }
+    .mini-scale-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #002D62;
+      font-weight: 700;
+    }
+    .mini-patch-box {
+      width: 120px;
+      height: 120px;
+      border: 1px solid rgba(0, 26, 56, 0.25);
+      overflow: hidden;
+    }
+    .mini-patch-box svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Dimension Spec Pill in Top-Left of Stage */
+    .stage-spec-badge {
+      position: absolute;
+      top: 16px;
+      left: 18px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(0, 45, 98, 0.22);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: #002D62;
+      font-weight: 600;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="twinkle-canvas" id="twinkle-canvas"></div>
+
+  <div class="site-wrapper">
+    
+    <!-- STUDIO HEADER -->
+    <header class="hero-header">
+      <div class="hero-top-row">
+        <div class="hero-byline">Baruch College SSEP &bull; ISS Spring 2027 Mission Patch Studio</div>
+        <div class="preset-pill-group">
+          <span style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase;">Themes:</span>
+          <button class="preset-btn active" data-preset="baruch-navy">Baruch Classic Navy</button>
+          <button class="preset-btn" data-preset="sketch-blueprint">Hand-Drawn Sketch</button>
+          <button class="preset-btn" data-preset="royal-gold">Baruch Royal &amp; Gold</button>
+          <button class="preset-btn" data-preset="deep-space">Deep Space Cyan</button>
+        </div>
+      </div>
+      <h1 class="hero-title">SSEP Mission Patch Generator</h1>
+      <p class="hero-description">
+        <strong>What message would Baruch send into space?</strong> Repeating interlocking 4-pointed stars crystallize into the Baruch Bearcat paw print, paired with equal-spaced 4-way radiating microgravity toe contours, an ISS orbital ring, and <em>Michroma</em> mission stamps in a 3.5&Prime; &times; 3.5&Prime; square format.
+      </p>
+    </header>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="workspace-grid">
+
+      <!-- LEFT STUDIO CONSOLE -->
+      <aside class="console-panel">
+        <div class="console-header-row">
+          <h2 class="console-title">Patch Console</h2>
+          <span id="scale-indicator" style="font-family: var(--font-mono); font-size: 0.75rem; opacity: 0.75;">3.5&Prime; &times; 3.5&Prime; (1000px)</span>
+        </div>
+
+        <nav class="tab-nav">
+          <button class="tab-btn active" data-tab="tab-paw">1. Paw &amp; Lattice</button>
+          <button class="tab-btn" data-tab="tab-toes">2. Toe Beans</button>
+          <button class="tab-btn" data-tab="tab-orbit">3. Orbit &amp; Stars</button>
+          <button class="tab-btn" data-tab="tab-type">4. Stamp Type</button>
+          <button class="tab-btn" data-tab="tab-colors">5. Colors</button>
+        </nav>
+
+        <!-- TAB 1: PAW & INTERLOCKING STAR LATTICE -->
+        <div class="tab-content active" id="tab-paw">
+          <div class="control-card">
+            <span class="card-label">S-Curve Bearcat Palm Pad (Circle Bleed)</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Paw Launch Tilt</label>
+                <input type="range" id="paw-tilt-slider" min="-20" max="35" step="1" value="0">
+                <span class="slider-badge" id="paw-tilt-val">0&deg;</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Crown Apex Reach</label>
+                <input type="range" id="palm-apex-slider" min="60" max="210" step="2" value="132">
+                <span class="slider-badge" id="palm-apex-val">132px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Middle Crown Curvature</label>
+                <input type="range" id="palm-mid-curve-slider" min="-50" max="60" step="1" value="24">
+                <span class="slider-badge" id="palm-mid-curve-val">+24</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Palm S-Curve Spread</label>
+                <input type="range" id="palm-spread-slider" min="80" max="135" step="1" value="104">
+                <span class="slider-badge" id="palm-spread-val">104%</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Pad Inner Guide Line</label>
+                <input type="range" id="pad-outline-slider" min="0" max="100" step="5" value="28">
+                <span class="slider-badge" id="pad-outline-val">28%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Palm Pad: Interlocking 4-Pt Star Lattice</span>
+            <div class="input-field-group">
+              <label>Interlocking Pattern Mode</label>
+              <select id="lattice-mode-select">
+                <option value="interlock-weave" selected>Interlocking Dual-Star Weave (Sketch Match)</option>
+                <option value="quadrant-arcs">Hand-Drawn Interlocking Quadrant Arcs</option>
+                <option value="crystal-mesh">Continuous Crystalline Star Mesh</option>
+              </select>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Star Lattice Density</label>
+                <input type="range" id="palm-density-slider" min="3" max="9" step="1" value="5">
+                <span class="slider-badge" id="palm-density-val">5&times;5</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Interlock Nesting</label>
+                <input type="range" id="interlock-tightness-slider" min="55" max="115" step="1" value="88">
+                <span class="slider-badge" id="interlock-tightness-val">88%</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Star Concave Pinch</label>
+                <input type="range" id="star-pinch-slider" min="6" max="55" step="1" value="18">
+                <span class="slider-badge" id="star-pinch-val">18%</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Star Tip Open Gap</label>
+                <input type="range" id="star-gap-slider" min="0" max="35" step="1" value="14">
+                <span class="slider-badge" id="star-gap-val">14%</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Lattice Grid Angle</label>
+                <input type="range" id="lattice-rot-slider" min="-45" max="45" step="1" value="-8">
+                <span class="slider-badge" id="lattice-rot-val">-8&deg;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: TOE BEANS & EQUAL RADIATING CONTOURS -->
+        <div class="tab-content" id="tab-toes">
+          <div class="control-card">
+            <span class="card-label">Toe Bean Core Star &amp; Equal 4-Way Radiation</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Initial Core Star Size</label>
+                <input type="range" id="toe-core-size-slider" min="4" max="34" step="1" value="11">
+                <span class="slider-badge" id="toe-core-size-val">11px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Radiating Rings</label>
+                <input type="range" id="toe-rings-slider" min="1" max="6" step="1" value="3">
+                <span class="slider-badge" id="toe-rings-val">3 Rings</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Equal Radiation Spacing</label>
+                <input type="range" id="toe-step-slider" min="6" max="24" step="1" value="11">
+                <span class="slider-badge" id="toe-step-val">11px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Toe Star Direction</label>
+                <input type="range" id="toe-star-rot-slider" min="-90" max="90" step="1" value="0">
+                <span class="slider-badge" id="toe-star-rot-val">0&deg;</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Toe Bean Size</label>
+                <input type="range" id="toe-scale-slider" min="75" max="130" step="1" value="100">
+                <span class="slider-badge" id="toe-scale-val">100%</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Toe Arc Spread</label>
+                <input type="range" id="toe-spread-slider" min="-25" max="35" step="1" value="0">
+                <span class="slider-badge" id="toe-spread-val">0px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Claw / Trajectory Chevrons (&laquo;)</span>
+            <label class="checkbox-row">
+              <input type="checkbox" id="toggle-chevrons" checked>
+              <span>Show Double Claw Chevrons on Toes</span>
+            </label>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Chevron Size</label>
+                <input type="range" id="chevron-size-slider" min="8" max="28" step="1" value="15">
+                <span class="slider-badge" id="chevron-size-val">15px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Chevron Tip Distance</label>
+                <input type="range" id="chevron-dist-slider" min="6" max="38" step="1" value="15">
+                <span class="slider-badge" id="chevron-dist-val">15px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: ORBITAL RING & CORNER STARS -->
+        <div class="tab-content" id="tab-orbit">
+          <div class="control-card">
+            <span class="card-label">Orbital Ring &amp; ISS Satellite Node</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Orbital Ring Radius</label>
+                <input type="range" id="ring-radius-slider" min="290" max="400" step="2" value="350">
+                <span class="slider-badge" id="ring-radius-val">350px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>ISS Node Angle</label>
+                <input type="range" id="node-angle-slider" min="-110" max="20" step="1" value="-62">
+                <span class="slider-badge" id="node-angle-val">-62&deg;</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>ISS Node Gap Width</label>
+                <input type="range" id="node-gap-slider" min="6" max="28" step="1" value="14">
+                <span class="slider-badge" id="node-gap-val">14&deg;</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>ISS Payload Circle Size</label>
+                <input type="range" id="node-radius-slider" min="4" max="18" step="1" value="9">
+                <span class="slider-badge" id="node-radius-val">9px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Palm Bleed Ring Gap</label>
+                <input type="range" id="heel-gap-slider" min="0" max="100" step="2" value="10">
+                <span class="slider-badge" id="heel-gap-val">10&deg;</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Corner 4-Pointed Anchor Stars</span>
+            <div class="input-field-group">
+              <label>Corner Star Render Style</label>
+              <select id="corner-star-style">
+                <option value="double" selected>Double-Line Hand Sketch (Matches Drawing)</option>
+                <option value="single">Clean Single Vector Outline</option>
+                <option value="solid">Solid Cosmic Gold Fill</option>
+              </select>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Corner Star Size</label>
+                <input type="range" id="corner-star-size-slider" min="35" max="95" step="1" value="62">
+                <span class="slider-badge" id="corner-star-size-val">62px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Corner Inset Margin</label>
+                <input type="range" id="corner-inset-slider" min="70" max="175" step="2" value="112">
+                <span class="slider-badge" id="corner-inset-val">112px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: SINGLE-LINE MICHROMA STAMP TYPOGRAPHY (Copied from attached file 3) -->
+        <div class="tab-content" id="tab-type">
+          <div class="control-card">
+            <span class="card-label">Stamp Orientation Mode</span>
+            <div class="preset-chip-grid">
+              <button class="preset-chip active" id="orient-horizontal-btn" data-orient="horizontal">Horizontal Stamp (&rarr;)</button>
+              <button class="preset-chip" id="orient-vertical-btn" data-orient="vertical">Vertical Stacked (&darr;)</button>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Single-Line Stamp Text (Michroma)</span>
+            <div class="input-field-group">
+              <label>Top-Left Corner Stamp (1 Line)</label>
+              <input type="text" id="tl-line1-input" value="BARUCH">
+            </div>
+            <div class="input-field-group">
+              <label>Bottom-Right Corner Stamp (1 Line)</label>
+              <input type="text" id="br-line1-input" value="SSEP 2027">
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Stamp Sizing &amp; Spacing</span>
+            <label class="checkbox-row">
+              <input type="checkbox" id="toggle-bold-stamp">
+              <span>Bold Stamp Text (Font-Weight 700)</span>
+            </label>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Stamp Font Size</label>
+                <input type="range" id="stamp-size-slider" min="12" max="64" step="0.5" value="20">
+                <span class="slider-badge" id="stamp-size-val">20px</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Letter / Stack Spacing</label>
+                <input type="range" id="stamp-track-slider" min="2" max="60" step="1" value="18">
+                <span class="slider-badge" id="stamp-track-val">0.18em</span>
+              </div>
+            </div>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Distance from Star</label>
+                <input type="range" id="stamp-gap-slider" min="10" max="64" step="2" value="24">
+                <span class="slider-badge" id="stamp-gap-val">24px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: BARUCH COLOR PALETTE & STROKE WEIGHT -->
+        <div class="tab-content" id="tab-colors">
+          <div class="control-card">
+            <span class="card-label">Linework &amp; Embroidery Border</span>
+            <div class="input-field-group">
+              <div class="slider-control">
+                <label>Master Stroke Weight</label>
+                <input type="range" id="stroke-weight-slider" min="2" max="7" step="0.25" value="3.5">
+                <span class="slider-badge" id="stroke-weight-val">3.5px</span>
+              </div>
+            </div>
+            <label class="checkbox-row">
+              <input type="checkbox" id="toggle-patch-border" checked>
+              <span>Show 3.5&Prime; Square Patch Seam Border</span>
+            </label>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Background Canvas Swatches</span>
+            <div class="swatches-row">
+              <div class="swatch-item active" data-bg="#001A38" style="background:#001A38;" title="Baruch Deep Space Navy"></div>
+              <div class="swatch-item" data-bg="#002D62" style="background:#002D62;" title="Baruch Official Navy"></div>
+              <div class="swatch-item" data-bg="#07090E" style="background:#07090E;" title="Orbital Vacuum Black"></div>
+              <div class="swatch-item" data-bg="#D8E3F0" style="background:#D8E3F0;" title="Sketchbook Ice Blue"></div>
+              <div class="swatch-item" data-bg="#F4F6F9" style="background:#F4F6F9;" title="Clean Mission White"></div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="card-label">Custom Baruch &amp; Space Hex Mixers</span>
+            <div class="slider-control">
+              <label>Patch Background</label>
+              <input type="color" id="picker-bg" value="#001A38" class="color-picker-inline">
+            </div>
+            <div class="slider-control">
+              <label>Paw Star Lattice (Main)</label>
+              <input type="color" id="picker-paw" value="#FFFFFF" class="color-picker-inline">
+            </div>
+            <div class="slider-control">
+              <label>Ring &amp; Corner Stars (Yellow)</label>
+              <input type="color" id="picker-ring" value="#FFCC00" class="color-picker-inline">
+            </div>
+            <div class="slider-control">
+              <label>Michroma Stamp Text</label>
+              <input type="color" id="picker-text" value="#FFFFFF" class="color-picker-inline">
+            </div>
+          </div>
+        </div>
+
+        <!-- UNIFIED EXPORT SUITE -->
+        <div class="export-button-group">
+          <button class="btn-action" id="btn-export-png">&darr; Export PNG (1000px)</button>
+          <button class="btn-action" id="btn-export-svg">&darr; Export Vector SVG</button>
+        </div>
+        <button class="btn-action secondary" id="btn-export-html">&darr; Export Standalone Patch HTML</button>
+      </aside>
+
+      <!-- RIGHT STAGE VIEWPORT -->
+      <section class="stage-wrapper">
+        <div class="stage-toolbar-group">
+          <div class="stage-toolbar">
+            <div style="display: flex; gap: 18px; flex-wrap: wrap;">
+              <label class="checkbox-row" title="Shortcut: Press 'G' key">
+                <input type="checkbox" id="toggle-guides">
+                <span>Show Construction Grid &amp; Axes (G)</span>
+              </label>
+              <label class="checkbox-row" title="Test if the patch stays recognizable when reduced in size">
+                <input type="checkbox" id="toggle-mini-preview" checked>
+                <span>3.5&Prime; Reduced-Size Recognizability Check</span>
+              </label>
+            </div>
+            <div class="zoom-controls">
+              <span style="font-size: 0.74rem; opacity: 0.7;">ZOOM:</span>
+              <button class="zoom-btn" data-scale="0.65">65%</button>
+              <button class="zoom-btn" data-scale="0.85">85%</button>
+              <button class="zoom-btn active" data-scale="1">100%</button>
+            </div>
+          </div>
+
+          <div class="generator-toolbar-strip">
+            <span class="generator-strip-label">Generative Emblem Variations &bull; SSEP Spring 2027</span>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-randomize" id="btn-reset-sketch" style="background:#FFFFFF;" title="Restore exact alignment from hand-drawn sketch">
+                <span>&#8634;</span> Match Original Sketch
+              </button>
+              <button class="btn-randomize" id="btn-random-generation" title="Generate a new parametric variation">
+                <span>&#9861;</span> Randomize Patch
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN PATCH VIEWPORT -->
+        <div class="stage-canvas-outer" id="stage-viewport">
+          <div class="stage-spec-badge">FORMAT: 3.5&Prime; &times; 3.5&Prime; SQUARE &bull; 1000 &times; 1000 PX</div>
+
+          <div class="patch-canvas-scaler" id="patch-scaler">
+            <main class="patch-frame" id="patch-container">
+              <!-- Master 1000x1000 SVG Mission Patch -->
+              <svg id="mission-patch-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+                <defs id="patch-defs"></defs>
+                <g id="patch-bg-layer"></g>
+                <g id="patch-grid-guides" style="display: none;"></g>
+                <g id="patch-orbit-layer"></g>
+                <g id="patch-paw-layer"></g>
+                <g id="patch-corners-layer"></g>
+                <g id="patch-typography-layer"></g>
+              </svg>
+            </main>
+          </div>
+
+          <!-- Live Small-Scale Recognizability Preview -->
+          <aside class="mini-scale-card" id="mini-scale-card">
+            <span class="mini-scale-label">Small Scale Check</span>
+            <div class="mini-patch-box" id="mini-patch-box"></div>
+          </aside>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       BARUCH SSEP MISSION PATCH GENERATOR ENGINE
+       Translates the hand-drawn Bearcat star-lattice sketch, S-curve wave
+       circle-bleed palm pad with adjustable middle curvature, and equal-spaced
+       4-way radiating toe beans into a 1000x1000px tool.
+       ========================================================================== */
+
+    const state = {
+      // Primary Hierarchy: S-Curve Bearcat Palm Pad bleeding into Orbital Circle
+      pawTilt: 0,             // Rotational adjustment around ring center
+      palmApexReach: 132,     // How far the central palm crown reaches toward the upper-right toes
+      palmMidCurve: 24,       // Controls the curvature / roundness of the middle of the paw pad (matches red markup)
+      palmSpread: 1.04,       // Width / S-curve inflection of the palm pad
+      padOutlineOpacity: 0.28,// Subtle inner boundary line for the palm pad
+
+      // Main Palm Pad: True Interlocking 4-Pointed Star Lattice
+      latticeMode: 'interlock-weave', // 'interlock-weave', 'quadrant-arcs', 'crystal-mesh'
+      palmDensity: 5,         // Base grid frequency across the palm pad
+      interlockTightness: 0.88, // Controls how tightly offset stars nest into each other
+      starPinch: 0.18,        // Concave curvature of the 4-pointed star arms
+      starGap: 0.14,          // Hand-drawn open tip/corner factor
+      latticeRot: -8,         // Internal angle of the repeating star lattice
+
+      // Four Toe Beans: Central Oriented Core Star + Equal 4-Way Radiating Contours + Claw Chevrons
+      toeCoreSize: 11,        // Small central 4-pointed diamond/star in the center of each toe bean
+      toeRings: 3,            // Number of concentric radiating contour rings in all 4 directions
+      toeStep: 11,            // Equal spacing between radiating contour lines on all 4 sides
+      toeStarRot: 0,          // Global angle control for all toe bean stars & radiation
+      toeScale: 1.0,
+      toeSpread: 0,
+      showChevrons: true,     // << claw / trajectory marks
+      chevronSize: 15,
+      chevronDist: 15,
+
+      // Orbital Ring & ISS Satellite Node
+      ringCenterX: 505,
+      ringCenterY: 505,
+      ringRadius: 350,
+      nodeAngle: -62,         // Top-right orbital break with small circle node
+      nodeGap: 14,            // Degrees of break around the ISS node
+      nodeRadius: 9,          // Size of the small circle at top-right of ring
+      heelGap: 10,            // Small break near bottom-left where palm pad meets the yellow ring
+
+      // Corner 4-Pointed Stars
+      cornerStarStyle: 'double', // 'double' (sketch style), 'single', 'solid'
+      cornerStarSize: 62,
+      cornerInset: 112,
+
+      // Secondary Hierarchy: Single-Line Michroma Stamp Typography (Copied from attached file 3)
+      textOrientation: 'horizontal',
+      tlLine1: 'BARUCH',
+      brLine1: 'SSEP 2027',
+      boldStamp: false,
+      stampFontSize: 20,
+      stampTracking: 0.18,
+      stampGap: 24,
+
+      // Colors & Stroke
+      strokeWeight: 3.5,
+      showPatchBorder: true,
+      bgColor: '#001A38',
+      pawColor: '#FFFFFF',
+      ringColor: '#FFCC00',
+      textColor: '#FFFFFF',
+      showGuides: false
+    };
+
+    // Theme Presets grounded in Baruch colors + Sketch Blueprint
+    const THEME_PRESETS = {
+      'baruch-navy': {
+        bgColor: '#001A38',
+        pawColor: '#FFFFFF',
+        ringColor: '#FFCC00',
+        textColor: '#FFFFFF',
+        padOutlineOpacity: 0.28,
+        cornerStarStyle: 'double'
+      },
+      'sketch-blueprint': {
+        bgColor: '#D8E3F0',
+        pawColor: '#1E293B',
+        ringColor: '#1E293B',
+        textColor: '#1E293B',
+        padOutlineOpacity: 0.35,
+        cornerStarStyle: 'double'
+      },
+      'royal-gold': {
+        bgColor: '#002D62',
+        pawColor: '#FFCC00',
+        ringColor: '#FFFFFF',
+        textColor: '#FFCC00',
+        padOutlineOpacity: 0.25,
+        cornerStarStyle: 'solid'
+      },
+      'deep-space': {
+        bgColor: '#07090E',
+        pawColor: '#38BDF8',
+        ringColor: '#FFCC00',
+        textColor: '#F8FAFC',
+        padOutlineOpacity: 0.22,
+        cornerStarStyle: 'single'
+      }
+    };
+
+    /* --------------------------------------------------------------------------
+       MATHEMATICAL GEOMETRY HELPERS
+       -------------------------------------------------------------------------- */
+
+    function degToRad(deg) {
+      return (deg * Math.PI) / 180;
+    }
+
+    function polarToCartesian(cx, cy, r, angleDeg) {
+      const rad = degToRad(angleDeg);
+      return {
+        x: cx + r * Math.cos(rad),
+        y: cy + r * Math.sin(rad)
+      };
+    }
+
+    function describeArc(cx, cy, r, startAngle, endAngle) {
+      const start = polarToCartesian(cx, cy, r, startAngle);
+      const end = polarToCartesian(cx, cy, r, endAngle);
+      let sweep = endAngle - startAngle;
+      while (sweep < 0) sweep += 360;
+      const largeArcFlag = sweep > 180 ? 1 : 0;
+      return `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`;
+    }
+
+    /**
+     * Builds the S-Curve Wave Bearcat Palm Pad with an adjustable Middle Crown Curvature
+     * (`midCurve`) matching the red markup in image_f17989.png:
+     * - Smoothly rounds off the middle shoulder of the paw pad so it arches gently
+     *   into the right flank instead of jutting out into a sharp corner.
+     */
+    function buildTriangularPalmGeometry(R, apexReach, spreadFactor, midCurve = 24) {
+      const spreadDelta = (spreadFactor - 1.0) * 38;
+
+      // Left anchor on the circle (meets the left end of the upper yellow orbital arc)
+      const leftAngle = 186 + spreadDelta * 0.45;
+      // Bottom anchor on the circle (flares out to meet the bottom end of the right yellow orbital arc)
+      const bottomAngle = 82 - spreadDelta * 0.45;
+
+      const pLeft = polarToCartesian(0, 0, R, leftAngle);
+      const pBottom = polarToCartesian(0, 0, R, bottomAngle);
+
+      // Middle Crown Anchor: softened inward & downward by `midCurve` to match the red markup
+      const reachOffset = apexReach - 142;
+      const apexX = -12 + reachOffset * 0.65 - midCurve * 0.75;
+      const apexY = -2 + reachOffset * 0.45 + midCurve * 0.85;
+
+      // Smooth tangent vector at the middle crown so the left and right curves join seamlessly
+      // without a sharp point, while `midCurve` broadens or tightens the middle arch
+      const tangentAngle = degToRad(36 + midCurve * 0.25);
+      const handleSpread = (92 + midCurve * 1.15) * spreadFactor;
+
+      // Top-Left S-curve wave: starts at pLeft, dips into a concave trough, and rises into the smooth middle arch
+      const cp1X = pLeft.x + 82 * spreadFactor;
+      const cp1Y = pLeft.y + 72 * spreadFactor;
+      const cp2X = apexX - Math.cos(tangentAngle) * (handleSpread * 1.15);
+      const cp2Y = apexY - Math.sin(tangentAngle) * (handleSpread * 0.95);
+
+      // Bottom-Right S-curve wave: continues smoothly from the middle arch down around the lower toes
+      const cp3X = apexX + Math.cos(tangentAngle) * (handleSpread * 0.90);
+      const cp3Y = apexY + Math.sin(tangentAngle) * (handleSpread * 1.10);
+      const cp4X = pBottom.x - 56 * spreadFactor;
+      const cp4Y = pBottom.y - 108 * spreadFactor;
+
+      const innerCrownD = [
+        `M ${pLeft.x.toFixed(1)} ${pLeft.y.toFixed(1)}`,
+        `C ${cp1X.toFixed(1)} ${cp1Y.toFixed(1)}, ${cp2X.toFixed(1)} ${cp2Y.toFixed(1)}, ${apexX.toFixed(1)} ${apexY.toFixed(1)}`,
+        `C ${cp3X.toFixed(1)} ${cp3Y.toFixed(1)}, ${cp4X.toFixed(1)} ${cp4Y.toFixed(1)}, ${pBottom.x.toFixed(1)} ${pBottom.y.toFixed(1)}`
+      ].join(' ');
+
+      // Full closed clipPath that follows the inner S-curve wave AND clips along
+      // the bottom-left perimeter of the orbital circle
+      const fullClipD = [
+        innerCrownD,
+        `A ${R} ${R} 0 0 1 ${pLeft.x.toFixed(1)} ${pLeft.y.toFixed(1)}`,
+        `Z`
+      ].join(' ');
+
+      return { innerCrownD, fullClipD, leftAngle, bottomAngle };
+    }
+
+    /**
+     * Generates a single 4-pointed star made of 4 concave quarter-arcs.
+     */
+    function buildStarUnitPath(cx, cy, radius, pinchFactor, tipGapFactor, isSecondary = false) {
+      const rTip = radius * Math.max(0.15, 1 - tipGapFactor);
+      const ctrl = radius * pinchFactor;
+
+      if (state.latticeMode === 'quadrant-arcs') {
+        const gap = radius * (0.08 + tipGapFactor * 0.45);
+        return [
+          `M ${(cx + gap * 0.45).toFixed(1)} ${(cy - rTip).toFixed(1)} Q ${(cx + ctrl).toFixed(1)} ${(cy - ctrl).toFixed(1)} ${(cx + rTip).toFixed(1)} ${(cy - gap * 0.45).toFixed(1)}`,
+          `M ${(cx + rTip).toFixed(1)} ${(cy + gap * 0.45).toFixed(1)} Q ${(cx + ctrl).toFixed(1)} ${(cy + ctrl).toFixed(1)} ${(cx + gap * 0.45).toFixed(1)} ${(cy + rTip).toFixed(1)}`,
+          `M ${(cx - gap * 0.45).toFixed(1)} ${(cy + rTip).toFixed(1)} Q ${(cx - ctrl).toFixed(1)} ${(cy + ctrl).toFixed(1)} ${(cx - rTip).toFixed(1)} ${(cy + gap * 0.45).toFixed(1)}`,
+          `M ${(cx - rTip).toFixed(1)} ${(cy - gap * 0.45).toFixed(1)} Q ${(cx - ctrl).toFixed(1)} ${(cy - ctrl).toFixed(1)} ${(cx - gap * 0.45).toFixed(1)} ${(cy - rTip).toFixed(1)}`
+        ].join(' ');
+      }
+
+      if (state.latticeMode === 'crystal-mesh') {
+        return `M ${cx.toFixed(1)} ${(cy - rTip).toFixed(1)} Q ${(cx + ctrl).toFixed(1)} ${(cy - ctrl).toFixed(1)} ${(cx + rTip).toFixed(1)} ${cy.toFixed(1)} Q ${(cx + ctrl).toFixed(1)} ${(cy + ctrl).toFixed(1)} ${cx.toFixed(1)} ${(cy + rTip).toFixed(1)} Q ${(cx - ctrl).toFixed(1)} ${(cy + ctrl).toFixed(1)} ${(cx - rTip).toFixed(1)} ${cy.toFixed(1)} Q ${(cx - ctrl).toFixed(1)} ${(cy - ctrl).toFixed(1)} ${cx.toFixed(1)} ${(cy - rTip).toFixed(1)} Z`;
+      }
+
+      const hook = isSecondary ? 0 : radius * 0.12;
+      return [
+        `M ${cx.toFixed(1)} ${(cy - rTip).toFixed(1)} Q ${(cx + ctrl).toFixed(1)} ${(cy - ctrl).toFixed(1)} ${(cx + rTip).toFixed(1)} ${cy.toFixed(1)}`,
+        `M ${(cx + rTip).toFixed(1)} ${cy.toFixed(1)} Q ${(cx + ctrl).toFixed(1)} ${(cy + ctrl).toFixed(1)} ${cx.toFixed(1)} ${(cy + rTip).toFixed(1)}`,
+        `M ${cx.toFixed(1)} ${(cy + rTip).toFixed(1)} Q ${(cx - ctrl).toFixed(1)} ${(cy + ctrl).toFixed(1)} ${(cx - rTip).toFixed(1)} ${cy.toFixed(1)}`,
+        `M ${(cx - rTip).toFixed(1)} ${cy.toFixed(1)} Q ${(cx - ctrl).toFixed(1)} ${(cy - ctrl).toFixed(1)} ${(cx - hook * 0.2).toFixed(1)} ${(cy - rTip).toFixed(1)}`
+      ].join(' ');
+    }
+
+    /**
+     * Generates a closed 4-pointed star path for the Top-Left and Bottom-Right
+     * corner stars.
+     */
+    function buildClosedFourPointStar(cx, cy, rOuter, pinchFactor, rotDeg = 0) {
+      const c = rOuter * pinchFactor;
+      const path = `M 0 ${-rOuter} Q ${c} ${-c} ${rOuter} 0 Q ${c} ${c} 0 ${rOuter} Q ${-c} ${c} ${-rOuter} 0 Q ${-c} ${-c} 0 ${-rOuter} Z`;
+      return `<g transform="translate(${cx}, ${cy}) rotate(${rotDeg})">
+        <path d="${path}" />
+      </g>`;
+    }
+
+    /**
+     * Generates the Toe Bean pattern with STRICTLY EQUAL spacing on all 4 sides of the star:
+     * 1. A central 4-pointed star with 4-fold symmetry.
+     * 2. Concentric radiating arcs in all 4 cardinal lobes (Top, Bottom, Left, Right)
+     *    that use the exact same mathematical `apex`, `span`, and `ctrl` formula
+     *    so the spacing is 100% equal on every side of the star.
+     */
+    function buildToeBeanRadiationPaths(coreSize, rings, stepPx, pinchFactor) {
+      let d = '';
+
+      // 1. Central singular 4-pointed star rotated 45 deg (tips at diagonals, concave sides facing Top/Bottom/Left/Right)
+      const tipDiag = coreSize * 0.95;
+      const waistCardinal = coreSize * Math.max(0.28, pinchFactor * 1.65);
+
+      // Exact midpoint of each of the 4 concave sides of the central star
+      const starSideMid = 0.5 * tipDiag + 0.5 * waistCardinal;
+
+      d += [
+        `M ${(-tipDiag).toFixed(1)} ${(-tipDiag).toFixed(1)}`,
+        `Q 0 ${(-waistCardinal).toFixed(1)} ${tipDiag.toFixed(1)} ${(-tipDiag).toFixed(1)}`,
+        `Q ${waistCardinal.toFixed(1)} 0 ${tipDiag.toFixed(1)} ${tipDiag.toFixed(1)}`,
+        `Q 0 ${waistCardinal.toFixed(1)} ${(-tipDiag).toFixed(1)} ${tipDiag.toFixed(1)}`,
+        `Q ${(-waistCardinal).toFixed(1)} 0 ${(-tipDiag).toFixed(1)} ${(-tipDiag).toFixed(1)} Z `
+      ].join(' ');
+
+      // 2. Strictly Equal 4-Way Concentric Radiating Contours (Top, Bottom, Left, Right)
+      // Every side k is spaced by the exact same `k * stepPx` distance from `starSideMid`
+      for (let k = 1; k <= rings; k++) {
+        const apex = starSideMid + k * stepPx;
+        const span = 28 + k * (stepPx * 0.95);
+        const endOffset = apex + 14 + k * 4.0;
+        // Ensures the quadratic Bezier midpoint at t=0.5 is at exact distance `apex` on all 4 sides
+        const ctrl = 2 * apex - endOffset;
+
+        // Top radiating arc (bows downward toward center star)
+        d += `M ${(-span).toFixed(1)} ${(-endOffset).toFixed(1)} Q 0 ${(-ctrl).toFixed(1)} ${span.toFixed(1)} ${(-endOffset).toFixed(1)} `;
+        // Bottom radiating arc (bows upward toward center star)
+        d += `M ${(-span).toFixed(1)} ${endOffset.toFixed(1)} Q 0 ${ctrl.toFixed(1)} ${span.toFixed(1)} ${endOffset.toFixed(1)} `;
+        // Left radiating arc (bows rightward toward center star)
+        d += `M ${(-endOffset).toFixed(1)} ${(-span).toFixed(1)} Q ${(-ctrl).toFixed(1)} 0 ${(-endOffset).toFixed(1)} ${span.toFixed(1)} `;
+        // Right radiating arc (bows leftward toward center star)
+        d += `M ${endOffset.toFixed(1)} ${(-span).toFixed(1)} Q ${ctrl.toFixed(1)} 0 ${endOffset.toFixed(1)} ${span.toFixed(1)} `;
+      }
+
+      return d.trim();
+    }
+
+    /* --------------------------------------------------------------------------
+       MAIN SVG RENDER PIPELINE
+       -------------------------------------------------------------------------- */
+
+    function renderMissionPatch() {
+      const defsEl = document.getElementById('patch-defs');
+      const bgLayer = document.getElementById('patch-bg-layer');
+      const guidesLayer = document.getElementById('patch-grid-guides');
+      const orbitLayer = document.getElementById('patch-orbit-layer');
+      const pawLayer = document.getElementById('patch-paw-layer');
+      const cornersLayer = document.getElementById('patch-corners-layer');
+      const typeLayer = document.getElementById('patch-typography-layer');
+
+      const sw = state.strokeWeight;
+      const rCx = state.ringCenterX;
+      const rCy = state.ringCenterY;
+      const rRad = state.ringRadius;
+
+      document.documentElement.style.setProperty('--patch-bg', state.bgColor);
+
+      // 1. BUILD S-CURVE BEARCAT PALM PAD & 4 TOE BEANS IN LOCAL PAW SPACE
+      const palmGeom = buildTriangularPalmGeometry(
+        rRad,
+        state.palmApexReach,
+        state.palmSpread,
+        state.palmMidCurve
+      );
+
+      // 4 Toe Beans positioned in an arc above/around the S-curve palm crown
+      const spread = state.toeSpread;
+      const tScale = state.toeScale;
+      const apexShift = (state.palmApexReach - 132) * 0.35;
+
+      const toeSpecs = [
+        {
+          id: 0,
+          cx: -162 - spread * 0.5 + apexShift * 0.4,
+          cy: -125 - spread * 0.4 - apexShift * 0.4,
+          rx: 42 * tScale,
+          ry: 62 * tScale,
+          rot: 34
+        },
+        {
+          id: 1,
+          cx: -28 - spread * 0.15 + apexShift * 0.6,
+          cy: -115 - spread * 0.45 - apexShift * 0.6,
+          rx: 44 * tScale,
+          ry: 64 * tScale,
+          rot: 42
+        },
+        {
+          id: 2,
+          cx: 95 + spread * 0.35 + apexShift * 0.6,
+          cy: -12 + spread * 0.15 - apexShift * 0.5,
+          rx: 44 * tScale,
+          ry: 64 * tScale,
+          rot: 52
+        },
+        {
+          id: 3,
+          cx: 108 + spread * 0.5 + apexShift * 0.4,
+          cy: 138 + spread * 0.5 - apexShift * 0.2,
+          rx: 42 * tScale,
+          ry: 60 * tScale,
+          rot: 62
+        }
+      ];
+
+      let defsHTML = `
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Michroma&amp;display=swap');
+          .patch-stamp-text {
+            font-family: 'Michroma', sans-serif;
+            text-transform: uppercase;
+          }
+        </style>
+        <clipPath id="palm-pad-clip">
+          <path d="${palmGeom.fullClipD}" />
+        </clipPath>
+      `;
+
+      toeSpecs.forEach(toe => {
+        defsHTML += `
+          <clipPath id="toe-clip-${toe.id}">
+            <ellipse cx="0" cy="0" rx="${toe.rx.toFixed(1)}" ry="${toe.ry.toFixed(1)}" />
+          </clipPath>
+        `;
+      });
+      defsEl.innerHTML = defsHTML;
+
+      // 2. BACKGROUND LAYER & 3.5" PATCH SEAM BORDER
+      let bgHTML = `<rect x="0" y="0" width="1000" height="1000" fill="${state.bgColor}" />`;
+      if (state.showPatchBorder) {
+        bgHTML += `
+          <rect x="22" y="22" width="956" height="956" rx="18" fill="none" stroke="${state.ringColor}" stroke-width="2" stroke-opacity="0.35" />
+          <rect x="30" y="30" width="940" height="940" rx="12" fill="none" stroke="${state.ringColor}" stroke-width="1.2" stroke-dasharray="8 6" stroke-opacity="0.25" />
+        `;
+      }
+      bgLayer.innerHTML = bgHTML;
+
+      // 3. OPTIONAL CONSTRUCTION GRID & LAUNCH AXIS GUIDES (G)
+      guidesLayer.style.display = state.showGuides ? 'block' : 'none';
+      if (state.showGuides) {
+        guidesLayer.innerHTML = `
+          <g stroke="#38BDF8" stroke-width="1" stroke-opacity="0.35" stroke-dasharray="6 6" fill="none">
+            <line x1="500" y1="0" x2="500" y2="1000" />
+            <line x1="0" y1="500" x2="1000" y2="500" />
+            <line x1="0" y1="0" x2="1000" y2="1000" />
+            <line x1="0" y1="1000" x2="1000" y2="0" />
+            <circle cx="${rCx}" cy="${rCy}" r="${rRad}" />
+            <rect x="80" y="80" width="840" height="840" />
+          </g>
+        `;
+      }
+
+      // 4. PRIMARY HIERARCHY: THE BEARCAT PAW (S-Curve Bleed Pad + Interlocking Lattice + 4 Toes)
+      // 4A. Generate the Interlocking 4-Pointed Star Lattice inside the S-Curve Palm Pad
+      const density = state.palmDensity;
+      const step = 300 / density; // Grid cell spacing
+      const primaryR = (step * 0.56) * state.interlockTightness;
+      const secondaryR = (step * 0.46) * state.interlockTightness;
+
+      let latticePaths = '';
+      const centerX = -140;
+      const centerY = 140;
+      const gridCount = Math.ceil(density * 1.7);
+
+      for (let row = -gridCount; row <= gridCount; row++) {
+        for (let col = -gridCount; col <= gridCount; col++) {
+          const sx = centerX + col * step;
+          const sy = centerY + row * step;
+
+          // Primary 4-pointed star at (sx, sy)
+          latticePaths += buildStarUnitPath(sx, sy, primaryR, state.starPinch, state.starGap, false) + ' ';
+
+          // Interlocking dual-offset 4-pointed star at (sx + step/2, sy + step/2)
+          if (state.latticeMode !== 'crystal-mesh') {
+            const ox = sx + step * 0.5;
+            const oy = sy + step * 0.5;
+            latticePaths += buildStarUnitPath(ox, oy, secondaryR, state.starPinch * 1.05, state.starGap, true) + ' ';
+          }
+        }
+      }
+
+      // 4B. Generate the Four Toe Beans with Equal 4-Way Radiating Contours + Global Toe Star Rotation
+      const toeRadiationD = buildToeBeanRadiationPaths(
+        state.toeCoreSize,
+        state.toeRings,
+        state.toeStep,
+        state.starPinch
+      );
+
+      let toesHTML = '';
+      toeSpecs.forEach(toe => {
+        let chevronMarkup = '';
+        if (state.showChevrons) {
+          const cSize = state.chevronSize;
+          const cDist = state.chevronDist;
+          const tipY = -toe.ry - cDist;
+          chevronMarkup = `
+            <g stroke="${state.pawColor}" stroke-width="${(sw * 0.92).toFixed(2)}" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M ${(-cSize * 0.65).toFixed(1)} ${(tipY + cSize * 0.45).toFixed(1)} L 0 ${tipY.toFixed(1)} L ${(cSize * 0.65).toFixed(1)} ${(tipY + cSize * 0.45).toFixed(1)}" />
+              <path d="M ${(-cSize * 0.65).toFixed(1)} ${(tipY - cSize * 0.55 + cSize * 0.45).toFixed(1)} L 0 ${(tipY - cSize * 0.55).toFixed(1)} L ${(cSize * 0.65).toFixed(1)} ${(tipY - cSize * 0.55 + cSize * 0.45).toFixed(1)}" />
+            </g>
+          `;
+        }
+
+        toesHTML += `
+          <g transform="translate(${toe.cx.toFixed(1)}, ${toe.cy.toFixed(1)}) rotate(${toe.rot})">
+            <ellipse cx="0" cy="0" rx="${toe.rx.toFixed(1)}" ry="${toe.ry.toFixed(1)}"
+              fill="none" stroke="${state.pawColor}" stroke-width="${(sw * 0.65).toFixed(2)}"
+              stroke-opacity="${state.padOutlineOpacity}" />
+            <g clip-path="url(#toe-clip-${toe.id})">
+              <g transform="rotate(${state.toeStarRot})">
+                <path d="${toeRadiationD}" fill="none" stroke="${state.pawColor}"
+                  stroke-width="${sw.toFixed(2)}" stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+            </g>
+            ${chevronMarkup}
+          </g>
+        `;
+      });
+
+      pawLayer.innerHTML = `
+        <g id="bearcat-paw-master" transform="translate(${rCx}, ${rCy}) rotate(${state.pawTilt})">
+          <!-- Clipped Repeating Interlocking 4-Pointed Star Lattice (Bleeds into Circle Edge) -->
+          <g clip-path="url(#palm-pad-clip)">
+            <g transform="rotate(${state.latticeRot}, ${centerX}, ${centerY})">
+              <path d="${latticePaths}" fill="none" stroke="${state.pawColor}"
+                stroke-width="${sw.toFixed(2)}" stroke-linecap="round" stroke-linejoin="round" />
+            </g>
+          </g>
+
+          <!-- Faint Inner S-Curve Crown Guide Line -->
+          <path d="${palmGeom.innerCrownD}" fill="none" stroke="${state.pawColor}"
+            stroke-width="${(sw * 0.65).toFixed(2)}" stroke-opacity="${state.padOutlineOpacity}" stroke-linecap="round" />
+
+          <!-- Four Radiating Toe Beans + Claw Chevrons -->
+          ${toesHTML}
+        </g>
+      `;
+
+      // 5. ORBITAL RING & ISS SATELLITE NODE (Secondary/Frame Hierarchy)
+      const halfNodeGap = state.nodeGap / 2;
+      const nodeGapStart = state.nodeAngle - halfNodeGap;
+      const nodeGapEnd = state.nodeAngle + halfNodeGap;
+
+      // Breaks where the S-curve palm pad bleeds into the circle
+      const leftBleedAngle = palmGeom.leftAngle + state.pawTilt;
+      const bottomBleedAngle = palmGeom.bottomAngle + state.pawTilt;
+      const bleedGap = state.heelGap;
+
+      let orbitHTML = '';
+      if (bleedGap > 0) {
+        const arc1End = bottomBleedAngle - bleedGap * 0.35;
+        const arc2Start = leftBleedAngle + bleedGap * 0.35;
+
+        const arcRight = describeArc(rCx, rCy, rRad, nodeGapEnd, arc1End);
+        const arcTop = describeArc(rCx, rCy, rRad, arc2Start, nodeGapStart + 360);
+
+        orbitHTML += `
+          <path d="${arcRight}" fill="none" stroke="${state.ringColor}" stroke-width="${(sw * 1.15).toFixed(2)}" stroke-linecap="round" />
+          <path d="${arcTop}" fill="none" stroke="${state.ringColor}" stroke-width="${(sw * 1.15).toFixed(2)}" stroke-linecap="round" />
+        `;
+      } else {
+        const fullArc = describeArc(rCx, rCy, rRad, nodeGapEnd, nodeGapStart + 360);
+        orbitHTML += `
+          <path d="${fullArc}" fill="none" stroke="${state.ringColor}" stroke-width="${(sw * 1.15).toFixed(2)}" stroke-linecap="round" />
+        `;
+      }
+
+      // Small Orbital Circle (ISS / Student Payload Node) at the top-right break
+      const nodePos = polarToCartesian(rCx, rCy, rRad, state.nodeAngle);
+      orbitHTML += `
+        <circle cx="${nodePos.x.toFixed(2)}" cy="${nodePos.y.toFixed(2)}" r="${state.nodeRadius}"
+          fill="${state.bgColor}" stroke="${state.ringColor}" stroke-width="${(sw * 1.1).toFixed(2)}" />
+      `;
+      orbitLayer.innerHTML = orbitHTML;
+
+      // 6. TERTIARY HIERARCHY: TOP-LEFT & BOTTOM-RIGHT 4-POINTED CORNER STARS
+      const inset = state.cornerInset;
+      const cStarR = state.cornerStarSize;
+      const tlStarX = inset;
+      const tlStarY = inset;
+      const brStarX = 1000 - inset;
+      const brStarY = 1000 - inset;
+
+      function renderCornerStar(cx, cy) {
+        const pinch = 0.22;
+        if (state.cornerStarStyle === 'solid') {
+          return `<g fill="${state.ringColor}" stroke="${state.ringColor}" stroke-width="${(sw * 0.7).toFixed(2)}" stroke-linejoin="round">
+            ${buildClosedFourPointStar(cx, cy, cStarR, pinch, 0)}
+          </g>`;
+        } else if (state.cornerStarStyle === 'double') {
+          return `<g fill="none" stroke="${state.ringColor}" stroke-width="${sw.toFixed(2)}" stroke-linecap="round" stroke-linejoin="round">
+            ${buildClosedFourPointStar(cx, cy, cStarR, pinch, 0)}
+            <g opacity="0.72" transform="translate(3, 2)">
+              ${buildClosedFourPointStar(cx, cy, cStarR * 0.84, pinch * 1.12, 3)}
+            </g>
+          </g>`;
+        } else {
+          return `<g fill="none" stroke="${state.ringColor}" stroke-width="${sw.toFixed(2)}" stroke-linecap="round" stroke-linejoin="round">
+            ${buildClosedFourPointStar(cx, cy, cStarR, pinch, 0)}
+          </g>`;
+        }
+      }
+
+      cornersLayer.innerHTML = `
+        ${renderCornerStar(tlStarX, tlStarY)}
+        ${renderCornerStar(brStarX, brStarY)}
+      `;
+
+      // 7. SECONDARY HIERARCHY: SINGLE-LINE MICHROMA STAMP TYPOGRAPHY (Copied from attached file 3)
+      const fSize = state.stampFontSize;
+      const trackEm = `${state.stampTracking.toFixed(2)}em`;
+      const starGap = state.stampGap;
+      const fontWeight = state.boldStamp ? '700' : '400';
+      let typeHTML = '';
+
+      if (state.textOrientation === 'horizontal') {
+        const tlTextX = tlStarX + cStarR + starGap;
+        const tlTextY = tlStarY + fSize * 0.36;
+        const brTextX = brStarX - cStarR - starGap;
+        const brTextY = brStarY + fSize * 0.36;
+
+        typeHTML += `
+          <text x="${tlTextX}" y="${tlTextY.toFixed(1)}" class="patch-stamp-text"
+            font-size="${fSize}" font-weight="${fontWeight}" fill="${state.textColor}" letter-spacing="${trackEm}" text-anchor="start">${escapeXml(state.tlLine1)}</text>
+          <text x="${brTextX}" y="${brTextY.toFixed(1)}" class="patch-stamp-text"
+            font-size="${fSize}" font-weight="${fontWeight}" fill="${state.textColor}" letter-spacing="${trackEm}" text-anchor="end">${escapeXml(state.brLine1)}</text>
+        `;
+      } else {
+        const stepY = fSize * (1.1 + state.stampTracking * 0.8);
+        const tlChars = (state.tlLine1 || '').toUpperCase().split('');
+        const tlStartX = tlStarX;
+        const tlStartY = tlStarY + cStarR + starGap + fSize * 0.85;
+
+        let tlTspans = '';
+        tlChars.forEach((ch, idx) => {
+          const yPos = tlStartY + idx * stepY;
+          const safeChar = ch === ' ' ? '&#160;' : escapeXml(ch);
+          tlTspans += `<tspan x="${tlStartX}" y="${yPos.toFixed(1)}">${safeChar}</tspan>`;
+        });
+
+        const brChars = (state.brLine1 || '').toUpperCase().split('');
+        const brStartX = brStarX;
+        const brBottomY = brStarY - cStarR - starGap;
+        const brTopY = brBottomY - Math.max(0, brChars.length - 1) * stepY;
+
+        let brTspans = '';
+        brChars.forEach((ch, idx) => {
+          const yPos = brTopY + idx * stepY;
+          const safeChar = ch === ' ' ? '&#160;' : escapeXml(ch);
+          brTspans += `<tspan x="${brStartX}" y="${yPos.toFixed(1)}">${safeChar}</tspan>`;
+        });
+
+        typeHTML += `
+          <text class="patch-stamp-text" font-size="${fSize}" font-weight="${fontWeight}" fill="${state.textColor}" text-anchor="middle">${tlTspans}</text>
+          <text class="patch-stamp-text" font-size="${fSize}" font-weight="${fontWeight}" fill="${state.textColor}" text-anchor="middle">${brTspans}</text>
+        `;
+      }
+
+      typeLayer.innerHTML = typeHTML;
+
+      // 8. UPDATE 3.5" REDUCED-SIZE RECOGNIZABILITY PREVIEW
+      const miniBox = document.getElementById('mini-patch-box');
+      if (miniBox) {
+        const svgClone = document.getElementById('mission-patch-svg').cloneNode(true);
+        svgClone.removeAttribute('id');
+        const guidesClone = svgClone.querySelector('#patch-grid-guides');
+        if (guidesClone) guidesClone.remove();
+        miniBox.innerHTML = '';
+        miniBox.appendChild(svgClone);
+      }
+    }
+
+    function escapeXml(unsafe) {
+      return (unsafe || '').replace(/[<>&'"]/g, (c) => {
+        switch (c) {
+          case '<': return '&lt;';
+          case '>': return '&gt;';
+          case '&': return '&amp;';
+          case '\'': return '&apos;';
+          case '"': return '&quot;';
+          default: return c;
+        }
+      });
+    }
+
+    /* --------------------------------------------------------------------------
+       UI CONTROLS, PRESETS & RANDOMIZATION
+       -------------------------------------------------------------------------- */
+
+    function syncInputsFromState() {
+      const bindVal = (id, val, badgeId, formatted) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+        const b = document.getElementById(badgeId);
+        if (b) b.textContent = formatted;
+      };
+
+      bindVal('paw-tilt-slider', state.pawTilt, 'paw-tilt-val', `${state.pawTilt}°`);
+      bindVal('palm-apex-slider', state.palmApexReach, 'palm-apex-val', `${state.palmApexReach}px`);
+      bindVal('palm-mid-curve-slider', state.palmMidCurve, 'palm-mid-curve-val', `${state.palmMidCurve > 0 ? '+' : ''}${state.palmMidCurve}`);
+      bindVal('palm-spread-slider', Math.round(state.palmSpread * 100), 'palm-spread-val', `${Math.round(state.palmSpread * 100)}%`);
+      bindVal('pad-outline-slider', Math.round(state.padOutlineOpacity * 100), 'pad-outline-val', `${Math.round(state.padOutlineOpacity * 100)}%`);
+
+      document.getElementById('lattice-mode-select').value = state.latticeMode;
+      bindVal('palm-density-slider', state.palmDensity, 'palm-density-val', `${state.palmDensity}×${state.palmDensity}`);
+      bindVal('interlock-tightness-slider', Math.round(state.interlockTightness * 100), 'interlock-tightness-val', `${Math.round(state.interlockTightness * 100)}%`);
+      bindVal('star-pinch-slider', Math.round(state.starPinch * 100), 'star-pinch-val', `${Math.round(state.starPinch * 100)}%`);
+      bindVal('star-gap-slider', Math.round(state.starGap * 100), 'star-gap-val', `${Math.round(state.starGap * 100)}%`);
+      bindVal('lattice-rot-slider', state.latticeRot, 'lattice-rot-val', `${state.latticeRot}°`);
+
+      bindVal('toe-core-size-slider', state.toeCoreSize, 'toe-core-size-val', `${state.toeCoreSize}px`);
+      bindVal('toe-rings-slider', state.toeRings, 'toe-rings-val', `${state.toeRings} Rings`);
+      bindVal('toe-step-slider', state.toeStep, 'toe-step-val', `${state.toeStep}px`);
+      bindVal('toe-star-rot-slider', state.toeStarRot, 'toe-star-rot-val', `${state.toeStarRot}°`);
+      bindVal('toe-scale-slider', Math.round(state.toeScale * 100), 'toe-scale-val', `${Math.round(state.toeScale * 100)}%`);
+      bindVal('toe-spread-slider', state.toeSpread, 'toe-spread-val', `${state.toeSpread}px`);
+      document.getElementById('toggle-chevrons').checked = state.showChevrons;
+      bindVal('chevron-size-slider', state.chevronSize, 'chevron-size-val', `${state.chevronSize}px`);
+      bindVal('chevron-dist-slider', state.chevronDist, 'chevron-dist-val', `${state.chevronDist}px`);
+
+      bindVal('ring-radius-slider', state.ringRadius, 'ring-radius-val', `${state.ringRadius}px`);
+      bindVal('node-angle-slider', state.nodeAngle, 'node-angle-val', `${state.nodeAngle}°`);
+      bindVal('node-gap-slider', state.nodeGap, 'node-gap-val', `${state.nodeGap}°`);
+      bindVal('node-radius-slider', state.nodeRadius, 'node-radius-val', `${state.nodeRadius}px`);
+      bindVal('heel-gap-slider', state.heelGap, 'heel-gap-val', `${state.heelGap}°`);
+
+      document.getElementById('corner-star-style').value = state.cornerStarStyle;
+      bindVal('corner-star-size-slider', state.cornerStarSize, 'corner-star-size-val', `${state.cornerStarSize}px`);
+      bindVal('corner-inset-slider', state.cornerInset, 'corner-inset-val', `${state.cornerInset}px`);
+
+      document.getElementById('orient-horizontal-btn').classList.toggle('active', state.textOrientation === 'horizontal');
+      document.getElementById('orient-vertical-btn').classList.toggle('active', state.textOrientation === 'vertical');
+
+      document.getElementById('tl-line1-input').value = state.tlLine1;
+      document.getElementById('br-line1-input').value = state.brLine1;
+      document.getElementById('toggle-bold-stamp').checked = state.boldStamp;
+      bindVal('stamp-size-slider', state.stampFontSize, 'stamp-size-val', `${state.stampFontSize}px`);
+      bindVal('stamp-track-slider', Math.round(state.stampTracking * 100), 'stamp-track-val', `${state.stampTracking.toFixed(2)}em`);
+      bindVal('stamp-gap-slider', state.stampGap, 'stamp-gap-val', `${state.stampGap}px`);
+
+      bindVal('stroke-weight-slider', state.strokeWeight, 'stroke-weight-val', `${state.strokeWeight}px`);
+      document.getElementById('toggle-patch-border').checked = state.showPatchBorder;
+      document.getElementById('picker-bg').value = state.bgColor;
+      document.getElementById('picker-paw').value = state.pawColor;
+      document.getElementById('picker-ring').value = state.ringColor;
+      document.getElementById('picker-text').value = state.textColor;
+    }
+
+    function applyThemePreset(key) {
+      const p = THEME_PRESETS[key];
+      if (!p) return;
+      Object.assign(state, p);
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.preset === key);
+      });
+      document.querySelectorAll('[data-bg]').forEach(sw => {
+        sw.classList.toggle('active', sw.dataset.bg.toLowerCase() === state.bgColor.toLowerCase());
+      });
+      syncInputsFromState();
+      renderMissionPatch();
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function randomizePatch() {
+      state.pawTilt = randInt(-10, 16);
+      state.palmApexReach = randInt(115, 165);
+      state.palmMidCurve = randInt(-10, 42);
+      state.palmSpread = randInt(94, 118) / 100;
+      state.palmDensity = randInt(4, 7);
+      state.interlockTightness = randInt(78, 102) / 100;
+      state.starPinch = randInt(12, 32) / 100;
+      state.starGap = randInt(8, 22) / 100;
+      state.latticeRot = randInt(-30, 30);
+
+      const modes = ['interlock-weave', 'quadrant-arcs', 'crystal-mesh'];
+      state.latticeMode = modes[randInt(0, 1)];
+
+      state.toeCoreSize = randInt(8, 16);
+      state.toeRings = randInt(2, 5);
+      state.toeStep = randInt(9, 15);
+      state.toeStarRot = randInt(-45, 45);
+      state.toeSpread = randInt(-8, 16);
+      state.chevronSize = randInt(12, 20);
+      state.ringRadius = randInt(335, 370);
+      state.nodeAngle = randInt(-78, -38);
+      state.heelGap = randInt(6, 28);
+      state.cornerStarSize = randInt(48, 72);
+      state.strokeWeight = randInt(12, 18) / 4;
+
+      const styles = ['double', 'single', 'solid'];
+      state.cornerStarStyle = styles[randInt(0, styles.length - 1)];
+
+      syncInputsFromState();
+      renderMissionPatch();
+    }
+
+    function resetToOriginalSketch() {
+      Object.assign(state, {
+        pawTilt: 0,
+        palmApexReach: 132,
+        palmMidCurve: 24,
+        palmSpread: 1.04,
+        padOutlineOpacity: 0.28,
+        latticeMode: 'interlock-weave',
+        palmDensity: 5,
+        interlockTightness: 0.88,
+        starPinch: 0.18,
+        starGap: 0.14,
+        latticeRot: -8,
+        toeCoreSize: 11,
+        toeRings: 3,
+        toeStep: 11,
+        toeStarRot: 0,
+        toeScale: 1.0,
+        toeSpread: 0,
+        showChevrons: true,
+        chevronSize: 15,
+        chevronDist: 15,
+        ringRadius: 350,
+        nodeAngle: -62,
+        nodeGap: 14,
+        nodeRadius: 9,
+        heelGap: 10,
+        cornerStarStyle: 'double',
+        cornerStarSize: 62,
+        cornerInset: 112,
+        strokeWeight: 3.5
+      });
+      syncInputsFromState();
+      renderMissionPatch();
+    }
+
+    /* --------------------------------------------------------------------------
+       EXPORTERS: 1000x1000 PNG, VECTOR SVG, STANDALONE HTML
+       -------------------------------------------------------------------------- */
+
+    function getCleanSvgMarkup() {
+      const svgClone = document.getElementById('mission-patch-svg').cloneNode(true);
+      const guides = svgClone.querySelector('#patch-grid-guides');
+      if (guides) guides.remove();
+      svgClone.setAttribute('width', '1000');
+      svgClone.setAttribute('height', '1000');
+      svgClone.setAttribute('viewBox', '0 0 1000 1000');
+      return new XMLSerializer().serializeToString(svgClone);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function exportHighResPNG() {
+      const btn = document.getElementById('btn-export-png');
+      const originalText = btn.textContent;
+      btn.textContent = 'Rendering 1000×1000 PNG...';
+
+      try {
+        await document.fonts.ready;
+        const svgString = getCleanSvgMarkup();
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const exportSize = 2000;
+            const canvas = document.createElement('canvas');
+            canvas.width = exportSize;
+            canvas.height = exportSize;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, exportSize, exportSize);
+            URL.revokeObjectURL(url);
+
+            canvas.toBlob((pngBlob) => {
+              if (pngBlob) {
+                downloadBlob(pngBlob, 'baruch_ssep_mission_patch_1000x1000.png');
+              }
+              resolve();
+            }, 'image/png');
+          };
+          img.onerror = (err) => {
+            URL.revokeObjectURL(url);
+            reject(err);
+          };
+          img.src = url;
+        });
+      } catch (err) {
+        console.error('PNG Export Error:', err);
+      } finally {
+        btn.textContent = originalText;
+      }
+    }
+
+    function exportVectorSVG() {
+      const svgString = `<?xml version="1.0" encoding="UTF-8"?>\n` + getCleanSvgMarkup();
+      const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      downloadBlob(blob, 'baruch_ssep_mission_patch_3.5in.svg');
+    }
+
+    function exportStandaloneHTML() {
+      const svgString = getCleanSvgMarkup();
+      const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Baruch College SSEP Mission Patch (3.5" x 3.5")</title>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #111827;
+      padding: 24px;
+    }
+    .patch-wrapper {
+      width: min(85vmin, 700px);
+      height: min(85vmin, 700px);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.55);
+    }
+    svg { width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+  <div class="patch-wrapper">
+    ${svgString}
+  </div>
+</body>
+</html>`;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      downloadBlob(blob, 'baruch_ssep_mission_patch.html');
+    }
+
+    /* --------------------------------------------------------------------------
+       INITIALIZATION & EVENT LISTENERS
+       -------------------------------------------------------------------------- */
+
+    function createTwinkles() {
+      const container = document.getElementById('twinkle-canvas');
+      for (let i = 0; i < 36; i++) {
+        const star = document.createElement('div');
+        star.className = 'twinkle-star';
+        star.style.left = `${Math.random() * 100}vw`;
+        star.style.top = `${Math.random() * 100}vh`;
+        star.style.animationDuration = `${(Math.random() * 4 + 3.5).toFixed(1)}s`;
+        star.style.animationDelay = `${(Math.random() * 5).toFixed(1)}s`;
+        container.appendChild(star);
+      }
+    }
+
+    function initEvents() {
+      createTwinkles();
+
+      // Tab Navigation
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // Theme Presets
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => applyThemePreset(btn.dataset.preset));
+      });
+
+      // Helper to bind range sliders
+      function bindSlider(sliderId, badgeId, parser, stateKey, formatter) {
+        const slider = document.getElementById(sliderId);
+        const badge = document.getElementById(badgeId);
+        if (!slider) return;
+        slider.addEventListener('input', (e) => {
+          const raw = e.target.value;
+          const val = parser(raw);
+          state[stateKey] = val;
+          if (badge && formatter) {
+            badge.textContent = formatter(val, raw);
+          }
+          renderMissionPatch();
+        });
+      }
+
+      // Tab 1: S-Curve Palm Pad (with Middle Crown Curvature) & Interlocking Lattice Sliders
+      bindSlider('paw-tilt-slider', 'paw-tilt-val', parseFloat, 'pawTilt', v => `${v}°`);
+      bindSlider('palm-apex-slider', 'palm-apex-val', parseFloat, 'palmApexReach', v => `${v}px`);
+      bindSlider('palm-mid-curve-slider', 'palm-mid-curve-val', parseFloat, 'palmMidCurve', v => `${v > 0 ? '+' : ''}${v}`);
+      bindSlider('palm-spread-slider', 'palm-spread-val', v => parseFloat(v) / 100, 'palmSpread', (_, raw) => `${raw}%`);
+      bindSlider('pad-outline-slider', 'pad-outline-val', v => parseFloat(v) / 100, 'padOutlineOpacity', (_, raw) => `${raw}%`);
+
+      document.getElementById('lattice-mode-select').addEventListener('change', (e) => {
+        state.latticeMode = e.target.value;
+        renderMissionPatch();
+      });
+      bindSlider('palm-density-slider', 'palm-density-val', parseInt, 'palmDensity', v => `${v}×${v}`);
+      bindSlider('interlock-tightness-slider', 'interlock-tightness-val', v => parseFloat(v) / 100, 'interlockTightness', (_, raw) => `${raw}%`);
+      bindSlider('star-pinch-slider', 'star-pinch-val', v => parseFloat(v) / 100, 'starPinch', (_, raw) => `${raw}%`);
+      bindSlider('star-gap-slider', 'star-gap-val', v => parseFloat(v) / 100, 'starGap', (_, raw) => `${raw}%`);
+      bindSlider('lattice-rot-slider', 'lattice-rot-val', parseFloat, 'latticeRot', v => `${v}°`);
+
+      // Tab 2: Toe Beans (Equal 4-Way Radiation + Global Toe Star Direction) & Claws
+      bindSlider('toe-core-size-slider', 'toe-core-size-val', parseFloat, 'toeCoreSize', v => `${v}px`);
+      bindSlider('toe-rings-slider', 'toe-rings-val', parseInt, 'toeRings', v => `${v} Rings`);
+      bindSlider('toe-step-slider', 'toe-step-val', parseFloat, 'toeStep', v => `${v}px`);
+      bindSlider('toe-star-rot-slider', 'toe-star-rot-val', parseFloat, 'toeStarRot', v => `${v}°`);
+      bindSlider('toe-scale-slider', 'toe-scale-val', v => parseFloat(v) / 100, 'toeScale', (_, raw) => `${raw}%`);
+      bindSlider('toe-spread-slider', 'toe-spread-val', parseFloat, 'toeSpread', v => `${v}px`);
+      document.getElementById('toggle-chevrons').addEventListener('change', (e) => {
+        state.showChevrons = e.target.checked;
+        renderMissionPatch();
+      });
+      bindSlider('chevron-size-slider', 'chevron-size-val', parseFloat, 'chevronSize', v => `${v}px`);
+      bindSlider('chevron-dist-slider', 'chevron-dist-val', parseFloat, 'chevronDist', v => `${v}px`);
+
+      // Tab 3: Orbit & Corner Stars
+      bindSlider('ring-radius-slider', 'ring-radius-val', parseFloat, 'ringRadius', v => `${v}px`);
+      bindSlider('node-angle-slider', 'node-angle-val', parseFloat, 'nodeAngle', v => `${v}°`);
+      bindSlider('node-gap-slider', 'node-gap-val', parseFloat, 'nodeGap', v => `${v}°`);
+      bindSlider('node-radius-slider', 'node-radius-val', parseFloat, 'nodeRadius', v => `${v}px`);
+      bindSlider('heel-gap-slider', 'heel-gap-val', parseFloat, 'heelGap', v => `${v}°`);
+
+      document.getElementById('corner-star-style').addEventListener('change', (e) => {
+        state.cornerStarStyle = e.target.value;
+        renderMissionPatch();
+      });
+      bindSlider('corner-star-size-slider', 'corner-star-size-val', parseFloat, 'cornerStarSize', v => `${v}px`);
+      bindSlider('corner-inset-slider', 'corner-inset-val', parseFloat, 'cornerInset', v => `${v}px`);
+
+      // Tab 4: Single-Line Stamp Typography (Copied from attached file 3)
+      document.querySelectorAll('[data-orient]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.textOrientation = btn.dataset.orient;
+          document.querySelectorAll('[data-orient]').forEach(b => {
+            b.classList.toggle('active', b.dataset.orient === state.textOrientation);
+          });
+          renderMissionPatch();
+        });
+      });
+
+      document.getElementById('tl-line1-input').addEventListener('input', (e) => {
+        state.tlLine1 = e.target.value;
+        renderMissionPatch();
+      });
+      document.getElementById('br-line1-input').addEventListener('input', (e) => {
+        state.brLine1 = e.target.value;
+        renderMissionPatch();
+      });
+
+      document.getElementById('toggle-bold-stamp').addEventListener('change', (e) => {
+        state.boldStamp = e.target.checked;
+        renderMissionPatch();
+      });
+      bindSlider('stamp-size-slider', 'stamp-size-val', parseFloat, 'stampFontSize', v => `${v}px`);
+      bindSlider('stamp-track-slider', 'stamp-track-val', v => parseFloat(v) / 100, 'stampTracking', v => `${v.toFixed(2)}em`);
+      bindSlider('stamp-gap-slider', 'stamp-gap-val', parseFloat, 'stampGap', v => `${v}px`);
+
+      // Tab 5: Colors & Stroke
+      bindSlider('stroke-weight-slider', 'stroke-weight-val', parseFloat, 'strokeWeight', v => `${v}px`);
+      document.getElementById('toggle-patch-border').addEventListener('change', (e) => {
+        state.showPatchBorder = e.target.checked;
+        renderMissionPatch();
+      });
+
+      document.querySelectorAll('[data-bg]').forEach(sw => {
+        sw.addEventListener('click', () => {
+          document.querySelectorAll('[data-bg]').forEach(s => s.classList.remove('active'));
+          sw.classList.add('active');
+          state.bgColor = sw.dataset.bg;
+          document.getElementById('picker-bg').value = state.bgColor;
+          renderMissionPatch();
+        });
+      });
+
+      document.getElementById('picker-bg').addEventListener('input', (e) => {
+        state.bgColor = e.target.value;
+        renderMissionPatch();
+      });
+      document.getElementById('picker-paw').addEventListener('input', (e) => {
+        state.pawColor = e.target.value;
+        renderMissionPatch();
+      });
+      document.getElementById('picker-ring').addEventListener('input', (e) => {
+        state.ringColor = e.target.value;
+        renderMissionPatch();
+      });
+      document.getElementById('picker-text').addEventListener('input', (e) => {
+        state.textColor = e.target.value;
+        renderMissionPatch();
+      });
+
+      // Stage Toolbar Controls
+      const guidesToggle = document.getElementById('toggle-guides');
+      guidesToggle.addEventListener('change', (e) => {
+        state.showGuides = e.target.checked;
+        renderMissionPatch();
+      });
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+          if (e.key === 'g' || e.key === 'G') {
+            state.showGuides = !state.showGuides;
+            guidesToggle.checked = state.showGuides;
+            renderMissionPatch();
+          }
+        }
+      });
+
+      const miniToggle = document.getElementById('toggle-mini-preview');
+      const miniCard = document.getElementById('mini-scale-card');
+      miniToggle.addEventListener('change', (e) => {
+        miniCard.classList.toggle('hidden', !e.target.checked);
+      });
+
+      // Zoom Buttons
+      const scaler = document.getElementById('patch-scaler');
+      document.querySelectorAll('.zoom-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const s = parseFloat(btn.dataset.scale);
+          scaler.style.transform = `scale(${s})`;
+        });
+      });
+
+      // Randomize & Reset Sketch
+      document.getElementById('btn-random-generation').addEventListener('click', randomizePatch);
+      document.getElementById('btn-reset-sketch').addEventListener('click', resetToOriginalSketch);
+
+      // Export Buttons
+      document.getElementById('btn-export-png').addEventListener('click', exportHighResPNG);
+      document.getElementById('btn-export-svg').addEventListener('click', exportVectorSVG);
+      document.getElementById('btn-export-html').addEventListener('click', exportStandaloneHTML);
+
+      // Initial Render
+      syncInputsFromState();
+      renderMissionPatch();
+    }
+
+    window.addEventListener('DOMContentLoaded', initEvents);
+  </script>
+</body>
+</html>
