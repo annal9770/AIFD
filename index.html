@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anna Lin · A.I. For Designers</title>
+  <title>Anna Lin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
@@ -118,19 +118,29 @@
 
     h2 {
       font-family: Oswald, sans-serif;
-      font-size: 2rem;
-      margin-bottom: 24px;
+      font-size: 2.5rem;
+      margin-bottom: 32px;
+    }
+
+    h3 {
+      font-family: Oswald, sans-serif;
+      font-size: 1.5rem;
+      margin-top: 40px;
+      margin-bottom: 16px;
     }
 
     ul {
       list-style: none;
       display: grid;
-      gap: 12px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
     }
 
     a.work {
       display: flex;
+      align-items: center;
       gap: 20px;
+      height: 100%;
       text-decoration: none;
       color: var(--text);
       border: 2px solid var(--accent);
@@ -159,6 +169,12 @@
       transform-origin: bottom left;
     }
 
+    @media (max-width: 900px) {
+      ul {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
     @media (max-width: 768px) {
       .hero {
         height: 85vh;
@@ -171,6 +187,12 @@
       .hero-title {
         top: 24px;
         width: 90%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      ul {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -209,7 +231,9 @@
   </section>
 
   <main class="content">
-    <h2>Work</h2>
+    <h2>Projects</h2>
+
+    <h3>Style Codex</h3>
     <ul>
       <li>
         <a class="work" href="#">
@@ -224,85 +248,107 @@
         </a>
       </li>
       <li>
-        <a class="work" href="design-a.html">
+        <a class="work" href="handoff.md">
           <span class="num">03</span>
+          <span>Open</span>
+        </a>
+      </li>
+    </ul>
+
+    <h3>Miscellaneous Works</h3>
+    <ul>
+      <li>
+        <a class="work" href="design-a.html">
+          <span class="num">01</span>
           <span>Design a ___</span>
         </a>
       </li>
       <li>
         <a class="work" href="commute_story.html">
-          <span class="num">04</span>
+          <span class="num">02</span>
           <span>Commute Story</span>
         </a>
       </li>
       <li>
         <a class="work" href="#">
-          <span class="num">05</span>
+          <span class="num">03</span>
           <span>Become a Crea(i)tive Director</span>
         </a>
       </li>
       <li>
         <a class="work" href="#">
-          <span class="num">06</span>
+          <span class="num">04</span>
           <span>Experimental AI Interface</span>
         </a>
       </li>
       <li>
-        <a class="work" href="handoff.md">
-          <span class="num">07</span>
-          <span>Open</span>
-        </a>
-      </li>
-      <li>
         <a class="work" href="chair_sequence.html">
-          <span class="num">08</span>
+          <span class="num">05</span>
           <span>Chair Sequence</span>
         </a>
       </li>
       <li>
         <a class="work" href="movie.html">
-          <span class="num">09</span>
+          <span class="num">06</span>
           <span>Movie Concept</span>
         </a>
       </li>
+    </ul>
+
+    <h3>Willi Kunz Style Poster Generator</h3>
+    <ul>
       <li>
         <a class="work" href="poster_generator.html">
-          <span class="num">10</span>
+          <span class="num">01</span>
           <span>Poster Generator</span>
         </a>
       </li>
       <li>
         <a class="work" href="poster_variations.html">
-          <span class="num">11</span>
-          <span>Poster Variations & Style</span>
+          <span class="num">02</span>
+          <span>Variations & Style</span>
         </a>
-      </li>
       </li>
       <li>
         <a class="work" href="live_data_stream.html">
-          <span class="num">12</span>
+          <span class="num">03</span>
           <span>Live Data Air Quality Poster</span>
         </a>
       </li>
-      </li>
       <li>
         <a class="work" href="live_data_stream_type.html">
-          <span class="num">13</span>
+          <span class="num">04</span>
           <span>Live Data Air Quality Variable Type Poster</span>
         </a>
-      </li>  
+      </li>
+    </ul>
+
+    <h3>2027 Baruch SSEP Mission Patch</h3>
+    <ul>
       <li>
-        <a class="work" href="SSEP_1">
-          <span class="num">14</span>
-          <span>SSEP Mission Patch Concept</span>
+        <a class="work" href="SSEP_1.html">
+          <span class="num">01</span>
+          <span>Initial Concept</span>
         </a>
-      </li>   
+      </li>
       <li>
-        <a class="work" href="ssep_generator">
-          <span class="num">15</span>
-          <span>SSEP Mission Patch Generator</span>
+        <a class="work" href="ssep_generator.html">
+          <span class="num">02</span>
+          <span>Patch Generator Prototype </span>
         </a>
-      </li>         
+      </li>
+      <li>
+        <a class="work" href="SSEP_2.html">
+          <span class="num">03</span>
+          <span>Second Concept</span>
+        </a>
+      </li>
+      <li>
+        <a class="work" href="SSEP_2.html">
+          <span class="num">04</span>
+          <span>Patch Generator Prototype 2</span>
+        </a>
+      </li>
     </ul>
   </main>
 
