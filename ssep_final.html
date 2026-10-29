@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baruch SSEP 2027 Mission Patch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #071326;
+      --card-bg: #0c1e38;
+      --text: #f0f4f8;
+      --text-muted: #cbd5e1;
+      --accent: #f5b921;
+      --accent-hover: #ffd043;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Source Sans Pro', sans-serif;
+      margin: 0;
+      position: relative;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    .sparkles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .sparkle {
+      position: absolute;
+      color: var(--accent);
+      opacity: .25;
+      font-size: 18px;
+      animation: twinkle 6s ease-in-out infinite;
+    }
+    .sparkle:nth-child(2n) { animation-duration: 8s; }
+    .sparkle:nth-child(3n) { animation-duration: 5s; }
+    .sparkle:nth-child(4n) { animation-delay: -3s; }
+    .sparkle:nth-child(5n) { animation-delay: -5s; }
+    @keyframes twinkle {
+      0%, 100% { opacity: .15; transform: scale(.7) rotate(0deg); }
+      50% { opacity: .45; transform: scale(1.2) rotate(12deg); }
+    }
+    .wrapper {
+      max-width: 900px;
+      margin: auto;
+      padding: 64px 24px;
+      position: relative;
+      z-index: 1;
+    }
+    h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(40px, 6vw, 72px);
+      text-align: center;
+      margin: 0;
+      line-height: 1.1;
+      letter-spacing: 1px;
+      color: #ffffff;
+    }
+    .sub {
+      text-align: center;
+      font-size: clamp(18px, 3vw, 24px);
+      margin: 12px 0 36px;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* Text Dropdown Section */
+    .docs-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 48px;
+      width: 100%;
+    }
+    .docs-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+    .doc-toggle-btn {
+      background: var(--accent);
+      color: #0b172a;
+      font-family: 'Source Sans Pro', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 26px;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+    .doc-toggle-btn:hover {
+      transform: translateY(-2px);
+      background-color: var(--accent-hover);
+      box-shadow: 0 6px 18px rgba(245, 185, 33, 0.25);
+    }
+    .doc-drawer {
+      width: 100%;
+      box-sizing: border-box;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .4s ease, padding .3s ease;
+      font-family: 'Source Sans Pro', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      background: var(--card-bg);
+      color: var(--text-muted);
+      border-radius: 16px;
+      border: 1px solid transparent;
+    }
+    .doc-drawer.open {
+      max-height: 520px;
+      overflow-y: auto;
+      border-color: rgba(245, 185, 33, 0.4);
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Showcase Single Patch Image */
+    .patch-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 auto;
+    }
+    .patch-card {
+      max-width: 580px;
+      width: 100%;
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 28px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .patch-image {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 20px;
+      cursor: pointer;
+      display: block;
+      transition: transform .3s ease-out, box-shadow .3s ease-out;
+    }
+    .patch-image:hover {
+      transform: scale(1.02);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, .4);
+    }
+    .caption {
+      margin-top: 16px;
+      font-size: 15px;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    /* Lightbox Modal */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 10, 20, .92);
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+    }
+    .lightbox.active {
+      display: flex;
+    }
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    }
+    .close {
+      position: absolute;
+      top: 24px;
+      right: 32px;
+      color: white;
+      font-size: 48px;
+      cursor: pointer;
+      line-height: 1;
+      user-select: none;
+      transition: color .2s;
+    }
+    .close:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="sparkles" aria-hidden="true">
+    <span class="sparkle" style="left:7%;top:12%">✦</span>
+    <span class="sparkle" style="left:18%;top:67%">✧</span>
+    <span class="sparkle" style="left:31%;top:26%">✦</span>
+    <span class="sparkle" style="left:44%;top:82%">✧</span>
+    <span class="sparkle" style="left:58%;top:16%">✦</span>
+    <span class="sparkle" style="left:69%;top:55%">✧</span>
+    <span class="sparkle" style="left:83%;top:32%">✦</span>
+    <span class="sparkle" style="left:92%;top:75%">✧</span>
+    <span class="sparkle" style="left:12%;top:90%">✦</span>
+    <span class="sparkle" style="left:76%;top:91%">✦</span>
+  </div>
+
+  <div class="wrapper">
+    <h1>Mission Patch Showcase</h1>
+    <p class="sub">Baruch SSEP 2027 Mission Patch</p>
+
+    <!-- Top Text Dropdown Section -->
+    <div class="docs-section">
+      <div class="docs-btn-group">
+        <button class="doc-toggle-btn" id="btn-statement" onclick="toggleText('statement')">Artist Statement</button>
+        <button class="doc-toggle-btn" id="btn-disclosure" onclick="toggleText('disclosure')">AI Disclosure</button>
+      </div>
+
+      <div id="drawer-statement" class="doc-drawer">
+        The patch represents Baruch's potential and community through the radiating, interlocking stars. The stars represent the individuality of each student and member of Baruch. With each star interlocking, it represents the community aspect of Baruch and how we work together as a collective to achieve beyond what can be done individually. The radiation and repeating lines represent the potential of Baruch as a whole, branching outwards beyond Baruch. The radiating design alludes to how Baruch would also work with other members beyond Baruch. In this case, Baruch would be working with others in Mission 22 of the Student Spaceflight Experiments Program. In addition, there is an exhaust-like design on the bottom left corner. This imitates the rocket exhaust smoke that propels the rocket. This design reflects Baruch's participation in scientific research and discovery in space by visually showing Baruch "cometing" into space, bringing its community along. Pulling together the entire design is its cosmic design of stars to reflect the nature of this mission in space.
+      </div>
+
+      <div id="drawer-disclosure" class="doc-drawer">
+        AI was used in this project mainly to translate my hand-drawn patch sketch into a clean vector patch. This was later used to generate versions from the sketch. It was also used to brainstorm ideas for how I could create alternate versions and add new elements to the patch.
+      </div>
+    </div>
+
+    <!-- Main Showcase Patch -->
+    <div class="patch-container">
+      <div class="patch-card">
+        <img 
+          id="patch-img"
+          class="patch-image" 
+          src="ssep_final.png" 
+          alt="Baruch SSEP 2027 Mission Patch"
+          onclick="openLightbox()"
+        >
+        <div class="caption">Click image to inspect in full view</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div id="lb" class="lightbox" onclick="closeLightbox(event)">
+    <div class="close" onclick="closeLightbox(event)">×</div>
+    <img id="big" src="ssep_final.png" alt="Baruch SSEP 2027 Mission Patch Full View">
+  </div>
+
+  <script>
+    function toggleText(drawerKey) {
+      const drawer = document.getElementById(`drawer-${drawerKey}`);
+      const otherKey = drawerKey === 'statement' ? 'disclosure' : 'statement';
+      const otherDrawer = document.getElementById(`drawer-${otherKey}`);
+
+      // Close the other drawer if it is open
+      if (otherDrawer && otherDrawer.classList.contains('open')) {
+        otherDrawer.classList.remove('open');
+      }
+
+      // Toggle current drawer
+      drawer.classList.toggle('open');
+    }
+
+    function openLightbox() {
+      document.getElementById('lb').classList.add('active');
+    }
+
+    function closeLightbox(e) {
+      if (e.target.id === 'big') return; // Don't close if clicking the image itself
+      document.getElementById('lb').classList.remove('active');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('lb').classList.remove('active');
+      }
+    });
+  </script>
+</body>
+</html>
