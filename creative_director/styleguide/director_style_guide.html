@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KOKORO WEAR (心・衣) | Brand Presentation & Style System</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Michroma, Space Grotesk, Shippori Mincho -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Shippori+Mincho:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            indigo: {
+              DEFAULT: '#1A2B3C',
+              dark: '#121E2A',
+            },
+            slate: {
+              wash: '#75848F',
+            },
+            tan: {
+              natural: '#9D8870',
+            },
+            kinari: {
+              DEFAULT: '#F4EFE6',
+              light: '#FAF7F2',
+              dark: '#EAE3D5',
+            },
+            tabby: {
+              ochre: '#C85A32',
+            },
+            hanko: {
+              DEFAULT: '#BA3B2E',
+              dark: '#9E2F24',
+            },
+            sumi: '#201F1E'
+          },
+          fontFamily: {
+            display: ['Michroma', 'sans-serif'],
+            body: ['"Space Grotesk"', 'sans-serif'],
+            japanese: ['"Shippori Mincho"', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom vertical writing mode for traditional Japanese scripts */
+    .vertical-rl {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+    }
+    
+    /* Subtle paper texture overlay */
+    .paper-texture {
+      background-color: #F4EFE6;
+      background-image: radial-gradient(rgba(26, 43, 60, 0.04) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+
+    /* Modal transition helper */
+    .modal-backdrop {
+      background: rgba(18, 30, 42, 0.75);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F4EFE6;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #9D8870;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #1A2B3C;
+    }
+  </style>
+</head>
+<body class="bg-kinari text-sumi font-body antialiased selection:bg-tabby-ochre selection:text-white">
+
+  <!-- ======================================================== -->
+  <!-- 01. FULL-VIEWPORT HERO SECTION                          -->
+  <!-- ======================================================== -->
+  <header class="relative w-full h-screen min-h-screen flex items-center justify-center overflow-hidden">
+    <!-- Hero Background Image (Using uploaded headboard.jfif) -->
+    <div class="absolute inset-0 z-0">
+      <img 
+        src="headboard.jfif" 
+        alt="Kokoro Wear Japanese Moodboard Flatlay" 
+        class="w-full h-full object-cover object-center filter saturate-[0.9] contrast-[1.05]"
+        onerror="this.onerror=null; this.src='headboard.jpg';"
+      >
+      <!-- Dual Scrim: Atmospheric Indigo Gradient -->
+      <div class="absolute inset-0 bg-gradient-to-t from-indigo-dark/90 via-indigo/50 to-indigo-dark/70 mix-blend-multiply"></div>
+      <div class="absolute inset-0 bg-black/25"></div>
+    </div>
+
+    <!-- Top Left Corner: Style Guide Trigger Button -->
+    <nav class="absolute top-6 left-6 sm:top-8 sm:left-10 z-30">
+      <button 
+        id="openStyleGuideBtn" 
+        class="group flex items-center space-x-2.5 bg-kinari/95 hover:bg-kinari text-indigo font-body text-xs sm:text-sm font-semibold tracking-wider uppercase px-4 py-2.5 rounded-full backdrop-blur-md border border-white/50 shadow-xl transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+        aria-label="Open Brand Style Guide"
+      >
+        <span class="w-2 h-2 rounded-full bg-hanko animate-pulse"></span>
+        <span class="font-medium">Style Guide</span>
+        <svg class="w-4 h-4 text-indigo/70 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Top Right Corner: Bilingual Capsule Stamp Badge -->
+    <div class="absolute top-6 right-6 sm:top-8 sm:right-10 z-30 flex items-center space-x-3 text-kinari/80 text-xs tracking-widest uppercase">
+      <span class="hidden sm:inline-block font-mono">NYC // 2027 SS</span>
+      <div class="w-8 h-8 rounded border border-hanko/80 bg-hanko/20 flex items-center justify-center text-hanko font-japanese font-bold text-sm shadow-inner">
+        心
+      </div>
+    </div>
+
+    <!-- Center Stage: Hero Typography Headline & Subheading -->
+    <div class="relative z-20 text-center px-4 max-w-5xl mx-auto flex flex-col items-center">
+      <span class="text-tabby-ochre font-japanese text-sm sm:text-base tracking-[0.3em] uppercase mb-3 drop-shadow">
+        猫青海波 ・ カプセルコレクション
+      </span>
+      <h1 class="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.16em] uppercase text-kinari font-bold drop-shadow-2xl mb-4 transition-all">
+        KOKORO WEAR
+      </h1>
+      <p class="font-body text-base sm:text-xl md:text-2xl font-light tracking-[0.25em] text-kinari/90 uppercase max-w-2xl drop-shadow">
+        Kokoro Cat Cafe + Streetwear
+      </p>
+      
+      <!-- Subtle Anchor Indicator -->
+      <a href="#statement" class="mt-12 text-kinari/70 hover:text-kinari flex flex-col items-center text-xs tracking-widest uppercase transition-colors">
+        <span class="mb-2 text-[10px]">Explore Identity</span>
+        <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+
+  <!-- ======================================================== -->
+  <!-- 02. PROJECT STATEMENT SECTION                           -->
+  <!-- ======================================================== -->
+  <section id="statement" class="relative py-24 sm:py-32 px-6 sm:px-10 max-w-5xl mx-auto border-b border-tan-natural/20">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      <!-- Left Subhead / Meta Tagging -->
+      <div class="md:col-span-4 flex flex-col space-y-3">
+        <div class="inline-flex items-center space-x-2 text-hanko font-mono text-xs tracking-widest uppercase font-semibold">
+          <span class="w-2.5 h-2.5 bg-hanko rounded-sm inline-block"></span>
+          <span>Initiative 01</span>
+        </div>
+        <h2 class="font-display text-2xl text-indigo tracking-wider uppercase">
+          Brand Launch Brief
+        </h2>
+        <p class="font-japanese text-sm text-slate-wash leading-relaxed">
+          「心」精神とストリートカルチャーの融合。<br>猫の温もりと職人技術。
+        </p>
+      </div>
+      <!-- Main Project Statement -->
+      <div class="md:col-span-8 flex flex-col space-y-6">
+        <blockquote class="font-body text-2xl sm:text-3xl md:text-4xl text-indigo font-medium leading-snug">
+          “Kokoro Cat Cafe enters the fashion world with its new merch line showcasing clothing and accessories. It explores Japanese fashion, combining streetwear with the playfulness of feline energy.”
+        </blockquote>
+        
+        <div class="pt-4 flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-tan-natural uppercase font-mono tracking-wider">
+          <span>• 26 Clinton St, Lower East Side, Manhattan</span>
+          <span>• Tangram Mall, Flushing, Queens</span>
+          <span>• In Partnership with Anjellicle Cats Rescue NYC</span>
+          <span>• Spring 2027 Drop</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ======================================================== -->
+  <!-- 03. SECTION A: THE TYPE (TYPOGRAPHY SPECIMEN)            -->
+  <!-- ======================================================== -->
+  <section id="typography" class="py-24 sm:py-32 px-6 sm:px-10 max-w-6xl mx-auto border-b border-tan-natural/20">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
+      <div>
+        <span class="text-hanko font-mono text-xs tracking-widest uppercase block mb-2">Section 01 // Typography Suite</span>
+        <h3 class="font-display text-3xl sm:text-4xl text-indigo tracking-wider uppercase">The Type</h3>
+      </div>
+      <p class="font-body text-sm text-slate-wash max-w-md">
+        An architectural balance between Tokyo high-fashion geometry, authentic calligraphic serif depth, and technical specification clarity.
+      </p>
+    </div>
+
+    <!-- Typography Grid Showcase -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      
+      <!-- 01: Michroma (Display Headline) -->
+      <div class="lg:col-span-7 bg-white p-8 sm:p-10 rounded-2xl border border-tan-natural/30 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between border-b border-kinari-dark pb-4 mb-6">
+            <span class="font-mono text-xs text-slate-wash uppercase">01 / Primary Headline</span>
+            <span class="font-mono text-xs bg-kinari px-2.5 py-1 rounded text-indigo font-semibold">Michroma Wide</span>
+          </div>
+          <div class="font-display text-3xl sm:text-5xl text-indigo tracking-[0.14em] uppercase mb-4 break-words">
+            KOKORO WEAR
+          </div>
+          <p class="font-display text-sm sm:text-base text-slate-wash tracking-widest uppercase mb-8">
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>0123456789
+          </p>
+        </div>
+        <p class="text-xs font-mono text-tan-natural pt-4 border-t border-kinari-dark">
+          Role: Billboards, MTA platform headers, collection logotypes. Tracking: +0.12em.
+        </p>
+      </div>
+
+      <!-- 02: Shippori Mincho (Vertical Japanese Script) -->
+      <div class="lg:col-span-5 bg-white p-8 sm:p-10 rounded-2xl border border-tan-natural/30 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between border-b border-kinari-dark pb-4 mb-6">
+          <span class="font-mono text-xs text-slate-wash uppercase">02 / Bilingual Editorial</span>
+          <span class="font-mono text-xs bg-kinari px-2.5 py-1 rounded text-indigo font-semibold">Shippori Mincho</span>
+        </div>
+        
+        <div class="flex items-center justify-around py-4">
+          <div class="vertical-rl font-japanese text-3xl sm:text-4xl text-indigo font-bold tracking-widest">
+            心・衣
+          </div>
+          <div class="vertical-rl font-japanese text-xl sm:text-2xl text-slate-wash tracking-[0.2em]">
+            猫青海波
+          </div>
+          <div class="vertical-rl font-japanese text-base text-hanko tracking-widest">
+            猫はかわいい
+          </div>
+          <!-- Vermilion Seal Block -->
+          <div class="w-12 h-12 rounded border-2 border-hanko bg-hanko/10 flex items-center justify-center text-hanko font-japanese font-bold text-xl shadow-sm">
+            心
+          </div>
+        </div>
+
+        <p class="text-xs font-mono text-tan-natural pt-4 border-t border-kinari-dark mt-6">
+          Role: Vertical garment placket strips, washi adoption story cards, neck-tags.
+        </p>
+      </div>
+
+      <!-- 03: Space Grotesk (Body & Tech Specs) -->
+      <div class="lg:col-span-12 bg-white p-8 sm:p-10 rounded-2xl border border-tan-natural/30 shadow-sm">
+        <div class="flex items-center justify-between border-b border-kinari-dark pb-4 mb-6">
+          <span class="font-mono text-xs text-slate-wash uppercase">03 / Body & Metadata Engine</span>
+          <span class="font-mono text-xs bg-kinari px-2.5 py-1 rounded text-indigo font-semibold">Space Grotesk</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div>
+            <div class="text-xl sm:text-2xl font-body font-medium text-indigo mb-2">
+              Proportional Neo-Grotesque with Ink-Traps
+            </div>
+            <p class="text-sm sm:text-base text-slate-wash leading-relaxed">
+              Every garment is engineered in limited quantities using 100% natural fiber textiles. Stitched by hand in historic Aizome vats, paired with durable hardware, designed for NYC street transit and tranquil indoor tea lounges.
+            </p>
+          </div>
+          <div class="bg-kinari p-6 rounded-xl font-mono text-xs text-indigo space-y-2">
+            <div class="flex justify-between border-b border-tan-natural/20 pb-1">
+              <span>WEIGHT SPEC:</span>
+              <span class="font-bold">450 GSM FRENCH TERRY</span>
+            </div>
+            <div class="flex justify-between border-b border-tan-natural/20 pb-1">
+              <span>PRIMARY YARN:</span>
+              <span class="font-bold">100% RAW COMBED ECRU COTTON</span>
+            </div>
+            <div class="flex justify-between">
+              <span>NYC STORES:</span>
+              <span class="font-bold">LES (CLINTON ST) + QUEENS (TANGRAM)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ======================================================== -->
+  <!-- 04. SECTION B: COLOR PALETTE                            -->
+  <!-- ======================================================== -->
+  <section id="palette" class="py-24 sm:py-32 px-6 sm:px-10 max-w-6xl mx-auto border-b border-tan-natural/20">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
+      <div>
+        <span class="text-hanko font-mono text-xs tracking-widest uppercase block mb-2">Section 02 // Color System</span>
+        <h3 class="font-display text-3xl sm:text-4xl text-indigo tracking-wider uppercase">Color Palette</h3>
+      </div>
+      <p class="font-body text-sm text-slate-wash max-w-md">
+        The combined palette fusing traditional indigo workwear with natural clay, warm cafe tones, and cinnabar seal vermilion. Tap any card to copy the hex code.
+      </p>
+    </div>
+
+    <!-- 6-Color Swatch Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <!-- Swatch 01: Dark Indigo -->
+      <div 
+        class="color-card group bg-white rounded-2xl border border-tan-natural/30 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer"
+        onclick="copyHex('#1A2B3C', this)"
+      >
+        <div class="w-full h-36 rounded-xl bg-[#1A2B3C] shadow-inner mb-4 transition-transform group-hover:scale-[1.02]"></div>
+        <div class="flex items-center justify-between mb-1">
+          <h4 class="font-display text-sm uppercase text-indigo">Dark Indigo (Aizome)</h4>
+          <span class="hex-text font-mono text-xs font-bold text-indigo bg-kinari px-2 py-0.5 rounded">#1A2B3C</span>
+        </div>
+        <p class="text-xs text-slate-wash mb-3">RGB (26, 43, 60)</p>
+        <p class="text-xs text-sumi/80 border-t border-kinari-dark pt-2.5">
+          Heavy canvas carry totes, selvedge denim jackets, outdoor billboard backdrops.
+        </p>
+      </div>
+
+      <!-- Swatch 02: Slate Blue-Grey -->
+      <div 
+        class="color-card group bg-white rounded-2xl border border-tan-natural/30 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer"
+        onclick="copyHex('#75848F', this)"
+      >
+        <div class="w-full h-36 rounded-xl bg-[#75848F] shadow-inner mb-4 transition-transform group-hover:scale-[1.02]"></div>
+        <div class="flex items-center justify-between mb-1">
+          <h4 class="font-display text-sm uppercase text-indigo">Slate Blue-Grey</h4>
+          <span class="hex-text font-mono text-xs font-bold text-indigo bg-kinari px-2 py-0.5 rounded">#75848F</span>
+        </div>
+        <p class="text-xs text-slate-wash mb-3">RGB (117, 132, 143)</p>
+        <p class="text-xs text-sumi/80 border-t border-kinari-dark pt-2.5">
+          Washed vintage tees, tri-fold leather cardholders, stonewashed denim trousers.
+        </p>
+      </div>
+
+      <!-- Swatch 03: Natural Tan -->
+      <div 
+        class="color-card group bg-white rounded-2xl border border-tan-natural/30 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer"
+        onclick="copyHex('#9D8870', this)"
+      >
+        <div class="w-full h-36 rounded-xl bg-[#9D8870] shadow-inner mb-4 transition-transform group-hover:scale-[1.02]"></div>
+        <div class="flex items-center justify-between mb-1">
+          <h4 class="font-display text-sm uppercase text-indigo">Natural Tan (Genmaicha)</h4>
+          <span class="hex-text font-mono text-xs font-bold text-indigo bg-kinari px-2 py-0.5 rounded">#9D8870</span>
+        </div>
+        <p class="text-xs text-slate-wash mb-3">RGB (157, 136, 112)</p>
+        <p class="text-xs text-sumi/80 border-t border-kinari-dark pt-2.5">
+          Roasted brown rice tea neutral tees, raw leather trim, eco packaging boxes.
+        </p>
+      </div>
+
+      <!-- Swatch 04: Kinari Ecru -->
+      <div 
+        class="color-card group bg-white rounded-2xl border border-tan-natural/30 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer"
+        onclick="copyHex('#F4EFE6', this)"
+      >
+        <div class="w-full h-36 rounded-xl bg-[#F4EFE6] border border-tan-natural/40 shadow-inner mb-4 transition-transform group-hover:scale-[1.02]"></div>
+        <div class="flex items-center justify-between mb-1">
+          <h4 class="font-display text-sm uppercase text-indigo">Kinari Ecru (Raw Cotton)</h4>
+          <span class="hex-text font-mono text-xs font-bold text-indigo bg-kinari-dark px-2 py-0.5 rounded">#F4EFE6</span>
+        </div>
+        <p class="text-xs text-slate-wash mb-3">RGB (244, 239, 230)</p>
+        <p class="text-xs text-sumi/80 border-t border-kinari-dark pt-2.5">
+          Unbleached heavy oversized tees, negative space canvas (Ma), hoodie cords.
+        </p>
+      </div>
+
+      <!-- Swatch 05: Tabby Ochre -->
+      <div 
+        class="color-card group bg-white rounded-2xl border border-tan-natural/30 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer"
+        onclick="copyHex('#C85A32', this)"
+      >
+        <div class="w-full h-36 rounded-xl bg-[#C85A32] shadow-inner mb-4 transition-transform group-hover:scale-[1.02]"></div>
+        <div class="flex items-center justify-between mb-1">
+          <h4 class="font-display text-sm uppercase text-indigo">Tabby Ochre</h4>
+          <span class="hex-text font-mono text-xs font-bold text-white bg-tabby-ochre px-2 py-0.5 rounded">#C85A32</span>
+        </div>
+        <p class="text-xs text-slate-wash mb-3">RGB (200, 90, 50)</p>
+        <p class="text-xs text-sumi/80 border-t border-kinari-dark pt-2.5">
+          Ginger cat pocket-peek embroidery, claw-scratch threads, accent flag ribbons.
+        </p>
+      </div>
+
+      <!-- Swatch 06: Hanko Vermilion -->
+      <div 
+        class="color-card group bg-white rounded-2xl border border-tan-natural/30 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer"
+        onclick="copyHex('#BA3B2E', this)"
+      >
+        <div class="w-full h-36 rounded-xl bg-[#BA3B2E] shadow-inner mb-4 transition-transform group-hover:scale-[1.02]"></div>
+        <div class="flex items-center justify-between mb-1">
+          <h4 class="font-display text-sm uppercase text-indigo">Hanko Vermilion</h4>
+          <span class="hex-text font-mono text-xs font-bold text-white bg-hanko px-2 py-0.5 rounded">#BA3B2E</span>
+        </div>
+        <p class="text-xs text-slate-wash mb-3">RGB (186, 59, 46)</p>
+        <p class="text-xs text-sumi/80 border-t border-kinari-dark pt-2.5">
+          Traditional red cinnabar seal stamps (心), woven collar labels, drop alert tags.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Feedback Toast -->
+    <div id="copyToast" class="fixed bottom-6 right-6 z-50 bg-indigo text-kinari text-xs font-mono px-4 py-2.5 rounded-full shadow-2xl opacity-0 pointer-events-none transition-opacity duration-300 flex items-center space-x-2">
+      <svg class="w-4 h-4 text-hanko" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      <span id="copyToastText">Hex Code Copied</span>
+    </div>
+  </section>
+
+
+  <!-- ======================================================== -->
+  <!-- 05. SECTION C: MOODBOARD REFERENCES                     -->
+  <!-- ======================================================== -->
+  <section id="moodboard" class="py-24 sm:py-32 px-6 sm:px-10 max-w-6xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
+      <div>
+        <span class="text-hanko font-mono text-xs tracking-widest uppercase block mb-2">Section 03 // Reference Archive</span>
+        <h3 class="font-display text-3xl sm:text-4xl text-indigo tracking-wider uppercase">Moodboard Assets</h3>
+      </div>
+      <p class="font-body text-sm text-slate-wash max-w-md">
+        The complete 20 curated visual touchpoints organized into the three core production categories. Tap any card for detailed art direction notes.
+      </p>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="flex flex-wrap gap-2 mb-10 border-b border-tan-natural/20 pb-4">
+      <button onclick="filterGallery('all')" class="gallery-tab-btn active bg-indigo text-kinari px-4 py-2 rounded-full text-xs font-medium uppercase tracking-wider transition-colors">All Assets (20)</button>
+      <button onclick="filterGallery('apparel')" class="gallery-tab-btn bg-white hover:bg-kinari text-indigo border border-tan-natural/30 px-4 py-2 rounded-full text-xs font-medium uppercase tracking-wider transition-colors">01. Apparel (9)</button>
+      <button onclick="filterGallery('embroidery')" class="gallery-tab-btn bg-white hover:bg-kinari text-indigo border border-tan-natural/30 px-4 py-2 rounded-full text-xs font-medium uppercase tracking-wider transition-colors">02. Embroidery & Stitch (4)</button>
+      <button onclick="filterGallery('accessories')" class="gallery-tab-btn bg-white hover:bg-kinari text-indigo border border-tan-natural/30 px-4 py-2 rounded-full text-xs font-medium uppercase tracking-wider transition-colors">03. Accessories & Hardware (7)</button>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div id="galleryContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+      <!-- ================= 01. APPAREL (9 ITEMS) ================= -->
+      <!-- Item 1: shirt6.jpg -->
+      <div class="gallery-item apparel group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Muted Coffee Cup Cat Graphic Tee', 'Apparel', 'Garment wash slate-blue tee with four playful cat beverage frames (Americano, Latte, Mocha, Cappuccino). Inspires the relaxed neighborhood cafe vibe.', 'shirt6.jpg', 'shirt6.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="shirt6.jpg" alt="Coffee Cup Graphic Tee" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-indigo/85 backdrop-blur-sm text-kinari text-[10px] font-mono px-2 py-0.5 rounded">APPAREL 01</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Coffee Cup Graphic Tee</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Vintage washed slate blue base with playful beverage block prints.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: shirt6.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 2: shirt7.jpg -->
+      <div class="gallery-item apparel group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Slate Grey Coffee Glass Cat Tee', 'Apparel', 'Minimalist graphic tee focusing on black cats peeking through coffee tumblers. Establishes the slate-blue/grey tone in the core palette.', 'shirt7.jpg', 'shirt7.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="shirt7.jpg" alt="Slate Glass Peeking Tee" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-indigo/85 backdrop-blur-sm text-kinari text-[10px] font-mono px-2 py-0.5 rounded">APPAREL 02</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Slate Glass Peeking Tee</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Slate grey heavy jersey featuring silhouette cats in coffee glasses.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: shirt7.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 3: shirt5.jpg -->
+      <div class="gallery-item apparel group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Split-Panel Cat Pattern Button-Down', 'Apparel', 'Modern Harajuku split shirt layout. One half solid sumi black with vertical Japanese script 「猫はかわいい」, other half all-over cat woodblock pattern.', 'shirt5.jpg', 'shirt5.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="shirt5.jpg" alt="Split Camp Collar Shirt" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-indigo/85 backdrop-blur-sm text-kinari text-[10px] font-mono px-2 py-0.5 rounded">APPAREL 03</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Split Camp Collar Shirt</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Half solid indigo placket with vertical Japanese script, half printed repeat.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: shirt5.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 4: shirt4.jpg -->
+      <div class="gallery-item apparel group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Boro Yellow Plaid Patchwork Shirt', 'Apparel', 'Kapital-inspired craftsmanship. Vintage ochre check shirt with framed canvas cat snapshot patches and contrast red vermilion running stitches.', 'shirt4.jpg', 'shirt4.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="shirt4.jpg" alt="Boro Patchwork Plaid" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-indigo/85 backdrop-blur-sm text-kinari text-[10px] font-mono px-2 py-0.5 rounded">APPAREL 04</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Boro Patchwork Plaid</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Vintage check shirt with vermilion stitched canvas feline patches.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: shirt4.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 5: shirt2.jpg -->
+      <div class="gallery-item apparel group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Tan Cat Peeking Through Blinds Tee', 'Apparel', 'Graphic tee using negative space and blinds horizontal slats to reveal a playful black cat silhouette. Grounding reference for Natural Tan #9D8870.', 'shirt2.jpg', 'shirt2.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="shirt2.jpg" alt="Tan Blinds Peeking Tee" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-indigo/85 backdrop-blur-sm text-kinari text-[10px] font-mono px-2 py-0.5 rounded">APPAREL 05</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Tan Blinds Peeking Tee</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Warm tan cotton tee playing with geometric negative space and slatted blinds.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: shirt2.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 6: shirt1.jpg -->
+      <div class="gallery-item apparel group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Pastel Colourful Cats Line Art Tee', 'Apparel', 'Raw ecru cotton tee featuring an ensemble cluster of doodle cat outlines. Represents the youthful, whimsical shelter community aspect of Kokoro.', 'shirt1.jpg', 'shirt1.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="shirt1.jpg" alt="Colourful Cats Line Tee" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-indigo/85 backdrop-blur-sm text-kinari text-[10px] font-mono px-2 py-0.5 rounded">APPAREL 06</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Colourful Cats Line Tee</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Ecru cotton tee displaying clustered colorful line doodle cats.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: shirt1.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 7: shirt3.jpg -->
+      <div class="gallery-item apparel group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Circular Revolving Ink-Wash Cat Ring', 'Apparel', 'Enso-inspired circular artwork of five cats chasing in sumi ink gradient. Graphic back-print for the heavyweight kimonos and drop-shoulder tees.', 'shirt3.jpg', 'shirt3.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="shirt3.jpg" alt="Circular Sumi Ink Ring" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-indigo/85 backdrop-blur-sm text-kinari text-[10px] font-mono px-2 py-0.5 rounded">APPAREL 07</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Circular Sumi Ink Ring</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Enso-inspired revolving ink gradient circle formed by cats in motion.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: shirt3.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 8: hoodie1.jpg -->
+      <div class="gallery-item apparel group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Split Black Cat Heather Grey Hoodie', 'Apparel', 'Heavyweight boxy heather grey hoodie with a high-contrast black cat silhouette spanning the kangaroo pocket seam with piercing amber eyes.', 'hoodie1.jpg', 'hoodie1.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="hoodie1.jpg" alt="Split Feline Grey Hoodie" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-indigo/85 backdrop-blur-sm text-kinari text-[10px] font-mono px-2 py-0.5 rounded">APPAREL 08</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Split Feline Grey Hoodie</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">450 GSM French terry hoodie with a bold black cat spanning front seams.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: hoodie1.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 9: embroidery5.jpg -->
+      <div class="gallery-item apparel group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Cat Silhouette Cutout Hem Denim Shorts', 'Apparel', 'Stonewashed denim with structural cat silhouettes laser-cut into the bottom hem and reinforced with contrast border stitching.', 'embroidery5.jpg', 'embroidery5.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="embroidery5.jpg" alt="Cutout Hem Indigo Denim" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-indigo/85 backdrop-blur-sm text-kinari text-[10px] font-mono px-2 py-0.5 rounded">APPAREL 09</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Cutout Hem Indigo Denim</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Structural cat silhouette hemline embroidery on washed raw denim.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: embroidery5.jpg</span>
+        </div>
+      </div>
+
+
+      <!-- ================= 02. EMBROIDERY & STITCH (4 ITEMS) ================= -->
+      <!-- Item 10: embroidery1.jpg -->
+      <div class="gallery-item embroidery group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Line-Stitched Butt-Wiggling Cat Doodles', 'Embroidery & Stitch', 'Playful sashimi/sashiko line embroidery showing the iconic back-view cat wiggling butt gesture across assorted linen and cotton swatches.', 'embroidery1.jpg', 'embroidery1.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="embroidery1.jpg" alt="Butt-Wiggle Line Embroidery" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-tabby-ochre backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">STITCH 01</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Butt-Wiggle Line Embroidery</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Minimalist single-thread embroidery capturing feline humor and movement.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: embroidery1.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 11: embroidery4.jpg -->
+      <div class="gallery-item embroidery group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Ginger Tabby Peeking Over Back Pocket', 'Embroidery & Stitch', 'Intricately stitched orange tabby cat with ears, paws, and tail playfully emerging from the rim of a denim rear pocket.', 'embroidery4.jpg', 'embroidery4.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="embroidery4.jpg" alt="Tabby Pocket Peek Stitch" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-tabby-ochre backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">STITCH 02</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Tabby Pocket Peek Stitch</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Dense ochre thread embroidery peeking over the lip of a selvedge pocket.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: embroidery4.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 12: embroidery3.jpg -->
+      <div class="gallery-item embroidery group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Ginger Tabby Claw-Scratching Denim', 'Embroidery & Stitch', 'Full-body tabby embroidered on washed denim actively clinging and leaving claw scratch marks in contrast white thread.', 'embroidery3.jpg', 'embroidery3.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="embroidery3.jpg" alt="Claw-Scratch Tabby Stitch" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-tabby-ochre backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">STITCH 03</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Claw-Scratch Tabby Stitch</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Vertical clawing action embroidery paired with white thread scratch accents.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: embroidery3.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 13: embroidery2.jpg -->
+      <div class="gallery-item embroidery group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Tuxedo Cat Peeking Over Coin Pocket', 'Embroidery & Stitch', 'Subtle black & white tuxedo cat with white paws and whiskers peeking out from a small denim watch/coin pocket.', 'embroidery2.jpg', 'embroidery2.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="embroidery2.jpg" alt="Tuxedo Coin Pocket Peek" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-tabby-ochre backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">STITCH 04</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Tuxedo Coin Pocket Peek</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Micro-scale tuxedo face embroidery tucked into a front coin pocket seam.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: embroidery2.jpg</span>
+        </div>
+      </div>
+
+
+      <!-- ================= 03. ACCESSORIES & HARDWARE (7 ITEMS) ================= -->
+      <!-- Item 14: bag1.jpg -->
+      <div class="gallery-item accessories group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Asymmetrical Geometric Cat Silhouette Tote', 'Accessories', 'Directional hero accessory. Two-tone check canvas and dark leather/indigo denim cut diagonally into geometric cat ears with oversized button eyes.', 'bag1.jpg', 'bag1.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="bag1.jpg" alt="Asymmetric Feline Carry Tote" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-hanko backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">ACCESSORY 01</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Asymmetric Feline Carry Tote</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">High-fashion tote with angular feline corner cuts and ceramic button eyes.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: bag1.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 15: keychain2.jpg -->
+      <div class="gallery-item accessories group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Kinshaku Cat-Eared Drawstring Pouches', 'Accessories', 'Traditional Japanese kinshaku pouches where the drawstring gathers to form two erect cat ears, made from washi cotton and floral boro textiles.', 'keychain2.jpg', 'keychain2.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="keychain2.jpg" alt="Kinshaku Ear Drawstring Pouches" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-hanko backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">ACCESSORY 02</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Kinshaku Ear Drawstring Pouches</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Traditional gathered cloth pouches folding into playful pointed cat ears.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: keychain2.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 16: keychain3.jpg -->
+      <div class="gallery-item accessories group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Pebbled Leather Tri-Fold Cardholders', 'Accessories', 'Minimalist slate-grey pebbled cowhide wallets with color-blocked leather patches representing adoptable cat coats (Mike Calico, Tuxedo, Ginger, Kijitora).', 'keychain3.jpg', 'keychain3.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="keychain3.jpg" alt="Pebbled Leather Cardholders" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-hanko backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">ACCESSORY 03</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Pebbled Leather Cardholders</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Minimalist cardholders matching adoptable feline coat patterns.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: keychain3.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 17: stationary1.jpg -->
+      <div class="gallery-item accessories group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Hanging Black Cat Paw Bookmark', 'Accessories', 'Die-cut black and white cat paw bookmark designed to hang down over book pages and chapter titles. Translates into the Kokoro paper goods collection.', 'stationary1.jpg', 'stationary1.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="stationary1.jpg" alt="Cat Paw Washi Bookmark" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-hanko backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">ACCESSORY 04</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Cat Paw Washi Bookmark</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Die-cut hanging paw page marker designed for reading lounges and journals.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: stationary1.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 18: keychain4.jpg -->
+      <div class="gallery-item accessories group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Acrylic Belt-Loop Cat Carabiner', 'Accessories', 'Matte black acrylic climbing-cat hardware clutching a jade-green fish charm, designed for belt loops and subway keychains.', 'keychain4.jpg', 'keychain4.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="keychain4.jpg" alt="Climbing Cat Carabiner" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-hanko backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">ACCESSORY 05</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Climbing Cat Carabiner</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Belt-loop hardware clip featuring a climbing cat with a fish toy accent.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: keychain4.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 19: keychain1.jpg -->
+      <div class="gallery-item accessories group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Hanging Tuxedo Cat Plush Charms', 'Accessories', 'Trio of suspended tuxedo cats with pink toe beans and expressive yellow eyes, designed for bag zipper pulls and subway pass attachments.', 'keychain1.jpg', 'keychain1.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="keychain1.jpg" alt="Hanging Tuxedo Charms" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-hanko backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">ACCESSORY 06</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Hanging Tuxedo Charms</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Suspended cat zipper charms with pink paw pads and expressive eyes.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: keychain1.jpg</span>
+        </div>
+      </div>
+
+      <!-- Item 20: shirt_pin1.jpg -->
+      <div class="gallery-item accessories group bg-white rounded-2xl overflow-hidden border border-tan-natural/30 shadow-sm hover:shadow-md transition-all flex flex-col cursor-pointer" onclick="openLightbox('Rotary Telephone Collar Chain Pin', 'Accessories', 'Vintage black rotary telephone base and handset linked by a draped gunmetal chain, pinning across shirt collar lapel points.', 'shirt_pin1.jpg', 'shirt_pin1.jpg')">
+        <div class="relative h-64 bg-kinari-dark overflow-hidden flex items-center justify-center p-2">
+          <img src="shirt_pin1.jpg" alt="Telephone Collar Pin Chain" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-lg">
+          <span class="absolute top-3 left-3 bg-hanko backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded">ACCESSORY 07</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h5 class="font-display text-xs text-indigo uppercase font-semibold mb-1">Telephone Collar Pin Chain</h5>
+            <p class="text-xs text-slate-wash line-clamp-2">Enamel rotary phone and receiver linked across shirt collar points.</p>
+          </div>
+          <span class="text-[11px] font-mono text-tan-natural mt-3 pt-2 border-t border-kinari-dark">FILE: shirt_pin1.jpg</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ======================================================== -->
+  <!-- 06. FOOTER / ADOPTION TIE-IN                            -->
+  <!-- ======================================================== -->
+  <footer class="bg-indigo text-kinari py-16 px-6 sm:px-10 border-t border-indigo-dark">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+      <div class="flex items-center space-x-4">
+        <div class="w-10 h-10 rounded border border-hanko bg-hanko/20 flex items-center justify-center text-hanko font-japanese font-bold text-lg">
+          心
+        </div>
+        <div>
+          <h6 class="font-display text-sm tracking-widest uppercase">KOKORO WEAR // NEW YORK</h6>
+          <p class="text-xs text-kinari/70">Proceeds fund feline rescue & shelter adoption in NYC.</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-6 text-xs font-mono text-kinari/80 uppercase">
+        <span>Flushing (Tangram)</span>
+        <span>•</span>
+        <span>Lower East Side (Clinton St)</span>
+        <span>•</span>
+        <span>Spring 2027</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ======================================================== -->
+  <!-- 07. STYLE GUIDE DRAWER / MODAL (SHOWCASING skills.md)    -->
+  <!-- ======================================================== -->
+  <div id="styleGuideModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-end transition-opacity duration-300">
+    <!-- Clickable overlay backdrop -->
+    <div class="absolute inset-0" onclick="closeStyleGuide()"></div>
+
+    <!-- Drawer Panel -->
+    <div class="relative w-full max-w-2xl h-full bg-kinari-light border-l border-tan-natural/40 shadow-2xl overflow-y-auto p-6 sm:p-10 flex flex-col justify-between z-10">
+      
+      <div>
+        <!-- Modal Top Bar -->
+        <div class="flex items-center justify-between pb-6 border-b border-tan-natural/30 mb-8">
+          <div class="flex items-center space-x-3">
+            <span class="w-3 h-3 bg-hanko rounded-sm"></span>
+            <span class="font-display text-sm text-indigo tracking-wider uppercase font-bold">brand-skills.md</span>
+          </div>
+          <button 
+            onclick="closeStyleGuide()" 
+            class="w-8 h-8 rounded-full bg-kinari border border-tan-natural/40 text-indigo flex items-center justify-center hover:bg-hanko hover:text-white transition-colors"
+            aria-label="Close Style Guide"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Markdown Document View -->
+        <article class="prose prose-sm font-body text-sumi space-y-6">
+          
+          <div class="bg-indigo text-kinari p-6 rounded-xl space-y-2">
+            <div class="text-[11px] font-mono text-tabby-ochre uppercase tracking-widest">Brand System & Engine</div>
+            <h3 class="font-display text-lg tracking-wider uppercase text-kinari">KOKORO WEAR (心・衣)</h3>
+            <p class="text-xs text-kinari/80 leading-relaxed">
+              Creative Director Brand Rules, Asset System, and AI Prompting Specifications for Kokoro Cat Cafe NYC Spring 2027 Fashion Launch.
+            </p>
+          </div>
+
+          <!-- Section 1 -->
+          <div>
+            <h4 class="font-display text-xs text-indigo uppercase tracking-wider mb-2 font-bold">01. Brand Essence & Contrast</h4>
+            <p class="text-xs text-slate-wash leading-relaxed">
+              Merges traditional Japanese textile heritage (Wabi-Sabi, Ma, Sashiko, Aizome) with downtown NYC streetwear utility. Clean architectural cuts paired with intimate, hand-stitched feline gestures. Proceeds directly fund shelter rescue.
+            </p>
+          </div>
+
+          <!-- Section 2 -->
+          <div>
+            <h4 class="font-display text-xs text-indigo uppercase tracking-wider mb-2 font-bold">02. The Combined Palette Tokens</h4>
+            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+              <div class="p-2 rounded bg-white border border-tan-natural/20 flex items-center space-x-2">
+                <span class="w-3 h-3 rounded bg-[#1A2B3C]"></span>
+                <span>#1A2B3C Dark Indigo</span>
+              </div>
+              <div class="p-2 rounded bg-white border border-tan-natural/20 flex items-center space-x-2">
+                <span class="w-3 h-3 rounded bg-[#75848F]"></span>
+                <span>#75848F Slate Grey</span>
+              </div>
+              <div class="p-2 rounded bg-white border border-tan-natural/20 flex items-center space-x-2">
+                <span class="w-3 h-3 rounded bg-[#9D8870]"></span>
+                <span>#9D8870 Natural Tan</span>
+              </div>
+              <div class="p-2 rounded bg-white border border-tan-natural/20 flex items-center space-x-2">
+                <span class="w-3 h-3 rounded bg-[#F4EFE6] border border-tan-natural"></span>
+                <span>#F4EFE6 Kinari Ecru</span>
+              </div>
+              <div class="p-2 rounded bg-white border border-tan-natural/20 flex items-center space-x-2">
+                <span class="w-3 h-3 rounded bg-[#C85A32]"></span>
+                <span>#C85A32 Tabby Ochre</span>
+              </div>
+              <div class="p-2 rounded bg-white border border-tan-natural/20 flex items-center space-x-2">
+                <span class="w-3 h-3 rounded bg-[#BA3B2E]"></span>
+                <span>#BA3B2E Hanko Vermilion</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3 -->
+          <div>
+            <h4 class="font-display text-xs text-indigo uppercase tracking-wider mb-2 font-bold">03. Typography Rules</h4>
+            <ul class="text-xs text-slate-wash space-y-1 list-disc list-inside">
+              <li><strong class="text-indigo">Michroma:</strong> Uppercase headlines, tracking +0.12em.</li>
+              <li><strong class="text-indigo">Shippori Mincho:</strong> Vertical Japanese script (心・衣, 猫青海波).</li>
+              <li><strong class="text-indigo">Space Grotesk:</strong> Garment specs, GSM weights, NYC addresses.</li>
+            </ul>
+          </div>
+
+          <!-- Section 4 -->
+          <div>
+            <h4 class="font-display text-xs text-indigo uppercase tracking-wider mb-2 font-bold">04. Prompt Engine Template (Lookbook)</h4>
+            <div class="bg-indigo-dark text-kinari/90 p-3.5 rounded-lg font-mono text-[11px] leading-relaxed select-all">
+              Editorial 35mm fashion photograph for KOKORO WEAR. A stylish model in Lower East Side New York wearing a boxy streetwear camp shirt in dark indigo #1A2B3C and kinari ecru #F4EFE6 with tabby ochre stitching. A calm rescue cat curled nearby. 35mm film grain, raking afternoon sun, shot on Leica M6 --ar 4:5
+            </div>
+          </div>
+
+        </article>
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="pt-6 border-t border-tan-natural/30 mt-8 flex justify-between items-center text-xs font-mono text-slate-wash">
+        <span>STATUS: SYSTEM LOCKED</span>
+        <button onclick="closeStyleGuide()" class="text-hanko font-bold hover:underline">CLOSE DRAWER</button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ======================================================== -->
+  <!-- 08. LIGHTBOX MODAL FOR MOODBOARD ASSETS                 -->
+  <!-- ======================================================== -->
+  <div id="lightboxModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4 transition-opacity duration-300">
+    <div class="absolute inset-0" onclick="closeLightbox()"></div>
+    
+    <div class="relative bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl z-10 border border-tan-natural/40">
+      <div class="relative h-72 bg-kinari-dark">
+        <img id="lightboxImg" src="" alt="" class="w-full h-full object-cover">
+        <button onclick="closeLightbox()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-indigo/80 text-white flex items-center justify-center hover:bg-hanko transition-colors">
+          ✕
+        </button>
+        <span id="lightboxTag" class="absolute bottom-4 left-4 bg-indigo/90 backdrop-blur-sm text-kinari text-xs font-mono px-3 py-1 rounded"></span>
+      </div>
+      <div class="p-6">
+        <h4 id="lightboxTitle" class="font-display text-lg text-indigo uppercase font-bold mb-2"></h4>
+        <p id="lightboxDesc" class="text-sm text-slate-wash leading-relaxed mb-4"></p>
+        <div class="flex items-center justify-between pt-3 border-t border-kinari-dark text-xs font-mono text-tan-natural">
+          <span id="lightboxRef"></span>
+          <span class="text-indigo font-semibold">Kokoro Wear // Archive</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======================================================== -->
+  <!-- 09. JAVASCRIPT LOGIC & INTERACTIONS                      -->
+  <!-- ======================================================== -->
+  <script>
+    // Style Guide Modal open/close
+    const styleGuideModal = document.getElementById('styleGuideModal');
+    const openStyleGuideBtn = document.getElementById('openStyleGuideBtn');
+
+    openStyleGuideBtn.addEventListener('click', () => {
+      styleGuideModal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    });
+
+    function closeStyleGuide() {
+      styleGuideModal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    // Lightbox modal functionality
+    const lightboxModal = document.getElementById('lightboxModal');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxTag = document.getElementById('lightboxTag');
+    const lightboxTitle = document.getElementById('lightboxTitle');
+    const lightboxDesc = document.getElementById('lightboxDesc');
+    const lightboxRef = document.getElementById('lightboxRef');
+
+    function openLightbox(title, category, desc, refFile, imgSrc) {
+      lightboxTitle.textContent = title;
+      lightboxTag.textContent = category.toUpperCase();
+      lightboxDesc.textContent = desc;
+      lightboxRef.textContent = 'IMAGE REF: ' + refFile;
+      lightboxImg.src = imgSrc;
+      lightboxImg.alt = title;
+
+      lightboxModal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeLightbox() {
+      lightboxModal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    // Gallery Category Filter
+    function filterGallery(category) {
+      const items = document.querySelectorAll('.gallery-item');
+      const tabs = document.querySelectorAll('.gallery-tab-btn');
+
+      // Update active tab buttons
+      tabs.forEach(tab => {
+        tab.classList.remove('bg-indigo', 'text-kinari', 'active');
+        tab.classList.add('bg-white', 'text-indigo');
+      });
+      event.target.classList.add('bg-indigo', 'text-kinari', 'active');
+      event.target.classList.remove('bg-white', 'text-indigo');
+
+      // Filter gallery cards
+      items.forEach(item => {
+        if (category === 'all' || item.classList.contains(category)) {
+          item.classList.remove('hidden');
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    }
+
+    // Hex Copy-to-Clipboard with Toast Feedback
+    function copyHex(hexCode, cardElement) {
+      // Fallback safe clipboard execution
+      const tempInput = document.createElement('input');
+      tempInput.value = hexCode;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand('copy');
+      } catch (err) {
+        console.warn('Fallback copy failed', err);
+      }
+      document.body.removeChild(tempInput);
+
+      // Trigger Toast
+      const toast = document.getElementById('copyToast');
+      const toastText = document.getElementById('copyToastText');
+      toastText.textContent = 'Copied ' + hexCode + ' to clipboard';
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2200);
+    }
+
+    // Keyboard navigation (Escape key closes modals)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeStyleGuide();
+        closeLightbox();
+      }
+    });
+  </script>
+
+</body>
+</html>
