@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kokoro Cat Cafe — Dynamic Hero Physics Canvas</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Matter.js 2D Physics Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+  <!-- Google Fonts: Michroma, Space Grotesk, Shippori Mincho -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Shippori+Mincho:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-washi: #F5F2EB;
+      --sumi-ink: #1E1E1E;
+      --terracotta: #C85A3A;
+      --matcha: #7A8B6E;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #121316;
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .font-michroma {
+      font-family: 'Michroma', sans-serif;
+    }
+
+    .font-mincho {
+      font-family: 'Shippori Mincho', serif;
+    }
+
+    .font-space {
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    /* Tactile Paper Noise Overlay */
+    .grain-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* Custom range slider styling */
+    input[type=range] {
+      accent-color: #C85A3A;
+    }
+
+    /* Sleek custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(245, 242, 235, 0.04);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(200, 90, 58, 0.4);
+      border-radius: 2px;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 bg-[#121316] text-[#E0E0E0]">
+
+  <!-- Top App Navigation Bar -->
+  <header class="w-full max-w-[1600px] flex flex-wrap items-center justify-between pb-2.5 px-2 text-xs font-space border-b border-[#25272C] text-stone-400 gap-2">
+    <div class="flex items-center gap-3">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#C85A3A] animate-pulse"></span>
+      <span class="tracking-widest uppercase font-semibold text-stone-200">KOKORO DYNAMIC HERO ENGINE</span>
+      <span class="hidden sm:inline-block px-1.5 py-0.5 border border-stone-700 text-[10px] text-stone-400 rounded">SS27 CAMPAIGN</span>
+    </div>
+
+    <div class="flex items-center gap-4 text-[11px]">
+      <span class="hidden md:inline text-stone-400">STATE: <span id="status-tag" class="text-emerald-400 font-medium">SHELF ANCHORED [READY]</span></span>
+      <button id="toggle-panel-btn" class="px-3 py-1 bg-[#1E2024] hover:bg-[#282B30] text-stone-200 rounded transition border border-stone-700 font-medium">
+        Controls Panel [<span id="panel-state-text">HIDE</span>]
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport Container (16:9 Responsive Framed Hero) -->
+  <main class="relative w-full max-w-[1600px] my-3 aspect-[16/9] shadow-2xl rounded-sm overflow-hidden border border-[#2b2d31] bg-[#F5F2EB]" id="hero-frame">
+    
+    <!-- Matter.js Interactive Canvas -->
+    <canvas id="physics-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+    <!-- Noise Texture Overlay -->
+    <div class="grain-overlay" id="paper-grain"></div>
+
+    <!-- Drag & Drop Visual Indicator overlay -->
+    <div id="drop-indicator" class="absolute inset-0 bg-[#C85A3A]/10 border-2 border-dashed border-[#C85A3A] hidden flex flex-col items-center justify-center pointer-events-none transition-all">
+      <div class="bg-[#F5F2EB] px-6 py-4 rounded-lg shadow-xl text-center border border-[#1E1E1E]">
+        <p class="font-michroma text-lg text-[#1E1E1E]">DROP IMAGE TO SPAWN TEXTURED TILE</p>
+        <p class="font-space text-xs text-[#C85A3A] mt-1">PNG, JPG, WEBP SUPPORTED</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Floating Minimalist Inspector / Settings Panel -->
+  <aside id="inspector-panel" class="fixed right-4 top-16 w-80 max-h-[88vh] overflow-y-auto bg-[#1A1C1F]/95 backdrop-blur-md border border-[#2E3138] rounded-xl p-4 shadow-2xl z-50 text-xs font-space transition-all duration-300">
+    <div class="flex items-center justify-between pb-3 border-b border-[#2C2F36]">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-semibold text-stone-100 font-michroma">KOKORO UI</span>
+        <span class="text-[10px] text-[#C85A3A] tracking-wider font-bold">INSPECTOR</span>
+      </div>
+      <button id="collapse-btn" class="text-stone-400 hover:text-white px-2 py-0.5 rounded text-base">✕</button>
+    </div>
+
+    <!-- Section 0: Brand Logo Preview (Primary Top Button) -->
+    <div class="mt-3.5 pb-3 border-b border-[#2C2F36]">
+      <button id="btn-show-logo" class="w-full py-2.5 px-3 bg-[#1A2B3C] hover:bg-[#22374D] border border-[#2F455C] text-[#E5ECF4] rounded-lg transition-all font-michroma text-xs flex items-center justify-center gap-2.5 shadow-md group">
+        <svg class="w-4 h-4 text-[#7AA2C7] group-hover:scale-110 transition-transform" viewBox="0 0 100 100" fill="currentColor">
+          <path d="M15 85 C15 50 85 50 85 85 Z"/>
+          <polygon points="18,52 30,22 45,46"/>
+          <polygon points="82,52 70,22 55,46"/>
+        </svg>
+        <span>LOGO PREVIEW</span>
+      </button>
+    </div>
+
+    <!-- Section 1: Quick Spawners & Triggers -->
+    <div class="mt-4 space-y-2">
+      <div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Spawners & Triggers</div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btn-drop-wave" class="px-2.5 py-2 bg-[#25272E] hover:bg-[#31343D] border border-stone-700 rounded text-stone-200 transition font-medium text-left">
+          ⚡ Drop Wave
+        </button>
+        <button id="btn-drop-word" class="px-2.5 py-2 bg-[#25272E] hover:bg-[#31343D] border border-stone-700 rounded text-stone-200 transition font-medium text-left">
+          🔤 Drop Letters
+        </button>
+        <button id="btn-drop-kanji" class="px-2.5 py-2 bg-[#25272E] hover:bg-[#31343D] border border-stone-700 rounded text-stone-200 transition font-medium text-left">
+          ㊗ Drop Kanji
+        </button>
+        <button id="btn-drop-cats" class="px-2.5 py-2 bg-[#25272E] hover:bg-[#31343D] border border-stone-700 rounded text-stone-200 transition font-medium text-left">
+          🐾 Drop Cats
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button id="btn-earthquake" class="px-2.5 py-2 bg-[#C85A3A]/20 hover:bg-[#C85A3A]/30 border border-[#C85A3A]/50 text-[#FFA387] rounded transition font-medium text-center">
+          💥 Earthquake
+        </button>
+        <button id="btn-invert-gravity" class="px-2.5 py-2 bg-[#7A8B6E]/20 hover:bg-[#7A8B6E]/30 border border-[#7A8B6E]/50 text-[#BBD4AB] rounded transition font-medium text-center">
+          🌌 Invert Gravity
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <label class="text-stone-300">Continuous Stream</label>
+        <input type="checkbox" id="stream-toggle" class="w-4 h-4 rounded border-stone-700 bg-stone-900 accent-[#C85A3A] cursor-pointer">
+      </div>
+    </div>
+
+    <!-- Section 2: Physics Parameters -->
+    <div class="mt-5 space-y-3 pt-3 border-t border-[#2C2F36]">
+      <div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Physics Dynamics</div>
+      
+      <div>
+        <div class="flex justify-between text-stone-300 text-[11px] mb-1">
+          <span>Gravity Scale</span>
+          <span id="gravity-val" class="font-mono text-stone-400">1.00</span>
+        </div>
+        <input type="range" id="slider-gravity" min="0" max="2.5" step="0.05" value="1.0" class="w-full h-1 bg-stone-700 rounded-lg cursor-pointer">
+      </div>
+
+      <div>
+        <div class="flex justify-between text-stone-300 text-[11px] mb-1">
+          <span>Bounciness (Restitution)</span>
+          <span id="bounce-val" class="font-mono text-stone-400">0.45</span>
+        </div>
+        <input type="range" id="slider-bounce" min="0" max="0.95" step="0.05" value="0.45" class="w-full h-1 bg-stone-700 rounded-lg cursor-pointer">
+      </div>
+
+      <div>
+        <div class="flex justify-between text-stone-300 text-[11px] mb-1">
+          <span>Wave Spawn Density</span>
+          <span id="density-val" class="font-mono text-stone-400">8 items</span>
+        </div>
+        <input type="range" id="slider-density" min="4" max="20" step="1" value="8" class="w-full h-1 bg-stone-700 rounded-lg cursor-pointer">
+      </div>
+    </div>
+
+    <!-- Section 3: Texture & Custom Photo Dropper -->
+    <div class="mt-5 space-y-2 pt-3 border-t border-[#2C2F36]">
+      <div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Custom Image Dropper</div>
+      <p class="text-[11px] text-stone-400 leading-relaxed">
+        Upload or drag-and-drop textile patterns / reference photos onto the canvas to spawn physics photo tiles.
+      </p>
+      <input type="file" id="file-uploader" accept="image/*" class="block w-full text-[11px] text-stone-400 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-[11px] file:font-semibold file:bg-[#C85A3A] file:text-white hover:file:bg-[#A3452B] cursor-pointer">
+    </div>
+
+    <!-- Section 4: Palette & Aesthetics -->
+    <div class="mt-5 space-y-3 pt-3 border-t border-[#2C2F36]">
+      <div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Brand Tones</div>
+      <div class="grid grid-cols-2 gap-2 text-[11px]">
+        <div>
+          <label class="block text-stone-400 text-[10px] mb-1">Raw Linen / Ground</label>
+          <div class="flex items-center gap-2">
+            <input type="color" id="color-ground" value="#F5F2EB" class="w-6 h-6 rounded border-0 cursor-pointer bg-transparent">
+            <span class="text-stone-300 font-mono text-[10px]">#F5F2EB</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-stone-400 text-[10px] mb-1">Sumi Ink</label>
+          <div class="flex items-center gap-2">
+            <input type="color" id="color-ink" value="#1E1E1E" class="w-6 h-6 rounded border-0 cursor-pointer bg-transparent">
+            <span class="text-stone-300 font-mono text-[10px]">#1E1E1E</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-stone-400 text-[10px] mb-1">Persimmon Accent</label>
+          <div class="flex items-center gap-2">
+            <input type="color" id="color-persimmon" value="#C85A3A" class="w-6 h-6 rounded border-0 cursor-pointer bg-transparent">
+            <span class="text-stone-300 font-mono text-[10px]">#C85A3A</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-stone-400 text-[10px] mb-1">Matcha Moss</label>
+          <div class="flex items-center gap-2">
+            <input type="color" id="color-matcha" value="#7A8B6E" class="w-6 h-6 rounded border-0 cursor-pointer bg-transparent">
+            <span class="text-stone-300 font-mono text-[10px]">#7A8B6E</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Stage Management & Export -->
+    <div class="mt-5 pt-3 border-t border-[#2C2F36] space-y-2">
+      <button id="btn-reset-centerpiece" class="w-full py-2 bg-stone-800 hover:bg-stone-700 border border-stone-600 text-stone-200 rounded font-medium transition text-xs">
+        ↺ Rebuild "KOKORO WEAR" Shelf
+      </button>
+
+      <button id="btn-clear" class="w-full py-2 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800 text-rose-300 rounded font-medium transition text-xs">
+        🗑 Clear Dynamic Blocks
+      </button>
+
+      <button id="btn-export-png" class="w-full py-2.5 bg-gradient-to-r from-[#C85A3A] to-[#A3452B] hover:brightness-110 text-white rounded font-medium transition text-xs font-michroma tracking-wider shadow-lg">
+        📸 EXPORT HERO (PNG)
+      </button>
+    </div>
+  </aside>
+
+  <!-- Interactive Instruction Banner at Bottom -->
+  <footer class="w-full max-w-[1600px] flex flex-wrap items-center justify-between pt-2 px-2 text-[11px] font-space text-stone-400">
+    <div class="flex items-center gap-4">
+      <span>🖱 Click & Drag to fling objects</span>
+      <span>•</span>
+      <span>Click <span class="text-[#C85A3A] font-semibold underline">EXPLORE COLLECTION</span> to release gravity</span>
+    </div>
+    <div class="text-right text-stone-400">
+      KOKORO WEAR // SS27 TOKYO-NYC ARCHIVE
+    </div>
+  </footer>
+
+  <!-- Centered Logo Modal Popup -->
+  <div id="logo-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none">
+    <div class="relative bg-[#F5F2EB] border border-[#1E1E1E]/20 shadow-2xl rounded-2xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full flex flex-col items-center transform scale-95 transition-transform duration-200" id="logo-modal-card">
+      
+      <!-- Close 'X' Button -->
+      <button id="btn-close-logo-modal" class="absolute top-3.5 right-3.5 w-8 h-8 flex items-center justify-center rounded-full bg-[#1E1E1E]/10 hover:bg-[#1E1E1E]/20 text-[#1E1E1E] transition-colors text-base font-bold">
+        ✕
+      </button>
+
+      <!-- Subtitle & Brand Tag -->
+      <div class="text-center mb-4">
+        <span class="text-[10px] tracking-[0.25em] font-space uppercase text-[#1A2B3C]/70 font-semibold">BRAND IDENTIFIER</span>
+        <h3 class="font-michroma text-lg text-[#1A2B3C] tracking-wider mt-0.5">KOKORO NEKO-SEIGAIHA</h3>
+      </div>
+
+      <!-- Vector SVG of the Logo -->
+      <div class="w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center relative p-3">
+        <svg viewBox="0 0 400 400" class="w-full h-full drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+          <!-- Deep Aizome Indigo (#1A2B3C) Shapes -->
+          <g fill="#1A2B3C">
+            <!-- Left Upright Ear -->
+            <polygon points="108,180 108,60 178,135" />
+            
+            <!-- Right Upright Ear -->
+            <polygon points="292,180 292,60 222,135" />
+
+            <!-- Outer Head Arch Band -->
+            <path d="M 60,260 A 140,140 0 0,1 340,260 L 310,260 A 110,110 0 0,0 90,260 Z" />
+
+            <!-- Middle Concentric Arch Band -->
+            <path d="M 115,260 A 85,85 0 0,1 285,260 L 255,260 A 55,55 0 0,0 145,260 Z" />
+
+            <!-- Inner Solid Semicircle Core -->
+            <path d="M 170,260 A 30,30 0 0,1 230,260 Z" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Footnote Coordinates -->
+      <div class="mt-3 flex items-center justify-between w-full pt-3 border-t border-[#1E1E1E]/10 text-[10px] font-space text-[#1A2B3C]/70">
+        <span>AIZOME INDIGO #1A2B3C</span>
+        <span>SS27 / NYC</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-stone-900 border border-stone-700 text-stone-200 text-xs font-space rounded-full opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+    Notification
+  </div>
+
+  <script>
+    /* =====================================================================
+       KOKORO CAT CAFE — DYNAMIC GRAVITY HERO ENGINE
+       Matter.js Rigid-body physics + Custom High-DPI Vector Canvas Rendering
+       ===================================================================== */
+
+    // Virtual 16:9 base coordinates
+    const V_WIDTH = 1600;
+    const V_HEIGHT = 900;
+    const FLOOR_Y = 830; // Sumi Datum Baseline
+
+    // Color State
+    const theme = {
+      ground: '#F5F2EB',
+      sumi: '#1E1E1E',
+      persimmon: '#C85A3A',
+      matcha: '#7A8B6E',
+      grid: 'rgba(30, 30, 30, 0.045)',
+      gridSub: 'rgba(30, 30, 30, 0.08)'
+    };
+
+    // Physics Settings State
+    const config = {
+      gravityY: 1.0,
+      gravityInverted: false,
+      restitution: 0.45,
+      spawnDensity: 8,
+      streamActive: false,
+      centerpieceCollapsed: false
+    };
+
+    // DOM References
+    const canvas = document.getElementById('physics-canvas');
+    const ctx = canvas.getContext('2d');
+    const heroFrame = document.getElementById('hero-frame');
+    const toast = document.getElementById('toast');
+    const dropIndicator = document.getElementById('drop-indicator');
+    const statusTag = document.getElementById('status-tag');
+
+    // Matter.js Module Aliases
+    const { Engine, World, Bodies, Body, Composite, Constraint, Mouse, MouseConstraint, Vector, Events } = Matter;
+
+    // Create Engine
+    const engine = Engine.create({ enableSleeping: false });
+    engine.gravity.y = config.gravityY;
+    engine.gravity.scale = 0.001;
+
+    const world = engine.world;
+
+    // Body Registries
+    let bounds = [];
+    let shelfBody = null;
+    let ctaObstacle = null;
+    let centerpieceBlocks = [];
+    let dynamicBodies = [];
+    let customUploadedImages = [];
+    let mouse = null;
+    let mouseConstraint = null;
+
+    // Helper: Toast UI Message
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 2600);
+    }
+
+    // High-DPI Canvas Resizing
+    function resizeCanvas() {
+      const rect = heroFrame.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      
+      if (mouseConstraint) {
+        mouseConstraint.mouse.pixelRatio = dpr;
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       WORLD SETUP: Boundaries & Obstacles
+       --------------------------------------------------------------------- */
+
+    function createBoundaries() {
+      bounds.forEach(b => World.remove(world, b));
+      bounds = [];
+
+      const wallThick = 200;
+      // Floor (under datum baseline)
+      const floor = Bodies.rectangle(V_WIDTH / 2, FLOOR_Y + wallThick / 2, V_WIDTH * 2, wallThick, {
+        isStatic: true,
+        label: 'floor',
+        friction: 0.8,
+        restitution: config.restitution
+      });
+
+      // Left Wall
+      const leftWall = Bodies.rectangle(-wallThick / 2, V_HEIGHT / 2, wallThick, V_HEIGHT * 3, {
+        isStatic: true,
+        label: 'wall-left',
+        friction: 0.1
+      });
+
+      // Right Wall
+      const rightWall = Bodies.rectangle(V_WIDTH + wallThick / 2, V_HEIGHT / 2, wallThick, V_HEIGHT * 3, {
+        isStatic: true,
+        label: 'wall-right',
+        friction: 0.1
+      });
+
+      // Ceiling
+      const ceiling = Bodies.rectangle(V_WIDTH / 2, -wallThick * 2, V_WIDTH * 2, wallThick, {
+        isStatic: true,
+        label: 'ceiling'
+      });
+
+      bounds = [floor, leftWall, rightWall, ceiling];
+      World.add(world, bounds);
+    }
+
+    /* Centerpiece "KOKORO WEAR" and Obstacle CTA */
+    function buildCenterpiece() {
+      centerpieceBlocks.forEach(b => World.remove(world, b));
+      centerpieceBlocks = [];
+      if (shelfBody) World.remove(world, shelfBody);
+      if (ctaObstacle) World.remove(world, ctaObstacle);
+
+      config.centerpieceCollapsed = false;
+      statusTag.textContent = "SHELF ANCHORED [READY]";
+      statusTag.className = "text-emerald-400 font-medium";
+
+      const text = "KOKORO WEAR";
+      const letters = text.split('');
+      const boxSize = 58;
+      const spacing = 4;
+      const totalWidth = letters.length * (boxSize + spacing) - spacing;
+      const centerY = 530; // Position above the CTA button
+
+      // 1. Static Shelf Plank directly supporting the blocks
+      shelfBody = Bodies.rectangle(V_WIDTH / 2, centerY + boxSize / 2 + 5, totalWidth + 40, 10, {
+        isStatic: true,
+        label: 'shelf-bar',
+        renderCustom: { type: 'shelf', width: totalWidth + 40 }
+      });
+      World.add(world, shelfBody);
+
+      // 2. Individual Letter Blocks
+      let currentX = (V_WIDTH - totalWidth) / 2 + boxSize / 2;
+      letters.forEach((char) => {
+        if (char === ' ') {
+          currentX += boxSize * 0.6;
+          return;
+        }
+
+        const block = Bodies.rectangle(currentX, centerY, boxSize, boxSize, {
+          isStatic: true, // Static until CTA clicked
+          restitution: config.restitution,
+          friction: 0.6,
+          label: 'kokoro-letter-box',
+          renderCustom: {
+            type: 'kokoro-letter',
+            char: char,
+            size: boxSize,
+            bgColor: '#FAF8F5',
+            textColor: theme.sumi,
+            strokeColor: theme.sumi
+          }
+        });
+
+        centerpieceBlocks.push(block);
+        World.add(world, block);
+        currentX += boxSize + spacing;
+      });
+
+      // 3. Central Obstacle Pill Button: "EXPLORE COLLECTION / 01"
+      const pillWidth = 260;
+      const pillHeight = 52;
+      const pillY = 745;
+
+      ctaObstacle = Bodies.rectangle(V_WIDTH / 2, pillY, pillWidth, pillHeight, {
+        isStatic: true,
+        chamfer: { radius: 26 },
+        label: 'cta-obstacle',
+        renderCustom: {
+          type: 'cta-pill',
+          width: pillWidth,
+          height: pillHeight,
+          text: 'EXPLORE COLLECTION / 01'
+        }
+      });
+      World.add(world, ctaObstacle);
+    }
+
+    /* Release Centerpiece when "EXPLORE COLLECTION" is clicked */
+    function collapseCenterpiece() {
+      if (config.centerpieceCollapsed) {
+        spawnDropWave(12);
+        return;
+      }
+
+      config.centerpieceCollapsed = true;
+      statusTag.textContent = "SHELF RELEASED [DYNAMIC]";
+      statusTag.className = "text-[#C85A3A] font-medium";
+      showToast("Collection Explored — Gravity Released!");
+
+      // Remove the invisible static shelf plank
+      if (shelfBody) {
+        World.remove(world, shelfBody);
+        shelfBody = null;
+      }
+
+      // Unfreeze Kokoro Wear letter blocks
+      centerpieceBlocks.forEach((block) => {
+        Body.setStatic(block, false);
+        Body.applyForce(block, block.position, {
+          x: (Math.random() - 0.5) * 0.04,
+          y: -0.02 - Math.random() * 0.02
+        });
+        Body.setAngularVelocity(block, (Math.random() - 0.5) * 0.08);
+      });
+
+      // Spurt an immediate wave of falling objects
+      setTimeout(() => {
+        spawnDropWave(10);
+      }, 150);
+    }
+
+    /* ---------------------------------------------------------------------
+       BODY BUILDERS: Kanji, Blunt Waves, Upright Cats, Coins, Badges
+       --------------------------------------------------------------------- */
+
+    function getRandomSpawnPos() {
+      return {
+        x: 180 + Math.random() * (V_WIDTH - 360),
+        y: -40 - Math.random() * 160
+      };
+    }
+
+    // 1. Kanji Tiles (心, 猫, 波)
+    function createKanjiTile(pos, char) {
+      const size = 66 + Math.random() * 14;
+      const isHollow = Math.random() < 0.22;
+      const body = Bodies.rectangle(pos.x, pos.y, size, size, {
+        restitution: config.restitution,
+        friction: 0.5,
+        chamfer: { radius: 8 },
+        label: 'kanji-tile',
+        renderCustom: {
+          type: 'kanji-box',
+          char: char,
+          size: size,
+          isHollow: isHollow,
+          strokeColor: theme.sumi,
+          fillColor: isHollow ? 'transparent' : '#FAF8F5',
+          textColor: theme.sumi
+        }
+      });
+      return body;
+    }
+
+    // 2. Symmetrical Cat Head (Upright perked ears, no outlines on fills, NO white cats)
+    function createCatHeadBody(pos) {
+      const scale = 0.85 + Math.random() * 0.35;
+      const baseWidth = 72 * scale;
+      const baseHeight = 62 * scale;
+      
+      // STRICT PALETTE: Only Terracotta, Matcha Moss, or Sumi Charcoal (No white or linen cats)
+      const allowedColors = [theme.terracotta, theme.matcha, theme.sumi];
+      const fillColor = allowedColors[Math.floor(Math.random() * allowedColors.length)];
+      const isHollow = Math.random() < 0.18;
+
+      const body = Bodies.rectangle(pos.x, pos.y, baseWidth, baseHeight, {
+        restitution: config.restitution,
+        friction: 0.4,
+        chamfer: { radius: baseHeight * 0.45 },
+        label: 'cat-head',
+        renderCustom: {
+          type: 'cat-head',
+          width: baseWidth,
+          height: baseHeight,
+          fillColor: isHollow ? 'transparent' : fillColor,
+          strokeColor: isHollow ? fillColor : 'transparent',
+          isHollow: isHollow,
+          scale: scale
+        }
+      });
+      return body;
+    }
+
+    // 3. Nested Seigaiha Wave Arch (Blunt flat ends, NO bottom line)
+    function createSeigaihaArchBody(pos) {
+      const width = 84 + Math.random() * 24;
+      const height = width * 0.52;
+      const colors = [theme.terracotta, theme.matcha, theme.sumi];
+      const strokeColor = colors[Math.floor(Math.random() * colors.length)];
+
+      const body = Bodies.rectangle(pos.x, pos.y, width, height, {
+        restitution: config.restitution,
+        friction: 0.5,
+        chamfer: { radius: 4 },
+        label: 'seigaiha-arch',
+        renderCustom: {
+          type: 'seigaiha',
+          width: width,
+          height: height,
+          color: strokeColor
+        }
+      });
+      return body;
+    }
+
+    // 4. Pill Badges
+    function createPillBadgeBody(pos, labelText) {
+      const texts = ['SPRING 2027', 'SEIGAIHA 01', '40.7400°N 73.9890°W', 'KOKORO WEAR', 'MA // 01'];
+      const text = labelText || texts[Math.floor(Math.random() * texts.length)];
+      const width = text.length * 8.5 + 32;
+      const height = 30;
+      const isDark = Math.random() > 0.5;
+
+      const body = Bodies.rectangle(pos.x, pos.y, width, height, {
+        restitution: config.restitution,
+        friction: 0.5,
+        chamfer: { radius: height / 2 },
+        label: 'pill-badge',
+        renderCustom: {
+          type: 'pill-badge',
+          width: width,
+          height: height,
+          text: text,
+          fillColor: isDark ? theme.sumi : theme.matcha,
+          textColor: '#F5F2EB'
+        }
+      });
+      return body;
+    }
+
+    // 5. Japanese Mon Coin / Solid Disc (Solid coins have NO outline stroke)
+    function createCoinBody(pos) {
+      const radius = 28 + Math.random() * 16;
+      const isMonCoin = Math.random() > 0.4;
+      const isPersimmon = Math.random() > 0.5;
+      const isHollow = Math.random() < 0.15;
+
+      const body = Bodies.circle(pos.x, pos.y, radius, {
+        restitution: config.restitution,
+        friction: 0.4,
+        label: 'coin-disc',
+        renderCustom: {
+          type: 'coin',
+          radius: radius,
+          isMon: isMonCoin,
+          fillColor: isHollow ? 'transparent' : (isPersimmon ? theme.persimmon : theme.sumi),
+          strokeColor: theme.sumi,
+          isHollow: isHollow
+        }
+      });
+      return body;
+    }
+
+    // 6. Custom Texture Photo Block
+    function createPhotoBlock(pos, imgElement) {
+      const width = 85 + Math.random() * 30;
+      const height = width * (imgElement.naturalHeight / imgElement.naturalWidth || 1);
+      
+      const body = Bodies.rectangle(pos.x, pos.y, width, height, {
+        restitution: config.restitution,
+        friction: 0.6,
+        chamfer: { radius: 6 },
+        label: 'custom-photo',
+        renderCustom: {
+          type: 'photo-block',
+          width: width,
+          height: height,
+          image: imgElement,
+          strokeColor: theme.sumi
+        }
+      });
+      return body;
+    }
+
+    /* ---------------------------------------------------------------------
+       SPAWNING SCRIPTS
+       --------------------------------------------------------------------- */
+
+    function spawnRandomObject() {
+      const pos = getRandomSpawnPos();
+      const rand = Math.random();
+      let body;
+
+      if (customUploadedImages.length > 0 && Math.random() < 0.25) {
+        const img = customUploadedImages[Math.floor(Math.random() * customUploadedImages.length)];
+        body = createPhotoBlock(pos, img);
+      } else if (rand < 0.28) {
+        const kanjis = ['心', '猫', '波'];
+        body = createKanjiTile(pos, kanjis[Math.floor(Math.random() * kanjis.length)]);
+      } else if (rand < 0.52) {
+        body = createCatHeadBody(pos);
+      } else if (rand < 0.72) {
+        body = createSeigaihaArchBody(pos);
+      } else if (rand < 0.88) {
+        body = createPillBadgeBody(pos);
+      } else {
+        body = createCoinBody(pos);
+      }
+
+      Body.setVelocity(body, { x: (Math.random() - 0.5) * 4, y: Math.random() * 2 + 1 });
+      Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.05);
+
+      dynamicBodies.push(body);
+      World.add(world, body);
+    }
+
+    function spawnDropWave(count) {
+      const amount = count || config.spawnDensity;
+      for (let i = 0; i < amount; i++) {
+        setTimeout(() => {
+          spawnRandomObject();
+        }, i * 65);
+      }
+    }
+
+    function spawnWordKokoro() {
+      const letters = ['K', 'O', 'K', 'O', 'R', 'O'];
+      letters.forEach((char, idx) => {
+        setTimeout(() => {
+          const pos = {
+            x: 450 + idx * 120 + (Math.random() - 0.5) * 30,
+            y: -50 - Math.random() * 80
+          };
+          const size = 68;
+          const isHollow = idx % 2 === 1;
+          const body = Bodies.rectangle(pos.x, pos.y, size, size, {
+            restitution: config.restitution,
+            friction: 0.5,
+            chamfer: { radius: 10 },
+            label: 'kokoro-letter-drop',
+            renderCustom: {
+              type: 'kanji-box',
+              char: char,
+              size: size,
+              isHollow: isHollow,
+              strokeColor: theme.sumi,
+              fillColor: isHollow ? 'transparent' : '#FAF8F5',
+              textColor: theme.sumi
+            }
+          });
+          Body.setVelocity(body, { x: (Math.random() - 0.5) * 2, y: 3 });
+          dynamicBodies.push(body);
+          World.add(world, body);
+        }, idx * 110);
+      });
+    }
+
+    function spawnKanjiTrio() {
+      const kanjis = ['心', '猫', '波'];
+      kanjis.forEach((char, idx) => {
+        setTimeout(() => {
+          const pos = {
+            x: 550 + idx * 220 + (Math.random() - 0.5) * 40,
+            y: -60 - Math.random() * 70
+          };
+          const body = createKanjiTile(pos, char);
+          dynamicBodies.push(body);
+          World.add(world, body);
+        }, idx * 140);
+      });
+    }
+
+    function clearDynamicBodies() {
+      dynamicBodies.forEach(b => World.remove(world, b));
+      dynamicBodies = [];
+      showToast("Dynamic Canvas Cleared");
+    }
+
+    /* ---------------------------------------------------------------------
+       INTERACTIVITY SETUP
+       --------------------------------------------------------------------- */
+
+    function setupInteractions() {
+      mouse = Mouse.create(canvas);
+      mouseConstraint = MouseConstraint.create(engine, {
+        mouse: mouse,
+        constraint: {
+          stiffness: 0.22,
+          render: { visible: false }
+        }
+      });
+
+      World.add(world, mouseConstraint);
+
+      // Handle clicking on CTA Button Obstacle
+      Events.on(mouseConstraint, 'mousedown', (event) => {
+        const mousePosition = event.mouse.position;
+        const scaleX = V_WIDTH / canvas.clientWidth;
+        const scaleY = V_HEIGHT / canvas.clientHeight;
+        const virtualX = mousePosition.x * scaleX;
+        const virtualY = mousePosition.y * scaleY;
+
+        if (ctaObstacle) {
+          const minX = ctaObstacle.position.x - 130;
+          const maxX = ctaObstacle.position.x + 130;
+          const minY = ctaObstacle.position.y - 26;
+          const maxY = ctaObstacle.position.y + 26;
+
+          if (virtualX >= minX && virtualX <= maxX && virtualY >= minY && virtualY <= maxY) {
+            collapseCenterpiece();
+          }
+        }
+      });
+
+      // Drag & Drop Image Files from Desktop
+      heroFrame.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropIndicator.classList.remove('hidden');
+      });
+
+      heroFrame.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropIndicator.classList.add('hidden');
+      });
+
+      heroFrame.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropIndicator.classList.add('hidden');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleImageUpload(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    function handleImageUpload(file) {
+      if (!file.type.startsWith('image/')) {
+        showToast("Please drop an image file.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          customUploadedImages.push(img);
+          showToast("Image loaded! Spawning textured block...");
+          const pos = getRandomSpawnPos();
+          const photoBlock = createPhotoBlock(pos, img);
+          dynamicBodies.push(photoBlock);
+          World.add(world, photoBlock);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* ---------------------------------------------------------------------
+       CANVAS RENDERING: Background, Typography, Watermarks & Physics Bodies
+       --------------------------------------------------------------------- */
+
+    function drawStaticBackground() {
+      // 1. Solid Canvas Ground
+      ctx.fillStyle = theme.ground;
+      ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+
+      // 2. Architectural Hairline Grid (50px pitch)
+      ctx.lineWidth = 0.75;
+      ctx.strokeStyle = theme.grid;
+      
+      const gridSize = 50;
+      ctx.beginPath();
+      for (let x = 0; x <= V_WIDTH; x += gridSize) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, V_HEIGHT);
+      }
+      for (let y = 0; y <= V_HEIGHT; y += gridSize) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(V_WIDTH, y);
+      }
+      ctx.stroke();
+
+      // Major grid cross markers every 200px
+      ctx.strokeStyle = theme.gridSub;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 100; x < V_WIDTH; x += 200) {
+        for (let y = 100; y < V_HEIGHT; y += 200) {
+          ctx.moveTo(x - 6, y);
+          ctx.lineTo(x + 6, y);
+          ctx.moveTo(x, y - 6);
+          ctx.lineTo(x, y + 6);
+        }
+      }
+      ctx.stroke();
+
+      // 3. Central Translucent Kanji Watermark: 「心」
+      ctx.save();
+      ctx.font = '700 480px "Shippori Mincho", "Hiragino Mincho Pro", serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(30, 30, 30, 0.05)';
+      ctx.fillText('心', V_WIDTH / 2, V_HEIGHT / 2 - 30);
+      ctx.restore();
+
+      // 4. Exhibition Editorial Metadata Overlays
+      ctx.save();
+      ctx.fillStyle = theme.sumi;
+      ctx.font = '600 11px "Space Grotesk", monospace';
+      ctx.letterSpacing = '1px';
+
+      // Top Left Corner
+      ctx.textAlign = 'left';
+      ctx.fillText('KOKORO CAT CAFE', 44, 52);
+      ctx.fillStyle = 'rgba(30, 30, 30, 0.6)';
+      ctx.fillText('KOKORO WEAR / SS27', 44, 70);
+
+      // Top Right Corner
+      ctx.textAlign = 'right';
+      ctx.fillStyle = theme.sumi;
+      ctx.fillText('40.7400°N   73.9890°W', V_WIDTH - 44, 52);
+      ctx.fillStyle = 'rgba(30, 30, 30, 0.6)';
+      ctx.fillText('NEW YORK CITY', V_WIDTH - 44, 70);
+
+      // Bottom Left Corner
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(30, 30, 30, 0.7)';
+      ctx.fillText('SPRING 2027 CAMPAIGN', 44, 868);
+
+      // Bottom Right Corner
+      ctx.textAlign = 'right';
+      ctx.fillText('SEIGAIHA 01  —  DRAG / THROW', V_WIDTH - 44, 868);
+
+      // Vertical Right Spine ("心 — KOKORO")
+      ctx.textAlign = 'center';
+      ctx.font = '400 18px "Shippori Mincho", serif';
+      ctx.fillStyle = 'rgba(30, 30, 30, 0.65)';
+      
+      const spineX = V_WIDTH - 60;
+      const spineYStart = 320;
+      const spineChars = ['心', '—', 'K', 'O', 'K', 'O', 'R', 'O'];
+      spineChars.forEach((ch, idx) => {
+        ctx.fillText(ch, spineX, spineYStart + idx * 30);
+      });
+      ctx.restore();
+
+      // 5. Architectural Datum Floor Line with Calibration Tick Marks
+      ctx.save();
+      ctx.strokeStyle = theme.sumi;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(30, FLOOR_Y);
+      ctx.lineTo(V_WIDTH - 30, FLOOR_Y);
+      ctx.stroke();
+
+      // Tick marks along the datum floor
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 40; x <= V_WIDTH - 40; x += 20) {
+        const tickHeight = (x % 100 === 0) ? 9 : 4;
+        ctx.moveTo(x, FLOOR_Y);
+        ctx.lineTo(x, FLOOR_Y + tickHeight);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    /* Custom Render Dispatcher for Physics Bodies */
+    function renderCustomBody(body) {
+      const data = body.renderCustom;
+      if (!data) return;
+
+      const { x, y } = body.position;
+      const angle = body.angle;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+
+      switch (data.type) {
+        // 1. Centerpiece static shelf line
+        case 'shelf': {
+          ctx.strokeStyle = 'rgba(30, 30, 30, 0.45)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(-data.width / 2 || -300, 0);
+          ctx.lineTo(data.width / 2 || 300, 0);
+          ctx.stroke();
+          break;
+        }
+
+        // 2. KOKORO WEAR Centerpiece Blocks
+        case 'kokoro-letter': {
+          const s = data.size;
+          ctx.fillStyle = data.bgColor;
+          ctx.beginPath();
+          ctx.roundRect(-s / 2, -s / 2, s, s, 6);
+          ctx.fill();
+
+          ctx.strokeStyle = data.strokeColor;
+          ctx.lineWidth = 2.4;
+          ctx.stroke();
+
+          ctx.fillStyle = data.textColor;
+          ctx.font = '700 32px "Michroma", "Space Grotesk", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(data.char, 0, 2);
+          break;
+        }
+
+        // 3. Central Obstacle CTA Button ("EXPLORE COLLECTION / 01")
+        case 'cta-pill': {
+          const w = data.width;
+          const h = data.height;
+
+          ctx.fillStyle = theme.persimmon;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, h / 2);
+          ctx.fill();
+
+          ctx.strokeStyle = 'rgba(30, 30, 30, 0.4)';
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = '600 12px "Space Grotesk", sans-serif';
+          ctx.letterSpacing = '1.5px';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(data.text, 0, 1);
+          break;
+        }
+
+        // 4. Kanji & Letter Dropped Boxes (心, 猫, 波)
+        case 'kanji-box': {
+          const s = data.size;
+          if (!data.isHollow) {
+            ctx.fillStyle = data.fillColor;
+            ctx.beginPath();
+            ctx.roundRect(-s / 2, -s / 2, s, s, 8);
+            ctx.fill();
+          }
+
+          ctx.strokeStyle = data.strokeColor;
+          ctx.lineWidth = data.isHollow ? 1.8 : 2.0;
+          ctx.beginPath();
+          ctx.roundRect(-s / 2, -s / 2, s, s, 8);
+          ctx.stroke();
+
+          ctx.fillStyle = data.isHollow ? data.strokeColor : data.textColor;
+          ctx.font = data.char.length === 1 && data.char.match(/[\u4e00-\u9faf]/)
+            ? '700 36px "Shippori Mincho", serif'
+            : '700 34px "Michroma", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(data.char, 0, 2);
+          break;
+        }
+
+        // 5. Upright Symmetrical Cat Head (No outlines on fills, NO white cats)
+        case 'cat-head': {
+          const w = data.width;
+          const h = data.height;
+
+          ctx.beginPath();
+          const headR = w * 0.44; // Radius of circular face
+          const cy = h * 0.14;   // Center of the circular head
+
+          // Lower rounded jaw and cheeks (from right ear base to left ear base)
+          const rightEarBaseAngle = -0.35;
+          const leftEarBaseAngle = -Math.PI + 0.35;
+
+          // Full rounded circular jaw and cheeks sweep clockwise
+          ctx.arc(0, cy, headR, rightEarBaseAngle, leftEarBaseAngle, false);
+
+          // Left Ear: steep, high upright ear pointing straight up
+          const leftTipX = -headR * 0.52;
+          const leftTipY = cy - headR * 1.58;
+          ctx.lineTo(leftTipX, leftTipY);
+
+          // Inner left ear down to crown notch
+          const leftCrownX = -headR * 0.22;
+          const leftCrownY = cy - headR * 0.94;
+          ctx.lineTo(leftCrownX, leftCrownY);
+
+          // Top crown dip between the ears
+          ctx.quadraticCurveTo(0, cy - headR * 0.88, -leftCrownX, leftCrownY);
+
+          // Right Ear: up to prominent upright peak
+          const rightTipX = headR * 0.52;
+          const rightTipY = cy - headR * 1.58;
+          ctx.lineTo(rightTipX, rightTipY);
+
+          // Reconnect to right ear base on the circle
+          ctx.closePath();
+
+          if (!data.isHollow) {
+            // Solid filled cat: Fill only, no outline
+            ctx.fillStyle = data.fillColor;
+            ctx.fill();
+
+            // Minimalist facial features
+            ctx.fillStyle = '#FFFFFF';
+            const eyeOffset = headR * 0.36;
+            const eyeY = cy - 1;
+            ctx.beginPath();
+            ctx.arc(-eyeOffset, eyeY, 3.0, 0, Math.PI * 2);
+            ctx.arc(eyeOffset, eyeY, 3.0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Small rounded nose
+            ctx.beginPath();
+            ctx.arc(0, eyeY + 6.0, 1.6, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            // Hollow variant: Hairline outline only
+            ctx.strokeStyle = data.strokeColor;
+            ctx.lineWidth = 2.0;
+            ctx.stroke();
+          }
+          break;
+        }
+
+        // 6. Nested Seigaiha Wave Arches (blunt flat cut-offs, strictly NO baseline stroke)
+        case 'seigaiha': {
+          const w = data.width;
+          const h = data.height;
+          const rOuter = w / 2;
+          const baseY = h * 0.42;
+
+          ctx.lineCap = 'butt'; // Flat, blunt geometric cut-off ends
+          ctx.strokeStyle = data.color;
+
+          // Outer concentric arc
+          ctx.lineWidth = 13;
+          ctx.beginPath();
+          ctx.arc(0, baseY, rOuter * 0.76, Math.PI, 0, false);
+          ctx.stroke();
+
+          // Inner concentric arc
+          ctx.lineWidth = 9;
+          ctx.beginPath();
+          ctx.arc(0, baseY, rOuter * 0.42, Math.PI, 0, false);
+          ctx.stroke();
+
+          // NO bottom stroke drawn across the baseline
+          break;
+        }
+
+        // 7. Pill Badge Tags
+        case 'pill-badge': {
+          const w = data.width;
+          const h = data.height;
+
+          ctx.fillStyle = data.fillColor;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, h / 2);
+          ctx.fill();
+
+          ctx.fillStyle = data.textColor;
+          ctx.font = '600 10.5px "Space Grotesk", monospace';
+          ctx.letterSpacing = '1.2px';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(data.text, 0, 1);
+          break;
+        }
+
+        // 8. Japanese Mon Coin / Circle (Solid filled coins have NO outer stroke)
+        case 'coin': {
+          const r = data.radius;
+          ctx.fillStyle = data.fillColor;
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (data.isHollow) {
+            ctx.strokeStyle = data.strokeColor;
+            ctx.lineWidth = 1.6;
+            ctx.stroke();
+          }
+
+          if (data.isMon) {
+            // Square cut-out
+            const cut = r * 0.4;
+            ctx.fillStyle = theme.ground;
+            ctx.fillRect(-cut / 2, -cut / 2, cut, cut);
+          } else {
+            // Minimal dot marker
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(r * 0.3, -r * 0.25, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+
+        // 9. Custom Dropped Photo Tile
+        case 'photo-block': {
+          const w = data.width;
+          const h = data.height;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
+          ctx.clip();
+
+          if (data.image && data.image.complete) {
+            ctx.drawImage(data.image, -w / 2, -h / 2, w, h);
+          } else {
+            ctx.fillStyle = '#D8C7B0';
+            ctx.fillRect(-w / 2, -h / 2, w, h);
+          }
+          ctx.restore();
+
+          ctx.strokeStyle = data.strokeColor;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 6);
+          ctx.stroke();
+          break;
+        }
+      }
+
+      ctx.restore();
+    }
+
+    /* ---------------------------------------------------------------------
+       ANIMATION LOOP & ENGINE RUNNER
+       --------------------------------------------------------------------- */
+
+    let streamInterval = null;
+
+    function renderLoop() {
+      // 1. Advance Physics Engine
+      Engine.update(engine, 1000 / 60);
+
+      // 2. Set Canvas Transform for Virtual 1600x900 resolution
+      const dpr = window.devicePixelRatio || 1;
+      const scale = canvas.width / (V_WIDTH * dpr);
+
+      ctx.save();
+      ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+
+      // 3. Clear & Render Background Layers
+      drawStaticBackground();
+
+      // 4. Render Centerpiece Static Blocks & Shelf
+      if (shelfBody) renderCustomBody(shelfBody);
+      if (ctaObstacle) renderCustomBody(ctaObstacle);
+      centerpieceBlocks.forEach(renderCustomBody);
+
+      // 5. Render Dynamic Dropped Bodies
+      dynamicBodies.forEach(renderCustomBody);
+
+      // 6. Render active mouse constraint drag link
+      if (mouseConstraint.body) {
+        const bodyPos = mouseConstraint.body.position;
+        const mousePos = mouseConstraint.mouse.position;
+        const scaleX = V_WIDTH / canvas.clientWidth;
+        const scaleY = V_HEIGHT / canvas.clientHeight;
+
+        ctx.strokeStyle = 'rgba(200, 90, 58, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(mousePos.x * scaleX, mousePos.y * scaleY);
+        ctx.lineTo(bodyPos.x, bodyPos.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.restore();
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    /* ---------------------------------------------------------------------
+       INITIALIZATION & EVENT BINDINGS
+       --------------------------------------------------------------------- */
+
+    function init() {
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      createBoundaries();
+      buildCenterpiece();
+      setupInteractions();
+
+      // Drop initial wave of objects onto the stage and on top of KOKORO WEAR
+      setTimeout(() => {
+        spawnDropWave(7);
+      }, 350);
+
+      requestAnimationFrame(renderLoop);
+      bindUIEvents();
+    }
+
+    function bindUIEvents() {
+      const panel = document.getElementById('inspector-panel');
+      const toggleBtn = document.getElementById('toggle-panel-btn');
+      const collapseBtn = document.getElementById('collapse-btn');
+      const panelStateText = document.getElementById('panel-state-text');
+
+      function togglePanel() {
+        panel.classList.toggle('hidden');
+        panelStateText.textContent = panel.classList.contains('hidden') ? 'SHOW' : 'HIDE';
+      }
+
+      toggleBtn.addEventListener('click', togglePanel);
+      collapseBtn.addEventListener('click', togglePanel);
+
+      // Trigger buttons
+      document.getElementById('btn-drop-wave').addEventListener('click', () => spawnDropWave());
+      document.getElementById('btn-drop-word').addEventListener('click', spawnWordKokoro);
+      document.getElementById('btn-drop-kanji').addEventListener('click', spawnKanjiTrio);
+      document.getElementById('btn-drop-cats').addEventListener('click', () => {
+        for (let i = 0; i < 4; i++) {
+          setTimeout(() => {
+            const body = createCatHeadBody(getRandomSpawnPos());
+            dynamicBodies.push(body);
+            World.add(world, body);
+          }, i * 80);
+        }
+      });
+
+      // Earthquake Jolt
+      document.getElementById('btn-earthquake').addEventListener('click', () => {
+        const allBodies = [...dynamicBodies, ...centerpieceBlocks];
+        allBodies.forEach(b => {
+          if (!b.isStatic) {
+            Body.applyForce(b, b.position, {
+              x: (Math.random() - 0.5) * 0.12,
+              y: -0.06 - Math.random() * 0.08
+            });
+            Body.setAngularVelocity(b, (Math.random() - 0.5) * 0.25);
+          }
+        });
+        showToast("Earthquake triggered!");
+      });
+
+      // Invert Gravity
+      const invertBtn = document.getElementById('btn-invert-gravity');
+      invertBtn.addEventListener('click', () => {
+        config.gravityInverted = !config.gravityInverted;
+        engine.gravity.y = config.gravityInverted ? -config.gravityY : config.gravityY;
+        invertBtn.textContent = config.gravityInverted ? '🪐 Normal Gravity' : '🌌 Invert Gravity';
+        showToast(config.gravityInverted ? "Zero-G / Inverted Float" : "Normal Gravity Restored");
+      });
+
+      // Continuous Stream Toggle
+      document.getElementById('stream-toggle').addEventListener('change', (e) => {
+        config.streamActive = e.target.checked;
+        if (config.streamActive) {
+          streamInterval = setInterval(() => {
+            if (dynamicBodies.length < 50) {
+              spawnRandomObject();
+            }
+          }, 450);
+          showToast("Continuous stream ON");
+        } else {
+          clearInterval(streamInterval);
+          streamInterval = null;
+          showToast("Continuous stream OFF");
+        }
+      });
+
+      // Gravity Slider
+      const sliderGravity = document.getElementById('slider-gravity');
+      const gravityVal = document.getElementById('gravity-val');
+      sliderGravity.addEventListener('input', (e) => {
+        config.gravityY = parseFloat(e.target.value);
+        engine.gravity.y = config.gravityInverted ? -config.gravityY : config.gravityY;
+        gravityVal.textContent = config.gravityY.toFixed(2);
+      });
+
+      // Bounce Slider
+      const sliderBounce = document.getElementById('slider-bounce');
+      const bounceVal = document.getElementById('bounce-val');
+      sliderBounce.addEventListener('input', (e) => {
+        config.restitution = parseFloat(e.target.value);
+        bounceVal.textContent = config.restitution.toFixed(2);
+        dynamicBodies.forEach(b => { b.restitution = config.restitution; });
+        centerpieceBlocks.forEach(b => { b.restitution = config.restitution; });
+      });
+
+      // Density Slider
+      const sliderDensity = document.getElementById('slider-density');
+      const densityVal = document.getElementById('density-val');
+      sliderDensity.addEventListener('input', (e) => {
+        config.spawnDensity = parseInt(e.target.value, 10);
+        densityVal.textContent = `${config.spawnDensity} items`;
+      });
+
+      // File Uploader
+      document.getElementById('file-uploader').addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleImageUpload(e.target.files[0]);
+        }
+      });
+
+      // palette Pickers
+      document.getElementById('color-ground').addEventListener('input', (e) => {
+        theme.ground = e.target.value;
+      });
+      document.getElementById('color-ink').addEventListener('input', (e) => {
+        theme.sumi = e.target.value;
+      });
+      document.getElementById('color-persimmon').addEventListener('input', (e) => {
+        theme.persimmon = e.target.value;
+      });
+      document.getElementById('color-matcha').addEventListener('input', (e) => {
+        theme.matcha = e.target.value;
+      });
+
+      // Logo Modal Popup Controls
+      const logoBtn = document.getElementById('btn-show-logo');
+      const logoModal = document.getElementById('logo-modal');
+      const closeLogoModalBtn = document.getElementById('btn-close-logo-modal');
+      const logoModalCard = document.getElementById('logo-modal-card');
+
+      function openLogoModal() {
+        logoModal.classList.remove('hidden');
+        // Trigger smooth transition
+        requestAnimationFrame(() => {
+          logoModal.classList.remove('opacity-0', 'pointer-events-none');
+          logoModalCard.classList.remove('scale-95');
+          logoModalCard.classList.add('scale-100');
+        });
+      }
+
+      function closeLogoModal() {
+        logoModal.classList.add('opacity-0', 'pointer-events-none');
+        logoModalCard.classList.remove('scale-100');
+        logoModalCard.classList.add('scale-95');
+        setTimeout(() => {
+          logoModal.classList.add('hidden');
+        }, 200);
+      }
+
+      logoBtn.addEventListener('click', openLogoModal);
+      closeLogoModalBtn.addEventListener('click', closeLogoModal);
+      logoModal.addEventListener('click', (e) => {
+        if (e.target === logoModal) closeLogoModal();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !logoModal.classList.contains('hidden')) {
+          closeLogoModal();
+        }
+      });
+
+      // Rebuild Centerpiece & Shelf
+      document.getElementById('btn-reset-centerpiece').addEventListener('click', () => {
+        buildCenterpiece();
+        showToast("KOKORO WEAR Shelf Restored");
+      });
+
+      // Clear Dynamic Canvas
+      document.getElementById('btn-clear').addEventListener('click', clearDynamicBodies);
+
+      // Export High-Res Hero Image (PNG)
+      document.getElementById('btn-export-png').addEventListener('click', exportHeroSnapshot);
+    }
+
+    // Export Canvas to 1600x900 PNG Snapshot without UI inspector
+    function exportHeroSnapshot() {
+      const offscreen = document.createElement('canvas');
+      offscreen.width = V_WIDTH;
+      offscreen.height = V_HEIGHT;
+      const offCtx = offscreen.getContext('2d');
+
+      const originalCtx = ctx;
+      window.ctx = offCtx;
+
+      drawStaticBackground();
+      if (shelfBody) renderCustomBody(shelfBody);
+      if (ctaObstacle) renderCustomBody(ctaObstacle);
+      centerpieceBlocks.forEach(renderCustomBody);
+      dynamicBodies.forEach(renderCustomBody);
+
+      window.ctx = originalCtx;
+
+      const link = document.createElement('a');
+      link.download = `kokoro-cat-cafe-hero-${Date.now()}.png`;
+      link.href = offscreen.toDataURL('image/png');
+      link.click();
+
+      showToast("📸 High-Res Hero Exported Successfully!");
+    }
+
+    // Start application on load
+    window.onload = init;
+  </script>
+</body>
+</html>
