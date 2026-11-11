@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KOKORO WEAR // AI Prompt Builder Studio</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Michroma, Space Grotesk, Shippori Mincho -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Shippori+Mincho:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            indigo: {
+              DEFAULT: '#1A2B3C',
+              dark: '#121E2A',
+            },
+            slate: {
+              wash: '#75848F',
+            },
+            tan: {
+              natural: '#9D8870',
+            },
+            kinari: {
+              DEFAULT: '#F4EFE6',
+              light: '#FAF7F2',
+              dark: '#EAE3D5',
+            },
+            tabby: {
+              ochre: '#C85A32',
+            },
+            hanko: {
+              DEFAULT: '#BA3B2E',
+            },
+            sumi: '#1E1E1E'
+          },
+          fontFamily: {
+            display: ['Michroma', 'sans-serif'],
+            body: ['"Space Grotesk"', 'sans-serif'],
+            japanese: ['"Shippori Mincho"', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .vertical-rl {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+    }
+    .grain-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 999;
+    }
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F4EFE6;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #9D8870;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body class="bg-kinari text-sumi font-body min-h-screen relative selection:bg-tabby-ochre selection:text-white">
+  <div class="grain-overlay"></div>
+
+  <!-- Top Navigation Header -->
+  <header class="border-b border-tan-natural/30 bg-kinari-light/85 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5 shadow-sm">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded border border-hanko bg-hanko/10 flex items-center justify-center text-hanko font-japanese font-bold text-base shadow-inner">
+          心
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-display text-sm sm:text-base tracking-widest text-indigo font-bold uppercase">KOKORO WEAR (心・衣)</h1>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo/10 text-indigo font-semibold border border-indigo/20 hidden sm:inline-block">SS27 NYC ARCHIVE</span>
+          </div>
+          <p class="text-[10px] font-mono text-slate-wash uppercase tracking-wider">AI Prompt Builder Engine // Campaign Art Direction</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex items-center gap-2 sm:gap-3 text-xs font-mono">
+        <button id="btn-open-skills" class="px-3.5 py-1.5 rounded-lg border border-hanko/40 bg-hanko/10 hover:bg-hanko text-hanko hover:text-white font-semibold transition shadow-sm flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-hanko inline-block animate-pulse"></span>
+          <span>Brand Skills (.md)</span>
+        </button>
+        <button id="btn-examples" class="px-3.5 py-1.5 rounded-lg border border-tabby-ochre/50 bg-tabby-ochre/10 hover:bg-tabby-ochre text-tabby-ochre hover:text-white font-semibold transition shadow-sm flex items-center gap-1.5">
+          <span>🖼️</span>
+          <span>Example Generations</span>
+        </button>
+        <button id="btn-randomize" class="px-3 py-1.5 rounded-lg border border-tan-natural/40 bg-white hover:bg-kinari text-indigo font-medium transition shadow-sm flex items-center gap-1.5">
+          <span>🎲</span>
+          <span class="hidden sm:inline">Randomize</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid App Layout -->
+  <main class="max-w-7xl mx-auto p-4 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT PANEL: Controls & Selectors (7 cols) -->
+    <div class="lg:col-span-7 space-y-6">
+      
+      <!-- Preset Shortcut Badges -->
+      <section class="bg-white p-5 rounded-2xl border border-tan-natural/30 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono uppercase tracking-wider text-hanko font-bold">Campaign Preset Scenarios</span>
+          <span class="text-[10px] font-mono text-slate-wash">One-click style guides</span>
+        </div>
+        <div class="flex flex-wrap gap-2 text-xs">
+          <button class="preset-pill px-3 py-1.5 rounded-full border border-tan-natural/30 bg-kinari-light hover:bg-tabby-ochre hover:text-white transition font-medium" data-preset="street">
+            🏙️ LES Street Transit
+          </button>
+          <button class="preset-pill px-3 py-1.5 rounded-full border border-tan-natural/30 bg-kinari-light hover:bg-tabby-ochre hover:text-white transition font-medium" data-preset="tatami">
+            🍵 Sunlit Tatami Lounge
+          </button>
+          <button class="preset-pill px-3 py-1.5 rounded-full border border-tan-natural/30 bg-kinari-light hover:bg-tabby-ochre hover:text-white transition font-medium" data-preset="storefront">
+            ⛩️ Cafe Storefront Entry
+          </button>
+          <button class="preset-pill px-3 py-1.5 rounded-full border border-tan-natural/30 bg-kinari-light hover:bg-tabby-ochre hover:text-white transition font-medium" data-preset="macro">
+            🪡 Tactile Macro Flat Lay
+          </button>
+          <button class="preset-pill px-3 py-1.5 rounded-full border border-tan-natural/30 bg-kinari-light hover:bg-tabby-ochre hover:text-white transition font-medium" data-preset="subway">
+            🚇 NYC Subway Poster
+          </button>
+        </div>
+      </section>
+
+      <!-- Main Configurator Card -->
+      <section class="bg-white p-6 sm:p-7 rounded-2xl border border-tan-natural/30 shadow-sm space-y-5">
+        
+        <!-- Field 1: Media Placement & Aspect Ratio -->
+        <div>
+          <label class="block text-xs font-mono uppercase tracking-wider text-indigo font-bold mb-1.5">
+            1. Placement & Aspect Ratio (Size Dropdown)
+          </label>
+          <select id="select-format" class="w-full text-xs sm:text-sm bg-kinari-light border border-tan-natural/40 rounded-xl px-3.5 py-2.5 text-sumi focus:outline-none focus:border-indigo font-mono">
+            <option value="subway-2sheet" data-ar="3:4" data-dim="3000x4000 px (30x40 in MTA 2-Sheet Poster)" selected>NYC Subway 2-Sheet Poster (3:4 portrait | --ar 3:4)</option>
+            <option value="billboard" data-ar="16:9" data-dim="3840x2160 px (14x48 ft Urban Digital Billboard)">Urban Billboard / Cinematic Landscape (16:9 landscape | --ar 16:9)</option>
+            <option value="subway-banner" data-ar="2:1" data-dim="4000x2000 px (MTA Track & Platform Wall Banner)">NYC Subway Station Banner (2:1 wide banner | --ar 2:1)</option>
+            <option value="mag-full" data-ar="4:5" data-dim="2400x3000 px (8.5x11 in Full-Page Magazine Ad)">Magazine Full-Page Print Ad (4:5 portrait | --ar 4:5)</option>
+            <option value="mag-spread" data-ar="3:2" data-dim="3600x2400 px (17x11 in Double-Page Print Spread)">Magazine Double-Page Spread (3:2 landscape | --ar 3:2)</option>
+            <option value="ig-square" data-ar="1:1" data-dim="2048x2048 px (Instagram Feed Square Post)">Instagram Feed Square Post (1:1 square | --ar 1:1)</option>
+            <option value="ig-reel" data-ar="9:16" data-dim="1080x1920 px (Instagram Story / Reel / TikTok)">Instagram Reel & Story (9:16 vertical | --ar 9:16)</option>
+            <option value="lookbook-tile" data-ar="2:3" data-dim="2000x3000 px (E-Commerce Lookbook Tile)">E-Commerce Lookbook Catalog Tile (2:3 portrait | --ar 2:3)</option>
+          </select>
+          <div class="mt-1.5 flex justify-between text-[11px] font-mono text-slate-wash">
+            <span>Ratio Flag: <strong id="tag-ar-display" class="text-indigo">--ar 3:4</strong></span>
+            <span>Target Spec: <span id="tag-dim-display" class="text-indigo">3000x4000 px (30x40 in MTA 2-Sheet Poster)</span></span>
+          </div>
+        </div>
+
+        <!-- Field 2: Image Context / Scene Type -->
+        <div>
+          <label class="block text-xs font-mono uppercase tracking-wider text-indigo font-bold mb-1.5">
+            2. Scene Context & Setting
+          </label>
+          <select id="select-type" class="w-full text-xs sm:text-sm bg-kinari-light border border-tan-natural/40 rounded-xl px-3.5 py-2.5 text-sumi focus:outline-none focus:border-indigo">
+            <option value="lifestyle-street" selected>Lower East Side Street Transit (Clinton St, brownstones, fire escapes)</option>
+            <option value="cozy-lounge">Cozy Sunlit Tatami Lounge (Hardwood floors, tatami corner, unglazed teaware)</option>
+            <option value="storefront">Architectural Storefront Encounter (Kokoro Cafe entry, cedar perches, glass)</option>
+            <option value="tactile-product">Tactile Macro Flat Lay (Deckled washi paper, boro denim swatches)</option>
+          </select>
+        </div>
+
+        <!-- Field 3: Camera Angle & Framing -->
+        <div>
+          <label class="block text-xs font-mono uppercase tracking-wider text-indigo font-bold mb-1.5">
+            3. Camera Angle & Composition
+          </label>
+          <select id="select-angle" class="w-full text-xs sm:text-sm bg-kinari-light border border-tan-natural/40 rounded-xl px-3.5 py-2.5 text-sumi focus:outline-none focus:border-indigo">
+            <option value="eye-candid" selected>Candid Eye-Level (Unposed mid-shot with natural documentary depth)</option>
+            <option value="low-street">Low-Angle Sidewalk Profile (Grounding pavement, hem cutouts, mid-stride)</option>
+            <option value="wide-env">Wide Architectural Framing (Cinematic environment with negative space Ma)</option>
+            <option value="overhead-flatlay">High-Angle 90° Overhead Flat Lay (Clean geometric layout on washi paper)</option>
+            <option value="macro-crop">Close-Up Macro Stitch Crop (Extreme textile weave and embroidery relief)</option>
+          </select>
+        </div>
+
+        <!-- Field 4: Dynamic Lighting & Shadowplay -->
+        <div>
+          <label class="block text-xs font-mono uppercase tracking-wider text-indigo font-bold mb-1.5">
+            4. Dynamic Lighting & High-Contrast Shadowplay
+          </label>
+          <select id="select-lighting" class="w-full text-xs sm:text-sm bg-kinari-light border border-tan-natural/40 rounded-xl px-3.5 py-2.5 text-sumi focus:outline-none focus:border-indigo">
+            <option value="slatted-blinds" selected>Sliced Venetian & Slatted Blind Shadows (Diagonal zebra stripes on clothes & floor)</option>
+            <option value="fire-escape">Tenement Fire Escape Grid Shadows (Hard outdoor NYC sun casting iron patterns)</option>
+            <option value="raking-golden">Raking Low Golden-Hour Sunbeams (Tactile weave relief, long slanted shadows)</option>
+            <option value="sun-shafts">Volumetric Sun Shafts with Floating Dust Particles (Atmospheric indoor depth)</option>
+            <option value="tungsten-daylight">Cool Indirect Daylight with Warm 2400K Tungsten Lamp Spill (Split-tone warmth)</option>
+            <option value="overcast-haze">Overcast Diffused Street Haze with Reflective Pavement (Gritty balanced contrast)</option>
+          </select>
+        </div>
+
+        <!-- Two Column: Wardrobe & Human Subject Action -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Garment Silhouette -->
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-indigo font-bold mb-1.5">
+              5. Garment Silhouette
+            </label>
+            <select id="select-garment" class="w-full text-xs bg-kinari-light border border-tan-natural/40 rounded-xl px-3 py-2 text-sumi focus:outline-none focus:border-indigo">
+              <option value="boxy-hoodie" selected>450 GSM French Terry Hoodie with Peeking Cat Embroidery & Sleeve Cutouts</option>
+              <option value="split-shirt">Split-Panel Camp Collar Shirt (Kanji placket + micro print)</option>
+              <option value="cat-hem-denim">Selvedge Denim with Laser-Cut Cat Hemline Cutouts</option>
+              <option value="boro-plaid">Kap-Style Boro Patchwork Flannel with Cat Snapshot Patches</option>
+              <option value="chore-robe">Aizome Indigo Chore Kimono Robe (Enso Sumi Cat backprint)</option>
+              <option value="boxy-tee">Heavyweight 280 GSM Boxy Tee with Blinds Negative Space Cat</option>
+            </select>
+          </div>
+
+          <!-- Human Subject Candid Action -->
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-indigo font-bold mb-1.5">
+              6. Subject Action & Pose
+            </label>
+            <select id="select-action" class="w-full text-xs bg-kinari-light border border-tan-natural/40 rounded-xl px-3 py-2 text-sumi focus:outline-none focus:border-indigo">
+              <option value="laugh-turn" selected>Young creative laughing mid-turn, adjusting hoodie cuff</option>
+              <option value="mid-stride">Model mid-stride crossing Clinton St, wind catching robe hem</option>
+              <option value="reach-cup">Model reaching down for ceramic teacup on low wooden table</option>
+              <option value="pause-door">Model pausing at cafe glass entrance looking inside</option>
+              <option value="hands-pockets">Casual hands-in-pockets relaxed leaning pose against brownstone</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Two Column: Hardware & Shelter Cat -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Accessory / Hardware -->
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-indigo font-bold mb-1.5">
+              7. Accessory & Hardware
+            </label>
+            <select id="select-accessory" class="w-full text-xs bg-kinari-light border border-tan-natural/40 rounded-xl px-3 py-2 text-sumi focus:outline-none focus:border-indigo">
+              <option value="tote" selected>Asymmetrical Feline Canvas & Leather Tote Bag</option>
+              <option value="carabiner">Matte Black Acrylic Climbing Cat Carabiner on Belt Loop</option>
+              <option value="pouch">Traditional Kinshaku Cat-Eared Drawstring Pouch</option>
+              <option value="cardholder">Pebbled Leather Adoptable Cat Coat Cardholder</option>
+              <option value="bookmark">Die-Cut Washi Cat Paw Bookmark in Open Art Book</option>
+              <option value="collar-pin">Vintage Rotary Telephone Collar Pin Chain</option>
+              <option value="none">None (Focus on Garment Line)</option>
+            </select>
+          </div>
+
+          <!-- Adoptable Shelter Cat -->
+          <div>
+            <label class="block text-xs font-mono uppercase tracking-wider text-indigo font-bold mb-1.5">
+              8. Adoptable Shelter Cat Companion
+            </label>
+            <select id="select-cat" class="w-full text-xs bg-kinari-light border border-tan-natural/40 rounded-xl px-3 py-2 text-sumi focus:outline-none focus:border-indigo">
+              <option value="orange-tabby" selected>Ginger Orange Tabby Cat (Stretching / walking)</option>
+              <option value="tuxedo">Black-and-White Tuxedo Cat (Resting on daybed)</option>
+              <option value="black-cat">Sleek Solid Black Cat (Sitting near threshold)</option>
+              <option value="calico">Calico / Mike Cat (Inspecting floorboards)</option>
+              <option value="flatlay-paws">Cat paws playfully entering the flat lay frame</option>
+              <option value="none">No Live Cat (Human Subject / Product Only)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Engine Parameter Toggles -->
+        <div class="pt-2 border-t border-tan-natural/20 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-slate-wash">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="check-color-tokens" checked class="accent-tabby-ochre rounded">
+            <span>Inject Hex Tokens (#1A2B3C, #F4EFE6, #C85A32, #BA3B2E)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="check-film-optics" checked class="accent-tabby-ochre rounded">
+            <span>Include Film Optics (Leica M6 35mm / Kodak Portra 800)</span>
+          </label>
+        </div>
+
+      </section>
+
+      <!-- Active Color Tokens Palette Bar -->
+      <section class="bg-white p-4 rounded-xl border border-tan-natural/30 flex items-center justify-between gap-2 overflow-x-auto shadow-sm">
+        <div class="flex items-center gap-2 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#1A2B3C]"></span>
+          <span class="text-indigo font-medium">Indigo #1A2B3C</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#75848F]"></span>
+          <span class="text-slate-wash font-medium">Slate #75848F</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#9D8870]"></span>
+          <span class="text-tan-natural font-medium">Tan #9D8870</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#F4EFE6] border border-tan-natural/40"></span>
+          <span class="text-sumi font-medium">Ecru #F4EFE6</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#C85A32]"></span>
+          <span class="text-tabby-ochre font-medium">Tabby #C85A32</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#BA3B2E]"></span>
+          <span class="text-hanko font-medium">Hanko #BA3B2E</span>
+        </div>
+      </section>
+
+    </div>
+
+
+    <!-- RIGHT PANEL: Live Generated Prompts (5 cols) -->
+    <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+      
+      <!-- Primary Prompt Card -->
+      <div class="bg-indigo text-kinari p-6 sm:p-7 rounded-2xl shadow-xl border border-indigo-dark space-y-4">
+        
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-tabby-ochre animate-pulse"></span>
+            <span class="font-display text-xs tracking-wider uppercase text-kinari">Live Formatted Prompt</span>
+          </div>
+          <span id="prompt-target-badge" class="text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded text-tan-natural uppercase">
+            3:4 // NYC SUBWAY
+          </span>
+        </div>
+
+        <!-- Prompt Text Area Container -->
+        <div class="relative">
+          <textarea id="output-prompt" rows="9" readonly class="w-full bg-[#121E2A] text-kinari-light p-4 rounded-xl font-mono text-xs leading-relaxed border border-white/10 focus:outline-none select-all resize-none shadow-inner"></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-3 pt-1">
+          <button id="btn-copy" class="flex-1 py-3 px-4 rounded-xl bg-tabby-ochre hover:bg-[#A84524] text-white font-mono text-xs font-bold uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2 active:scale-[0.98]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span>Copy Full Prompt</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Calibrated Anti-Stiffness Negative Prompt Card -->
+      <div class="bg-white p-5 rounded-2xl border border-tan-natural/30 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b border-tan-natural/20 pb-2">
+          <span class="text-xs font-mono uppercase tracking-wider text-hanko font-bold">Anti-Stiffness Negative Constraints</span>
+          <button id="btn-copy-negative" class="text-[11px] font-mono text-indigo hover:text-hanko font-medium underline">
+            Copy Negative
+          </button>
+        </div>
+        <div id="output-negative" class="text-xs font-mono text-slate-wash leading-relaxed bg-kinari-light p-3 rounded-lg border border-tan-natural/20 select-all">
+          stiff pose, mannequin stare, direct deadpan eye contact, flat studio lighting, seamless cyclorama background, white box studio, glossy commercial catalog, oversaturated neon, plastic skin, anime style, CGI render, cartoon, digital illustration, human wearing cat ears, cat wearing clothes, distorted feline anatomy, blurry textures
+        </div>
+      </div>
+
+      <!-- Execution Tips Callout -->
+      <div class="bg-kinari-light p-5 rounded-2xl border border-tan-natural/30 space-y-2 text-xs">
+        <h4 class="font-display text-[11px] text-indigo uppercase font-bold tracking-wider">Midjourney & Flux Production Protocol</h4>
+        <p class="text-slate-wash leading-relaxed">
+          The output incorporates dynamic chiaroscuro shadows and unposed natural movement to prevent artificial stiffness. Target aspect ratios (<span class="font-mono text-indigo">--ar</span>) are pre-calibrated for physical and digital campaign placements.
+        </p>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-indigo text-kinari text-xs font-mono px-5 py-2.5 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2 border border-white/20">
+    <span class="w-2 h-2 rounded-full bg-tabby-ochre"></span>
+    <span id="toast-text">Prompt copied to clipboard!</span>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 1: BRAND SKILLS (.MD) VIEWER DRAWER                -->
+  <!-- ======================================================== -->
+  <div id="skills-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-end transition-opacity duration-300">
+    <!-- Click backdrop to close -->
+    <div class="absolute inset-0" id="skills-backdrop"></div>
+
+    <!-- Drawer Panel -->
+    <div class="relative w-full max-w-2xl h-full bg-kinari-light border-l border-tan-natural/40 shadow-2xl overflow-y-auto p-6 sm:p-10 flex flex-col justify-between z-10">
+      
+      <div class="space-y-6">
+        <!-- Top Bar -->
+        <div class="flex items-center justify-between pb-4 border-b border-tan-natural/30">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 bg-hanko rounded-sm inline-block"></span>
+            <span class="font-display text-sm text-indigo uppercase font-bold tracking-wider">brand-skills.md</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-tabby-ochre/15 text-tabby-ochre font-semibold">SS27 SPEC</span>
+          </div>
+          <button id="btn-close-skills" class="w-8 h-8 rounded-full bg-kinari border border-tan-natural/40 text-indigo flex items-center justify-center hover:bg-hanko hover:text-white transition font-mono text-xs">
+            ✕
+          </button>
+        </div>
+
+        <!-- Rendered Markdown Sections -->
+        <article class="space-y-6 text-xs text-sumi leading-relaxed">
+          
+          <div class="bg-indigo text-kinari p-5 rounded-xl space-y-2">
+            <div class="text-[10px] font-mono text-tabby-ochre uppercase tracking-widest font-semibold">Campaign Codex</div>
+            <h3 class="font-display text-base tracking-wider uppercase text-kinari font-bold">KOKORO WEAR (心・衣)</h3>
+            <p class="text-xs text-kinari/80 leading-relaxed">
+              Brand Art Direction, Color Tokens, Dynamic Lighting Guardrails & AI Prompt Formula for Kokoro Cat Cafe NYC in partnership with Anjellicle Cats Rescue NYC.
+            </p>
+          </div>
+
+          <!-- Section 1 -->
+          <div class="bg-white p-5 rounded-xl border border-tan-natural/30 space-y-2">
+            <h4 class="font-display text-xs text-indigo uppercase tracking-wider font-bold">1. Brand Essence & Visual Philosophy</h4>
+            <p class="text-slate-wash">
+              Merges Japanese textile philosophy with the utility and pace of downtown NYC. Unposed moments of feline companionship paired with streetwear utility.
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-slate-wash pt-1">
+              <li><strong class="text-indigo">間 (Ma):</strong> Deliberate negative space and breathing room in garment cuts and framing.</li>
+              <li><strong class="text-indigo">侘寂 (Wabi-Sabi):</strong> Tactile slub yarn, raw unbleached fibers, washed denim, natural creasing.</li>
+              <li><strong class="text-indigo">青海波 (Seigaiha):</strong> Concentric wave arches translated into feline ear and pocket geometry.</li>
+              <li><strong class="text-indigo">襤褸 (Boro):</strong> Visible mending, contrast sashiko stitches, framed canvas photo-patches.</li>
+            </ul>
+          </div>
+
+          <!-- Section 2 -->
+          <div class="bg-white p-5 rounded-xl border border-tan-natural/30 space-y-2">
+            <h4 class="font-display text-xs text-indigo uppercase tracking-wider font-bold">2. The 6 Core Color Tokens</h4>
+            <div class="grid grid-cols-2 gap-2 font-mono text-[11px] pt-1">
+              <div class="p-2 rounded bg-kinari-light border border-tan-natural/20 flex items-center gap-2">
+                <span class="w-3 h-3 rounded bg-[#1A2B3C] shrink-0"></span>
+                <span>#1A2B3C Indigo</span>
+              </div>
+              <div class="p-2 rounded bg-kinari-light border border-tan-natural/20 flex items-center gap-2">
+                <span class="w-3 h-3 rounded bg-[#75848F] shrink-0"></span>
+                <span>#75848F Slate Grey</span>
+              </div>
+              <div class="p-2 rounded bg-kinari-light border border-tan-natural/20 flex items-center gap-2">
+                <span class="w-3 h-3 rounded bg-[#9D8870] shrink-0"></span>
+                <span>#9D8870 Natural Tan</span>
+              </div>
+              <div class="p-2 rounded bg-kinari-light border border-tan-natural/20 flex items-center gap-2">
+                <span class="w-3 h-3 rounded bg-[#F4EFE6] border border-tan-natural/40 shrink-0"></span>
+                <span>#F4EFE6 Kinari Ecru</span>
+              </div>
+              <div class="p-2 rounded bg-kinari-light border border-tan-natural/20 flex items-center gap-2">
+                <span class="w-3 h-3 rounded bg-[#C85A32] shrink-0"></span>
+                <span>#C85A32 Tabby Ochre</span>
+              </div>
+              <div class="p-2 rounded bg-kinari-light border border-tan-natural/20 flex items-center gap-2">
+                <span class="w-3 h-3 rounded bg-[#BA3B2E] shrink-0"></span>
+                <span>#BA3B2E Hanko Red</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3 -->
+          <div class="bg-white p-5 rounded-xl border border-tan-natural/30 space-y-2">
+            <h4 class="font-display text-xs text-indigo uppercase tracking-wider font-bold">3. Dynamic Lighting & Cinematography (Anti-Stiffness)</h4>
+            <p class="text-slate-wash">
+              Eliminate flat catalog lighting. Use dynamic high-contrast chiaroscuro, Venetian blind zebra stripes, fire escape grid shadows, and low raking sunbeams that carve out textile texture.
+            </p>
+          </div>
+
+          <!-- Section 4 -->
+          <div class="bg-white p-5 rounded-xl border border-tan-natural/30 space-y-2">
+            <h4 class="font-display text-xs text-indigo uppercase tracking-wider font-bold">4. Strict Guardrails: On-Brand vs Off-Brand</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                <strong class="text-emerald-900 block mb-1">ON-BRAND (Do)</strong>
+                <ul class="text-[11px] text-emerald-800 space-y-1 list-disc list-inside">
+                  <li>Unposed kinetic movement</li>
+                  <li>Real rescue cats in natural poses</li>
+                  <li>35mm film grain & lens flare</li>
+                  <li>Weathered Lower East Side cues</li>
+                </ul>
+              </div>
+              <div class="p-3 bg-rose-50 rounded-lg border border-rose-200">
+                <strong class="text-rose-900 block mb-1">OFF-BRAND (Never)</strong>
+                <ul class="text-[11px] text-rose-800 space-y-1 list-disc list-inside">
+                  <li>Stiff mannequin stares</li>
+                  <li>Seamless white studio cycs</li>
+                  <li>Humans wearing fake cat ears</li>
+                  <li>Cats wearing clothes or hats</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 5 -->
+          <div class="bg-white p-5 rounded-xl border border-tan-natural/30 space-y-2">
+            <h4 class="font-display text-xs text-indigo uppercase tracking-wider font-bold">5. Master Prompt Engineering Formula</h4>
+            <div class="bg-indigo-dark text-kinari/90 p-3 rounded-lg font-mono text-[11px] leading-relaxed select-all">
+              [Shot Type] for KOKORO WEAR, [Subject & Dynamic Motion], wearing [Garment Silhouette & Core Color Hex Tokens], [Architectural Environment], accompanied by [Adoptable Cat Breed & Behavior], [Dynamic Lighting & Sliced Shadow Patterns], shot on Leica M6 35mm lens, authentic Kodak Portra 800 film grain [Aspect Ratio Flag] --style raw --v 6.1
+            </div>
+          </div>
+
+        </article>
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="pt-6 border-t border-tan-natural/30 mt-6 flex justify-between items-center text-xs font-mono">
+        <button id="btn-copy-raw-md" class="px-3.5 py-2 rounded-lg bg-indigo text-kinari hover:bg-indigo-dark font-medium transition">
+          Copy Raw Markdown
+        </button>
+        <button id="btn-close-skills-bottom" class="text-hanko font-bold hover:underline">
+          Close Spec
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 2: EXAMPLE GENERATIONS CAROUSEL POP-OUT            -->
+  <!-- ======================================================== -->
+  <div id="examples-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-6 transition-opacity duration-300">
+    <div class="relative bg-kinari-light border border-tan-natural/40 rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-5 py-3.5 border-b border-tan-natural/30 bg-white">
+        <div class="flex items-center gap-2.5">
+          <div class="w-6 h-6 rounded bg-tabby-ochre/15 text-tabby-ochre flex items-center justify-center text-xs font-bold font-mono">
+            SS27
+          </div>
+          <div>
+            <h3 class="font-display text-xs sm:text-sm text-indigo uppercase font-bold tracking-wider">Campaign Example Generations</h3>
+            <p class="text-[10px] font-mono text-slate-wash">Verified Midjourney v6.1 outputs generated from the tool</p>
+          </div>
+        </div>
+        <button id="btn-close-examples" class="w-8 h-8 rounded-full bg-kinari border border-tan-natural/40 text-indigo flex items-center justify-center hover:bg-hanko hover:text-white transition font-mono text-xs">
+          ✕
+        </button>
+      </div>
+
+      <!-- Carousel Viewer Area -->
+      <div class="relative flex-1 bg-[#121E2A] flex items-center justify-center overflow-hidden min-h-[340px] sm:min-h-[460px]">
+        
+        <!-- Main Slide Image -->
+        <img id="carousel-img" src="example4.jfif" alt="Example Generation" class="max-h-[62vh] max-w-full object-contain select-none transition-opacity duration-200" onerror="this.onerror=null; this.src=this.src.replace('.jfif', '.jpg');">
+
+        <!-- Left Arrow Button -->
+        <button id="btn-prev-slide" class="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/60 hover:bg-tabby-ochre text-white backdrop-blur-sm border border-white/20 flex items-center justify-center transition shadow-xl group" aria-label="Previous image">
+          <svg class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+
+        <!-- Right Arrow Button -->
+        <button id="btn-next-slide" class="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/60 hover:bg-tabby-ochre text-white backdrop-blur-sm border border-white/20 flex items-center justify-center transition shadow-xl group" aria-label="Next image">
+          <svg class="w-5 h-5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <!-- Slide Index Pill -->
+        <div class="absolute top-3 right-3 bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-mono text-kinari border border-white/10">
+          <span id="slide-num">1</span> / 3
+        </div>
+      </div>
+
+      <!-- Caption & Metadata Footer -->
+      <div class="p-4 sm:p-5 bg-white border-t border-tan-natural/30 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="slide-tag" class="text-[10px] font-mono uppercase bg-indigo text-kinari px-2 py-0.5 rounded font-semibold">
+                Street Candid / Social Post
+              </span>
+              <span id="slide-ratio" class="text-[10px] font-mono text-slate-wash font-bold">
+                1:1 Square (--ar 1:1)
+              </span>
+            </div>
+            <h4 id="slide-title" class="font-display text-xs sm:text-sm text-indigo uppercase font-bold mt-1">
+              01. Lower East Side Street Candid // Enso Cat Robe
+            </h4>
+          </div>
+
+          <!-- Slide Indicator Dots -->
+          <div class="flex items-center gap-1.5">
+            <button class="slide-dot w-2.5 h-2.5 rounded-full bg-indigo transition-all" data-index="0"></button>
+            <button class="slide-dot w-2.5 h-2.5 rounded-full bg-tan-natural/40 hover:bg-tan-natural transition-all" data-index="1"></button>
+            <button class="slide-dot w-2.5 h-2.5 rounded-full bg-tan-natural/40 hover:bg-tan-natural transition-all" data-index="2"></button>
+          </div>
+        </div>
+
+        <!-- Prompt Snippet Display -->
+        <div class="relative bg-kinari-light p-3 rounded-xl border border-tan-natural/30 flex items-start justify-between gap-3">
+          <p id="slide-prompt" class="text-[11px] font-mono text-sumi leading-relaxed line-clamp-2 select-all flex-1"></p>
+          <button id="btn-copy-slide-prompt" class="shrink-0 px-2.5 py-1.5 rounded-lg bg-indigo hover:bg-indigo-dark text-kinari text-[10px] font-mono uppercase font-semibold transition flex items-center gap-1 shadow-sm">
+            <span>Copy</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JavaScript Prompt Synthesis Engine -->
+  <script>
+    // DOM Elements
+    const selectFormat = document.getElementById('select-format');
+    const selectType = document.getElementById('select-type');
+    const selectAngle = document.getElementById('select-angle');
+    const selectLighting = document.getElementById('select-lighting');
+    const selectGarment = document.getElementById('select-garment');
+    const selectAction = document.getElementById('select-action');
+    const selectAccessory = document.getElementById('select-accessory');
+    const selectCat = document.getElementById('select-cat');
+    const checkColorTokens = document.getElementById('check-color-tokens');
+    const checkFilmOptics = document.getElementById('check-film-optics');
+    
+    const outputPrompt = document.getElementById('output-prompt');
+    const outputNegative = document.getElementById('output-negative');
+    const tagArDisplay = document.getElementById('tag-ar-display');
+    const tagDimDisplay = document.getElementById('tag-dim-display');
+    const promptTargetBadge = document.getElementById('prompt-target-badge');
+
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toast-text');
+
+    // Synthesis Fragment Maps
+    const contextFragments = {
+      'lifestyle-street': {
+        lead: "Dynamic 35mm street candid photograph for KOKORO WEAR campaign",
+        setting: "outside on Clinton Street in the Lower East Side of New York with weathered brick tenement facades, cast-iron fire escapes, and pavement sidewalk curb textures",
+        mood: "lived-in, casual yet effortlessly cool downtown streetwear presence"
+      },
+      'cozy-lounge': {
+        lead: "Kinetic and intimate interior lifestyle photograph for KOKORO WEAR",
+        setting: "inside a warm sunlit domestic apartment lounge with worn hardwood floors, tatami mat corner, unglazed ceramic teaware, and open art books",
+        mood: "relaxed Japanese cafe aesthetic, calm domestic tranquility and mindful living"
+      },
+      'storefront': {
+        lead: "Atmospheric architectural environment photograph for Kokoro Cat Cafe NYC",
+        setting: "at the entrance and tranquil tea lounge interior with blonde cedar wood perches, large glass pivot door, and subtle Japanese glass lettering '心・衣'",
+        mood: "serene urban oasis blending NYC architecture with traditional Japanese interior warmth"
+      },
+      'tactile-product': {
+        lead: "Tactile editorial apparel flat lay for KOKORO WEAR collection",
+        setting: "laid out atop unbleached textured washi paper and boro indigo fabric swatches with deliberate negative space (Ma)",
+        mood: "wabi-sabi textile craftsmanship, artisan Japanese streetwear detailing"
+      }
+    };
+
+    const angleFragments = {
+      'eye-candid': "candid straight-on eye-level framing capturing authentic relaxed posture",
+      'low-street': "low-angle sidewalk profile framing emphasizing the garment hem silhouette and grounded pavement movement",
+      'wide-env': "wide cinematic framing placing the subject within the broader downtown architectural environment",
+      'overhead-flatlay': "overhead 90-degree perpendicular flat lay with deliberate negative space (Ma)",
+      'macro-crop': "tack-sharp macro crop highlighting individual thread stitches and fabric texture"
+    };
+
+    const lightingFragments = {
+      'slatted-blinds': "hard directional morning sunlight slicing through slatted wooden blinds casting graphic diagonal zebra-stripe shadows across the clothes and floor",
+      'fire-escape': "hard outdoor NYC sunlight piercing through cast-iron fire escape grates casting sharp geometric shadow patterns over the jacket and sidewalk",
+      'raking-golden': "low raking golden-hour sunbeams carving out fabric weave, slub threads, and seams with long gentle slanted shadows",
+      'sun-shafts': "volumetric sunlight shafts with floating dust particles creating atmospheric depth and warm highlight halation",
+      'tungsten-daylight': "cool indirect daylight from large windows paired against warm 2400K tungsten lamp spill creating cinematic split-tone warmth",
+      'overcast-haze': "diffused overcast NYC afternoon haze with balanced natural contrast and subtle street pavement reflections"
+    };
+
+    const garmentFragments = {
+      'boxy-hoodie': "wearing an oversized boxy French terry hoodie in kinari ecru raw cotton (#F4EFE6) with cat silhouette cutout cuffs, drop shoulders, and a vibrant embroidered peeking cat graphic with claw scratch accents across the chest",
+      'split-shirt': "wearing a loose boxy split-panel camp-collar shirt in dark indigo (#1A2B3C) with a vertical Japanese kanji placket '心・衣' and subtle woodblock micro-print",
+      'cat-hem-denim': "wearing relaxed stonewash denim featuring laser-cut and stitched cat silhouette cutouts along the hem",
+      'boro-plaid': "wearing a vintage ochre yellow plaid overshirt repaired with boro patchwork denim feline swatches and vermilion running stitches",
+      'chore-robe': "wearing a relaxed aizome indigo chore kimono robe (#1A2B3C) featuring an Enso circular sumi ink cat ring back graphic",
+      'boxy-tee': "wearing a heavyweight 280 GSM raw ecru boxy tee with a peeking black cat graphic interacting with slatted blinds negative space"
+    };
+
+    const actionFragments = {
+      'laugh-turn': "young creative caught mid-motion turning around while laughing candidly, reaching down toward a cat",
+      'mid-stride': "model captured mid-stride crossing the street, wind catching their robe hem with an effortless urban glance",
+      'reach-cup': "model leaning down comfortably, reaching for a warm ceramic teacup on the low wooden table",
+      'pause-door': "model pausing thoughtfully at the open cafe glass doorway looking inside",
+      'hands-pockets': "casual hands-in-pockets relaxed leaning pose with unforced cool posture"
+    };
+
+    const accessoryFragments = {
+      'tote': "carrying an asymmetrical check canvas and dark leather tote bag with geometric cat-ear corner cuts",
+      'carabiner': "accented with a matte black acrylic climbing cat carabiner clutching a jade fish charm holding brass keys clipped to the belt loop",
+      'pouch': "carrying a traditional gathered washi kinshaku drawstring pouch folded into cat ears",
+      'cardholder': "holding a minimalist pebbled slate-grey leather cardholder with cat coat color-blocking",
+      'bookmark': "featuring a die-cut washi cat paw bookmark tucked into an open book",
+      'collar-pin': "accented with a vintage enamel rotary telephone collar pin linked by a draped chain across shirt lapels",
+      'none': "cleanly styled without extraneous accessories"
+    };
+
+    const catFragments = {
+      'orange-tabby': "accompanied by a calm ginger orange tabby rescue cat playfully stretching and walking across the sunlit floorboards",
+      'tuxedo': "accompanied by an alert black-and-white tuxedo shelter cat resting comfortably on the daybed",
+      'black-cat': "accompanied by a sleek solid black domestic cat sitting peacefully near the threshold",
+      'calico': "accompanied by a serene Mike calico shelter cat curiously inspecting the floorboards",
+      'flatlay-paws': "a real domestic ginger tabby cat lounging naturally nearby with paws draping into the frame",
+      'none': "clean shot focusing purely on the apparel design without a live feline"
+    };
+
+    // Helper: Build Full Prompt String
+    function generatePrompt() {
+      const selectedOption = selectFormat.options[selectFormat.selectedIndex];
+      const arFlag = selectedOption.dataset.ar;
+      const dimDesc = selectedOption.dataset.dim;
+      const formatName = selectedOption.textContent.split('(')[0].trim();
+
+      tagArDisplay.textContent = `--ar ${arFlag}`;
+      tagDimDisplay.textContent = dimDesc;
+      promptTargetBadge.textContent = `${arFlag} // ${formatName}`;
+
+      const cType = selectType.value;
+      const cAngle = selectAngle.value;
+      const cLighting = selectLighting.value;
+      const cGarment = selectGarment.value;
+      const cAction = selectAction.value;
+      const cAccessory = selectAccessory.value;
+      const cCat = selectCat.value;
+
+      const leadData = contextFragments[cType];
+      const angleDesc = angleFragments[cAngle];
+      const lightDesc = lightingFragments[cLighting];
+      const garmentDesc = garmentFragments[cGarment];
+      const actionDesc = actionFragments[cAction];
+      const accessoryDesc = accessoryFragments[cAccessory];
+      const catDesc = catFragments[cCat];
+
+      // Assemble Positive Prompt
+      let parts = [];
+      parts.push(`${leadData.lead}, ${angleDesc}`);
+      parts.push(`${leadData.setting}`);
+      
+      if (cType === 'tactile-product') {
+        parts.push(garmentDesc);
+        if (cAccessory !== 'none') parts.push(accessoryDesc);
+      } else {
+        parts.push(`${actionDesc}, ${garmentDesc}`);
+        if (cAccessory !== 'none') parts.push(accessoryDesc);
+      }
+
+      if (cCat !== 'none') {
+        parts.push(catDesc);
+      }
+      parts.push(lightDesc);
+
+      // Color Tokens
+      if (checkColorTokens.checked) {
+        parts.push("disciplined campaign color palette featuring dark indigo #1A2B3C, slate grey #75848F, kinari ecru #F4EFE6, natural tan #9D8870, with accents of tabby ochre #C85A32 and hanko vermilion #BA3B2E");
+      }
+
+      // Optics and Film Specs
+      if (checkFilmOptics.checked) {
+        if (cType === 'tactile-product') {
+          parts.push("shot on Hasselblad 50mm, fine tactile grain, tack-sharp textile fibers");
+        } else {
+          parts.push("shot on Leica M6 35mm lens, f/2.0 aperture, authentic Kodak Portra 800 film grain, tactile lived-in documentary texture");
+        }
+      }
+
+      // Final Parameters
+      parts.push(`--ar ${arFlag} --style raw --v 6.1`);
+
+      outputPrompt.value = parts.join(", ");
+    }
+
+    // UI Toast Function
+    function showToast(text) {
+      toastText.textContent = text;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2400);
+    }
+
+    // Clipboard Copy Utility
+    function copyText(str, successMsg) {
+      const el = document.createElement('textarea');
+      el.value = str;
+      document.body.appendChild(el);
+      el.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg);
+      } catch (err) {
+        console.error('Copy failed:', err);
+      }
+      document.body.removeChild(el);
+    }
+
+    // Preset Scenarios
+    function applyPreset(name) {
+      switch (name) {
+        case 'street':
+          selectFormat.value = 'subway-2sheet';
+          selectType.value = 'lifestyle-street';
+          selectAngle.value = 'low-street';
+          selectLighting.value = 'fire-escape';
+          selectGarment.value = 'split-shirt';
+          selectAction.value = 'mid-stride';
+          selectAccessory.value = 'carabiner';
+          selectCat.value = 'none';
+          break;
+        case 'tatami':
+          selectFormat.value = 'mag-full';
+          selectType.value = 'cozy-lounge';
+          selectAngle.value = 'eye-candid';
+          selectLighting.value = 'slatted-blinds';
+          selectGarment.value = 'boxy-hoodie';
+          selectAction.value = 'laugh-turn';
+          selectAccessory.value = 'none';
+          selectCat.value = 'orange-tabby';
+          break;
+        case 'storefront':
+          selectFormat.value = 'billboard';
+          selectType.value = 'storefront';
+          selectAngle.value = 'wide-env';
+          selectLighting.value = 'raking-golden';
+          selectGarment.value = 'chore-robe';
+          selectAction.value = 'pause-door';
+          selectAccessory.value = 'tote';
+          selectCat.value = 'black-cat';
+          break;
+        case 'macro':
+          selectFormat.value = 'mag-full';
+          selectType.value = 'tactile-product';
+          selectAngle.value = 'overhead-flatlay';
+          selectLighting.value = 'raking-golden';
+          selectGarment.value = 'boxy-hoodie';
+          selectAccessory.value = 'bookmark';
+          selectCat.value = 'flatlay-paws';
+          break;
+        case 'subway':
+          selectFormat.value = 'subway-2sheet';
+          selectType.value = 'lifestyle-street';
+          selectAngle.value = 'eye-candid';
+          selectLighting.value = 'fire-escape';
+          selectGarment.value = 'cat-hem-denim';
+          selectAction.value = 'hands-pockets';
+          selectAccessory.value = 'tote';
+          selectCat.value = 'orange-tabby';
+          break;
+      }
+      generatePrompt();
+      showToast(`Loaded ${name.toUpperCase()} preset`);
+    }
+
+    // Randomizer
+    function randomizeAll() {
+      const randomOption = (sel) => {
+        const idx = Math.floor(Math.random() * sel.options.length);
+        sel.selectedIndex = idx;
+      };
+      randomOption(selectFormat);
+      randomOption(selectType);
+      randomOption(selectAngle);
+      randomOption(selectLighting);
+      randomOption(selectGarment);
+      randomOption(selectAction);
+      randomOption(selectAccessory);
+      randomOption(selectCat);
+      generatePrompt();
+      showToast("🎲 Random combination generated!");
+    }
+
+    // Event Listeners for Selectors
+    [selectFormat, selectType, selectAngle, selectLighting, selectGarment, selectAction, selectAccessory, selectCat].forEach(el => {
+      el.addEventListener('change', generatePrompt);
+    });
+    checkColorTokens.addEventListener('change', generatePrompt);
+    checkFilmOptics.addEventListener('change', generatePrompt);
+
+    document.querySelectorAll('.preset-pill').forEach(btn => {
+      btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+    });
+
+    document.getElementById('btn-randomize').addEventListener('click', randomizeAll);
+
+    document.getElementById('btn-copy').addEventListener('click', () => {
+      copyText(outputPrompt.value, "Prompt copied to clipboard!");
+    });
+
+    document.getElementById('btn-copy-negative').addEventListener('click', () => {
+      copyText(outputNegative.textContent.trim(), "Negative prompt copied!");
+    });
+
+    // ==========================================
+    // MODAL 1: BRAND SKILLS (.MD) LOGIC
+    // ==========================================
+    const skillsModal = document.getElementById('skills-modal');
+    const btnOpenSkills = document.getElementById('btn-open-skills');
+    const btnCloseSkills = document.getElementById('btn-close-skills');
+    const btnCloseSkillsBottom = document.getElementById('btn-close-skills-bottom');
+    const skillsBackdrop = document.getElementById('skills-backdrop');
+    const btnCopyRawMd = document.getElementById('btn-copy-raw-md');
+
+    function toggleSkills(open) {
+      if (open) {
+        skillsModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      } else {
+        skillsModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+    }
+
+    btnOpenSkills.addEventListener('click', () => toggleSkills(true));
+    btnCloseSkills.addEventListener('click', () => toggleSkills(false));
+    btnCloseSkillsBottom.addEventListener('click', () => toggleSkills(false));
+    skillsBackdrop.addEventListener('click', () => toggleSkills(false));
+
+    btnCopyRawMd.addEventListener('click', () => {
+      const rawMarkdown = `# Brand Skills: KOKORO WEAR (心・衣)
+## Campaign: Spring/Summer 2027 Tokyo-NYC Archive Drop
+## Brand Basis: Kokoro Cat Cafe NYC in partnership with Anjellicle Cats Rescue NYC
+
+### Core Color System
+- Dark Indigo (Aizome): #1A2B3C
+- Slate Blue-Grey: #75848F
+- Natural Tan (Genmaicha): #9D8870
+- Kinari Ecru (Raw Cotton): #F4EFE6
+- Tabby Ochre: #C85A32
+- Hanko Vermilion: #BA3B2E
+
+### Dynamic Lighting & Cinematography
+- High-contrast chiaroscuro with Venetian & slatted blind diagonal shadows.
+- Cast-iron fire escape shadow grids on Lower East Side streets.
+- Low raking golden-hour sunbeams carving out fabric weave and embroidery relief.
+- Volumetric sun shafts with dust motes; cool daylight vs 2400K tungsten lamp spill.
+
+### Master Formula
+[Shot Type] for KOKORO WEAR, [Subject & Dynamic Motion], wearing [Garment Silhouette & Core Color Hex Tokens], [Architectural Environment], accompanied by [Adoptable Cat Breed & Behavior], [Dynamic Lighting & Sliced Shadow Patterns], shot on Leica M6 35mm lens, f/2.0 aperture, authentic Kodak Portra 800 film grain [Aspect Ratio Flag] --style raw --v 6.1`;
+      copyText(rawMarkdown, "Raw brand-skills.md copied to clipboard!");
+    });
+
+    // ==========================================
+    // MODAL 2: EXAMPLE GENERATIONS CAROUSEL LOGIC
+    // ==========================================
+    const examplesModal = document.getElementById('examples-modal');
+    const btnExamples = document.getElementById('btn-examples');
+    const btnCloseExamples = document.getElementById('btn-close-examples');
+    const btnPrevSlide = document.getElementById('btn-prev-slide');
+    const btnNextSlide = document.getElementById('btn-next-slide');
+    const carouselImg = document.getElementById('carousel-img');
+    const slideNum = document.getElementById('slide-num');
+    const slideTag = document.getElementById('slide-tag');
+    const slideRatio = document.getElementById('slide-ratio');
+    const slideTitle = document.getElementById('slide-title');
+    const slidePrompt = document.getElementById('slide-prompt');
+    const slideDots = document.querySelectorAll('.slide-dot');
+    const btnCopySlidePrompt = document.getElementById('btn-copy-slide-prompt');
+
+    const exampleSlides = [
+      {
+        src: 'example4.jfif',
+        title: '01. Lower East Side Street Candid // Enso Cat Robe',
+        tag: 'Street Candid / Social Post',
+        ratio: '1:1 Square (--ar 1:1)',
+        prompt: "Dynamic 35mm street candid photograph for KOKORO WEAR campaign, candid straight-on eye-level framing capturing authentic relaxed posture, outside on Clinton Street in the Lower East Side of New York with weathered brick tenement facades, cast-iron fire escapes, and pavement sidewalk curb textures, casual hands-in-pockets relaxed leaning pose with unforced cool posture, wearing a relaxed aizome indigo chore kimono robe (#1A2B3C) featuring an Enso circular sumi ink cat ring back graphic, carrying an asymmetrical check canvas and dark leather tote bag with geometric cat-ear corner cuts, a real domestic cat's paws or tail casually and playfully draping into the corner of the frame, cool indirect daylight from large windows paired against warm 2400K tungsten lamp spill creating cinematic split-tone warmth, disciplined campaign color palette featuring dark indigo #1A2B3C, slate grey #75848F, kinari ecru #F4EFE6, natural tan #9D8870, with accents of tabby ochre #C85A32 and hanko vermilion #BA3B2E, shot on Leica M6 35mm lens, f/2.0 aperture, authentic Kodak Portra 800 film grain, tactile lived-in documentary texture, --ar 1:1 --style raw --v 6.1"
+      },
+      {
+        src: 'example5.jfif',
+        title: '02. Tactile Apparel Flat Lay // Cat Scratched Ecru Hoodie',
+        tag: 'Tactile Apparel / Magazine Ad',
+        ratio: '4:5 Portrait (--ar 4:5)',
+        prompt: "Tactile editorial apparel flat lay for KOKORO WEAR collection, tack-sharp macro crop highlighting individual thread stitches and fabric texture, laid out atop unbleached textured washi paper and boro indigo fabric swatches with deliberate negative space (Ma), wearing an oversized boxy French terry hoodie in kinari ecru raw cotton (#F4EFE6) with drop shoulders and a vibrant embroidered peeking cat graphic with claw scratch accents across the chest, single row of cat silhouette trim along the cuffs and waistband, accompanied by a matte black acrylic climbing cat carabiner clutching a jade fish charm, and an open book with a die-cut washi cat paw bookmark, a real domestic ginger tabby cat lounging naturally nearby, warm ambient 2700K evening interior lamp glow, disciplined campaign color palette featuring dark indigo #1A2B3C, slate grey #75848F, kinari ecru #F4EFE6, natural tan #9D8870, with accents of tabby ochre #C85A32 and hanko vermilion #BA3B2E, shot on Hasselblad 50mm, fine tactile grain, tack-sharp textile fibers, --ar 4:5 --style raw --v 6.1"
+      },
+      {
+        src: 'example6.jfif',
+        title: '03. Sunlit Tatami Lounge // Cat Cutout Hem & Sleeves',
+        tag: 'Cozy Lifestyle / Full Page Print',
+        ratio: '4:5 Portrait (--ar 4:5)',
+        prompt: "Kinetic and intimate interior lifestyle photograph for KOKORO WEAR, candid eye-level perspective capturing authentic movement, inside a warm sunlit domestic apartment lounge with worn hardwood floors, tatami mat corner, and low timber table, a young creative leaning down reaching toward an orange tabby cat while wearing a kinari ecru (#F4EFE6) French terry hoodie with laser-cut cat silhouette cutouts along the sleeve cuffs and relaxed stonewash denim featuring laser-cut and stitched cat silhouette cutouts along the hem, hard directional morning sunlight slicing through slatted wooden blinds casting graphic diagonal zebra-stripe shadows across the clothes and floor, authentic Kodak Portra 800 film grain, tactile lived-in documentary texture, --ar 4:5 --style raw --v 6.1"
+      }
+    ];
+
+    let currentSlide = 0;
+
+    function renderSlide(index) {
+      currentSlide = (index + exampleSlides.length) % exampleSlides.length;
+      const data = exampleSlides[currentSlide];
+
+      carouselImg.style.opacity = '0';
+      setTimeout(() => {
+        carouselImg.src = data.src;
+        carouselImg.alt = data.title;
+        carouselImg.style.opacity = '1';
+      }, 150);
+
+      slideNum.textContent = currentSlide + 1;
+      slideTitle.textContent = data.title;
+      slideTag.textContent = data.tag;
+      slideRatio.textContent = data.ratio;
+      slidePrompt.textContent = data.prompt;
+
+      slideDots.forEach((dot, idx) => {
+        if (idx === currentSlide) {
+          dot.classList.add('bg-indigo', 'w-4');
+          dot.classList.remove('bg-tan-natural/40', 'w-2.5');
+        } else {
+          dot.classList.remove('bg-indigo', 'w-4');
+          dot.classList.add('bg-tan-natural/40', 'w-2.5');
+        }
+      });
+    }
+
+    function toggleExamples(open) {
+      if (open) {
+        examplesModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        renderSlide(0);
+      } else {
+        examplesModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+    }
+
+    btnExamples.addEventListener('click', () => toggleExamples(true));
+    btnCloseExamples.addEventListener('click', () => toggleExamples(false));
+    btnPrevSlide.addEventListener('click', () => renderSlide(currentSlide - 1));
+    btnNextSlide.addEventListener('click', () => renderSlide(currentSlide + 1));
+
+    slideDots.forEach(dot => {
+      dot.addEventListener('click', () => renderSlide(parseInt(dot.dataset.index, 10)));
+    });
+
+    btnCopySlidePrompt.addEventListener('click', () => {
+      copyText(exampleSlides[currentSlide].prompt, "Example prompt copied to clipboard!");
+    });
+
+    examplesModal.addEventListener('click', (e) => {
+      if (e.target === examplesModal) toggleExamples(false);
+    });
+
+    // Global Keyboard Navigation
+    window.addEventListener('keydown', (e) => {
+      if (!examplesModal.classList.contains('hidden')) {
+        if (e.key === 'ArrowLeft') renderSlide(currentSlide - 1);
+        if (e.key === 'ArrowRight') renderSlide(currentSlide + 1);
+        if (e.key === 'Escape') toggleExamples(false);
+      }
+      if (!skillsModal.classList.contains('hidden') && e.key === 'Escape') {
+        toggleSkills(false);
+      }
+    });
+
+    // Initialize on page load
+    window.onload = generatePrompt;
+  </script>
+</body>
+</html>
