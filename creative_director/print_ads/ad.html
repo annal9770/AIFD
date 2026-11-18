@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KOKORO WEAR // Spring 2027 Campaign Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --text: #2B211B;
+      --accent: #E8A8B8;
+      --indigo: #1A2B3C;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Source Sans Pro', sans-serif;
+      margin: 0;
+      position: relative;
+      overflow-x: hidden;
+    }
+    .sparkles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .sparkle {
+      position: absolute;
+      color: var(--accent);
+      opacity: .25;
+      font-size: 18px;
+      animation: twinkle 6s ease-in-out infinite;
+    }
+    .sparkle:nth-child(2n) { animation-duration: 8s; }
+    .sparkle:nth-child(3n) { animation-duration: 5s; }
+    .sparkle:nth-child(4n) { animation-delay: -3s; }
+    .sparkle:nth-child(5n) { animation-delay: -5s; }
+    @keyframes twinkle {
+      0%, 100% { opacity: .15; transform: scale(.7) rotate(0deg); }
+      50% { opacity: .4; transform: scale(1.15) rotate(12deg); }
+    }
+    .wrapper {
+      max-width: 1200px;
+      margin: auto;
+      padding: 80px 24px;
+      position: relative;
+      z-index: 1;
+    }
+    .brand-tag {
+      text-align: center;
+      font-family: 'Source Sans Pro', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #9D8870;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(48px, 7vw, 84px);
+      text-align: center;
+      margin: 0;
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+    }
+    .sub {
+      text-align: center;
+      font-size: 20px;
+      color: #555;
+      margin: 16px 0 64px;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+    }
+
+    .section-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 36px;
+      margin: 80px 0 32px;
+      letter-spacing: 0.04em;
+      border-bottom: 2px solid rgba(157, 136, 112, 0.3);
+      padding-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-title span {
+      font-size: 14px;
+      font-family: 'Source Sans Pro', sans-serif;
+      letter-spacing: 0.15em;
+      color: #75848F;
+      text-transform: uppercase;
+    }
+
+    /* 2-Column Grid for Asset + Mockup Pairs */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 36px;
+    }
+    .card {
+      background: #fff;
+      padding: 16px;
+      border-radius: 28px;
+      box-shadow: 0 8px 30px rgba(43, 33, 27, 0.06);
+      border: 1px solid rgba(157, 136, 112, 0.2);
+      transition: transform .3s ease, box-shadow .3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 18px 42px rgba(43, 33, 27, 0.12);
+    }
+    .pair-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 768px) {
+      .pair-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .thumb-wrap {
+      width: 100%;
+      height: 380px;
+      border-radius: 20px;
+      overflow: hidden;
+      background-color: #f0e9df;
+      cursor: pointer;
+      position: relative;
+    }
+    .thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .4s ease-out, filter .4s ease-out;
+      display: block;
+    }
+    .thumb:hover {
+      transform: scale(1.035);
+      filter: brightness(1.03);
+    }
+    .img-tag {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(26, 43, 60, 0.85);
+      color: #FAF7F2;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.08em;
+      backdrop-filter: blur(4px);
+    }
+
+    .label {
+      margin-top: 20px;
+      padding: 0 8px 8px;
+      font-family: 'Source Sans Pro', sans-serif;
+    }
+    .label-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .num {
+      background: var(--accent);
+      color: var(--text);
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      padding: 2px 10px;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+    }
+    .label-desc {
+      font-size: 13px;
+      color: #75848F;
+      margin-top: 4px;
+    }
+
+    /* Interactive Phone Carousel Section */
+    .phone-showcase {
+      margin-top: 100px;
+      background: linear-gradient(135deg, #1A2B3C 0%, #2B3E50 100%);
+      border-radius: 36px;
+      padding: 60px 24px;
+      color: #FAF7F2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 20px 50px rgba(26, 43, 60, 0.25);
+    }
+    .phone-showcase h3 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 38px;
+      margin: 0 0 8px;
+      letter-spacing: 0.03em;
+      text-align: center;
+    }
+    .phone-showcase p {
+      color: #C5D1DF;
+      margin: 0 0 40px;
+      font-size: 16px;
+      text-align: center;
+      max-width: 500px;
+    }
+
+    /* Phone Mockup Frame */
+    .phone-frame {
+      width: 320px;
+      height: 640px;
+      background: #000;
+      border-radius: 46px;
+      padding: 12px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.6), inset 0 0 0 2px #444;
+      position: relative;
+      margin-bottom: 30px;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #FAF7F2;
+      border-radius: 36px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 24px;
+      background: #000;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      z-index: 20;
+    }
+    .status-bar {
+      position: absolute;
+      top: 4px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #fff;
+      font-weight: 600;
+      z-index: 25;
+      pointer-events: none;
+    }
+    .carousel-slide {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+      display: flex;
+      flex-direction: column;
+    }
+    .carousel-slide.active {
+      opacity: 1;
+      z-index: 10;
+    }
+    .carousel-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .carousel-controls {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .carousel-btn {
+      background: var(--accent);
+      color: var(--text);
+      border: none;
+      padding: 10px 24px;
+      border-radius: 99px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform .2s, background .2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .carousel-btn:hover {
+      transform: scale(1.05);
+      background: #f2bec8;
+    }
+    .carousel-dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .dot.active {
+      background: var(--accent);
+      transform: scale(1.2);
+    }
+
+    /* Lightbox Modal */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 43, 60, 0.94);
+      backdrop-filter: blur(10px);
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 40px;
+    }
+    .lightbox.active {
+      display: flex;
+    }
+    .lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .lightbox img {
+      max-width: 85vw;
+      max-height: 75vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    }
+    .lightbox-caption {
+      color: #FAF7F2;
+      margin-top: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+    .close {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      color: #FAF7F2;
+      background: rgba(255, 255, 255, 0.1);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      font-size: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      user-select: none;
+    }
+    .close:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      border: none;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--text);
+      font-size: 36px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s ease, background .2s ease;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+    .nav-arrow:hover {
+      transform: translateY(-50%) scale(1.08);
+      background: #f2bec8;
+    }
+    .prev { left: -80px; }
+    .next { right: -80px; }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .prev { left: 10px; }
+      .next { right: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sparkles" aria-hidden="true">
+    <span class="sparkle" style="left:7%;top:12%">✦</span>
+    <span class="sparkle" style="left:18%;top:67%">✧</span>
+    <span class="sparkle" style="left:31%;top:26%">✦</span>
+    <span class="sparkle" style="left:44%;top:82%">✧</span>
+    <span class="sparkle" style="left:58%;top:16%">✦</span>
+    <span class="sparkle" style="left:69%;top:55%">✧</span>
+    <span class="sparkle" style="left:83%;top:32%">✦</span>
+    <span class="sparkle" style="left:92%;top:75%">✧</span>
+    <span class="sparkle" style="left:12%;top:90%">✦</span>
+    <span class="sparkle" style="left:76%;top:91%">✦</span>
+  </div>
+
+  <div class="wrapper">
+    <div class="brand-tag">Kokoro Wear (心・衣) // New York</div>
+    <h1>KOKORO WEAR CAMPAIGN</h1>
+    <p class="sub">Spring 2027 Print, Editorial, OOH & Digital Advertising Portfolio</p>
+
+    <!-- SECTION 1: PRINT & OOH ADS -->
+    <div class="section-title">
+      Print & OOH Advertising <span>Print Assets & Mockups</span>
+    </div>
+    <div id="printGallery" class="grid"></div>
+
+    <!-- SECTION 2: DIGITAL ADS -->
+    <div class="section-title" style="margin-top: 100px;">
+      Digital & Social Ads <span>Digital Assets & Mockups</span>
+    </div>
+    <div id="digGallery" class="grid"></div>
+
+    <!-- PHONE CAROUSEL EFFECT FOR DIGITAL STORIES -->
+    <div class="phone-showcase">
+      <h3>Interactive Story Experience</h3>
+      <p>Tap or use controls to cycle through live digital ad placements & social media story drops.</p>
+      
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="status-bar">
+          <span>9:41</span>
+          <span>5G 🔋</span>
+        </div>
+        <div class="phone-screen" id="phoneScreen" title="Click to advance story">
+          <!-- Carousel items injected dynamically -->
+        </div>
+      </div>
+
+      <div class="carousel-controls">
+        <button class="carousel-btn" id="phonePrev">‹ Prev</button>
+        <button class="carousel-btn" id="phoneNext">Next ›</button>
+      </div>
+      <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div id="lb" class="lightbox">
+    <div class="lightbox-content">
+      <div id="close" class="close" title="Close (Esc)">×</div>
+      <button id="prev" class="nav-arrow prev" aria-label="Previous image">‹</button>
+      <img id="big" alt="Campaign Ad Full View">
+      <button id="next" class="nav-arrow next" aria-label="Next image">›</button>
+      <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
+  </div>
+
+  <script>
+    // Dataset for Print Ads (paired asset + mockup)
+    const printAds = [
+      {
+        num: '01',
+        title: 'Magazine Cover',
+        desc: 'Street Smart Wabi-Sabi Denim & Shelter Partnership',
+        asset: 'print1.jfif',
+        mockup: 'printmock1.jfif'
+      },
+      {
+        num: '02',
+        title: 'Subway Car Wrap',
+        desc: 'Linear Zoetrope Running Cat & Apparel Cutouts',
+        asset: 'print2.jfif',
+        mockup: 'printmock2.jfif'
+      },
+      {
+        num: '03',
+        title: 'Times Square Billboard',
+        desc: 'Cats in the City S/S 2027 OOH Feature',
+        asset: 'print3.jfif',
+        mockup: 'printmock3.jfif'
+      },
+      {
+        num: '04',
+        title: 'Subway Seat Ad',
+        desc: 'Haori Collection Featuring Sleeping Cat on Transit Bench',
+        asset: 'print4.jfif',
+        mockup: 'printmock4.jfif'
+      },
+      {
+        num: '05',
+        title: 'Subway Station Billboard',
+        desc: 'Hoodie Noun Definition & Artisan Craft Messaging',
+        asset: 'print5.jfif',
+        mockup: 'printmock5.jfif'
+      }
+    ];
+
+    // Dataset for Digital Ads (paired asset + mockup)
+    const digitalAds = [
+      {
+        num: '01',
+        title: 'Instagram Social Drop',
+        desc: 'Nine Lives, One Look - Kyoto Aesthetic',
+        asset: 'dig1.jfif',
+        mockup: 'digmock1.jpg'
+      },
+      {
+        num: '02',
+        title: 'Story Story Banner',
+        desc: 'Wearing your cat on your sleeve interactive prompt',
+        asset: 'dig2.jfif',
+        mockup: 'digmock2.jfif'
+      },
+      {
+        num: '03',
+        title: 'Product Announcement',
+        desc: 'Cat Nap Hoodie embroidered collection spotlight',
+        asset: 'dig3.jpg',
+        mockup: 'digmock3.jpg'
+      },
+      {
+        num: '04',
+        title: 'Digital Publication Banner',
+        desc: 'Boro textiles and mending heritage feature',
+        asset: 'dig4.jfif',
+        mockup: 'digmock4.jfif'
+      },
+      {
+        num: '05',
+        title: 'Mobile Shopping Sticker',
+        desc: 'Shop the new collection pocket embroidery',
+        asset: 'dig5.jfif',
+        mockup: 'digmock5.jfif'
+      }
+    ];
+
+    // Combine all for lightbox navigation
+    const allItems = [];
+    printAds.forEach(item => {
+      allItems.push({ src: item.asset, title: `${item.title} (Asset)`, desc: item.desc, num: item.num });
+      allItems.push({ src: item.mockup, title: `${item.title} (Mockup)`, desc: item.desc, num: item.num });
+    });
+    digitalAds.forEach(item => {
+      allItems.push({ src: item.asset, title: `${item.title} (Asset)`, desc: item.desc, num: item.num });
+      allItems.push({ src: item.mockup, title: `${item.title} (Mockup)`, desc: item.desc, num: item.num });
+    });
+
+    let currentIndex = 0;
+    const lb = document.getElementById('lb');
+    const bigImg = document.getElementById('big');
+    const captionEl = document.getElementById('lightboxCaption');
+
+    // Populate Print Section Grid
+    const printGallery = document.getElementById('printGallery');
+    printAds.forEach((item) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="pair-container">
+          <div class="thumb-wrap" data-src="${item.asset}" data-title="${item.title} (Asset)" data-desc="${item.desc}">
+            <img class="thumb" src="${item.asset}" alt="${item.title} Asset">
+            <span class="img-tag">Asset</span>
+          </div>
+          <div class="thumb-wrap" data-src="${item.mockup}" data-title="${item.title} (Mockup)" data-desc="${item.desc}">
+            <img class="thumb" src="${item.mockup}" alt="${item.title} Mockup">
+            <span class="img-tag">Mockup</span>
+          </div>
+        </div>
+        <div class="label">
+          <div class="label-title">
+            <span>${item.title}</span>
+            <span class="num">${item.num}</span>
+          </div>
+          <div class="label-desc">${item.desc}</div>
+        </div>
+      `;
+      printGallery.appendChild(card);
+    });
+
+    // Populate Digital Section Grid
+    const digGallery = document.getElementById('digGallery');
+    digitalAds.forEach((item) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="pair-container">
+          <div class="thumb-wrap" data-src="${item.asset}" data-title="${item.title} (Asset)" data-desc="${item.desc}">
+            <img class="thumb" src="${item.asset}" alt="${item.title} Asset">
+            <span class="img-tag">Asset</span>
+          </div>
+          <div class="thumb-wrap" data-src="${item.mockup}" data-title="${item.title} (Mockup)" data-desc="${item.desc}">
+            <img class="thumb" src="${item.mockup}" alt="${item.title} Mockup">
+            <span class="img-tag">Mockup</span>
+          </div>
+        </div>
+        <div class="label">
+          <div class="label-title">
+            <span>${item.title}</span>
+            <span class="num">${item.num}</span>
+          </div>
+          <div class="label-desc">${item.desc}</div>
+        </div>
+      `;
+      digGallery.appendChild(card);
+    });
+
+    // Attach Lightbox click events to all thumb-wraps
+    document.querySelectorAll('.thumb-wrap').forEach(wrap => {
+      wrap.onclick = () => {
+        const src = wrap.getAttribute('data-src');
+        const title = wrap.getAttribute('data-title');
+        const desc = wrap.getAttribute('data-desc');
+        const foundIdx = allItems.findIndex(i => i.src === src);
+        if (foundIdx !== -1) {
+          currentIndex = foundIdx;
+        } else {
+          bigImg.src = src;
+          captionEl.textContent = title + ' — ' + desc;
+        }
+        updateLightboxContent();
+        lb.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      };
+    });
+
+    function openLightbox(index) {
+      currentIndex = index;
+      updateLightboxContent();
+      lb.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      lb.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function updateLightboxContent() {
+      const current = allItems[currentIndex];
+      bigImg.src = current.src;
+      bigImg.alt = current.title;
+      captionEl.textContent = `${current.num} // ${current.title} — ${current.desc}`;
+    }
+
+    function showImage(step) {
+      currentIndex = (currentIndex + step + allItems.length) % allItems.length;
+      updateLightboxContent();
+    }
+
+    // Phone Carousel Logic for Digital Stories
+    const phoneScreen = document.getElementById('phoneScreen');
+    const phonePrev = document.getElementById('phonePrev');
+    const phoneNext = document.getElementById('phoneNext');
+    const carouselDots = document.getElementById('carouselDots');
+
+    const phoneSlides = digitalAds.map(d => d.mockup);
+    let phoneIndex = 0;
+
+    function initPhoneCarousel() {
+      phoneScreen.innerHTML = '';
+      carouselDots.innerHTML = '';
+
+      phoneSlides.forEach((slideSrc, idx) => {
+        const slide = document.createElement('div');
+        slide.className = `carousel-slide ${idx === 0 ? 'active' : ''}`;
+        slide.innerHTML = `<img src="${slideSrc}" alt="Digital Story Mockup ${idx+1}">`;
+        phoneScreen.appendChild(slide);
+
+        const dot = document.createElement('div');
+        dot.className = `dot ${idx === 0 ? 'active' : ''}`;
+        dot.onclick = (e) => {
+          e.stopPropagation();
+          setPhoneSlide(idx);
+        };
+        carouselDots.appendChild(dot);
+      });
+    }
+
+    function setPhoneSlide(idx) {
+      phoneIndex = (idx + phoneSlides.length) % phoneSlides.length;
+      const slides = phoneScreen.querySelectorAll('.carousel-slide');
+      const dots = carouselDots.querySelectorAll('.dot');
+      slides.forEach((s, i) => {
+        s.classList.toggle('active', i === phoneIndex);
+      });
+      dots.forEach((d, i) => {
+        d.classList.toggle('active', i === phoneIndex);
+      });
+    }
+
+    phonePrev.onclick = (e) => {
+      e.stopPropagation();
+      setPhoneSlide(phoneIndex - 1);
+    };
+
+    phoneNext.onclick = (e) => {
+      e.stopPropagation();
+      setPhoneSlide(phoneIndex + 1);
+    };
+
+    phoneScreen.onclick = () => {
+      setPhoneSlide(phoneIndex + 1);
+    };
+
+    initPhoneCarousel();
+
+    // Global Event Listeners
+    document.getElementById('prev').onclick = (e) => { e.stopPropagation(); showImage(-1); };
+    document.getElementById('next').onclick = (e) => { e.stopPropagation(); showImage(1); };
+    document.getElementById('close').onclick = closeLightbox;
+    
+    lb.onclick = (e) => {
+      if (e.target === lb) closeLightbox();
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (lb.classList.contains('active')) {
+        if (e.key === 'ArrowLeft') showImage(-1);
+        if (e.key === 'ArrowRight') showImage(1);
+        if (e.key === 'Escape') closeLightbox();
+      }
+    });
+  </script>
+</body>
+</html>
