@@ -1,0 +1,3692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KOKORO WEAR — 心猫 // Official Archive</title>
+
+  <!-- Google Fonts: Poller One, Space Grotesk, Shippori Mincho -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poller+One&family=Shippori+Mincho:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Matter.js 2D Physics Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            kinari: '#F4EFE6',
+            washi: '#F5F2EB',
+            indigoDark: '#1A2B3C',
+            sumi: '#1E1E1E',
+            slateMuted: '#75848F',
+            hanko: '#BA3B2E',
+            persimmon: '#C85A3A',
+            ochre: '#C85A32',
+            matcha: '#7A8B6E',
+          },
+          fontFamily: {
+            display: ['"Poller One"', 'sans-serif'],
+            grotesk: ['"Space Grotesk"', 'sans-serif'],
+            mincho: ['"Shippori Mincho"', 'serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Base Reset & Japanese Wabi-Sabi / Editorial Grid Styling */
+    * {
+      box-sizing: border-box;
+    }
+
+    canvas, #playArena, .no-select {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background-color: #F5F2EB;
+      color: #1E1E1E;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Tactile Paper Noise Overlay over Hero */
+    .grain-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 5;
+    }
+
+    /* =================================================================== */
+    /* ENTRY PROMO LASER GAME STYLES                                       */
+    /* =================================================================== */
+    .arena-canvas {
+      background-color: #EFE8DC;
+      background-image:
+        linear-gradient(to right, rgba(26, 43, 60, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(26, 43, 60, 0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+      cursor: none;
+      touch-action: manipulation;
+    }
+
+    .arena-canvas * {
+      cursor: none !important;
+    }
+
+    .laser-dot {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(
+        circle at center,
+        #ffffff 0%,
+        #ff3b28 24%,
+        #BA3B2E 48%,
+        rgba(186, 59, 46, 0.25) 70%,
+        rgba(186, 59, 46, 0) 100%
+      );
+      will-change: left, top, transform;
+      z-index: 10;
+    }
+
+    .laser-dot::after {
+      content: '';
+      position: absolute;
+      inset: 9px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      animation: laserPulse 0.65s ease-in-out infinite alternate;
+    }
+
+    @keyframes laserPulse {
+      from { transform: scale(0.85); opacity: 0.95; }
+      to   { transform: scale(1.25); opacity: 0.45; }
+    }
+
+    .cat-cursor {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      will-change: left, top, transform;
+      transition: opacity 0.15s ease;
+    }
+
+    .cat-pounce {
+      animation: pounceAction 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes pounceAction {
+      0%   { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+      40%  { transform: translate(-50%, -50%) scale(0.76) rotate(-6deg); }
+      75%  { transform: translate(-50%, -50%) scale(1.18) rotate(4deg); }
+      100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    }
+
+    .feedback-tag {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 30;
+      animation: floatUpFade 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes floatUpFade {
+      0%   { opacity: 1; transform: translate(-50%, -50%) scale(0.9); }
+      100% { opacity: 0; transform: translate(-50%, -140%) scale(1.04); }
+    }
+
+    .hanko-stamp {
+      animation: stampImpact 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes stampImpact {
+      0%   { opacity: 0; transform: scale(1.45) rotate(-8deg); }
+      70%  { opacity: 1; transform: scale(0.95) rotate(-3deg); }
+      100% { opacity: 1; transform: scale(1) rotate(-3deg); }
+    }
+
+    .modal-backdrop {
+      background-color: rgba(26, 43, 60, 0.45);
+      backdrop-filter: blur(2px);
+    }
+
+    /* Seamless Rotating Marquee for Street Cats NYC Campaign */
+    @keyframes streetCatsMarquee {
+      0% {
+        transform: translate3d(0, 0, 0);
+      }
+      100% {
+        transform: translate3d(-50%, 0, 0);
+      }
+    }
+
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: streetCatsMarquee 32s linear infinite;
+      will-change: transform;
+    }
+
+    .marquee-wrapper:hover .marquee-track {
+      animation-play-state: paused;
+    }
+
+    @keyframes digitalPhonesMarquee {
+      0% {
+        transform: translate3d(-50%, 0, 0);
+      }
+      100% {
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    .digital-marquee-track {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding: 2rem 1rem;
+      width: max-content;
+      animation: digitalPhonesMarquee 36s linear infinite;
+      will-change: transform;
+    }
+
+    .marquee-wrapper:hover .digital-marquee-track {
+      animation-play-state: paused;
+    }
+  </style>
+</head>
+
+<body class="bg-washi text-sumi min-h-screen flex flex-col relative">
+
+  <!-- ===================================================================== -->
+  <!-- OUTIL-INSPIRED CENTERED LOGO NAVIGATION BAR                           -->
+  <!-- ===================================================================== -->
+  <header
+    id="siteHeader"
+    class="fixed top-0 left-0 right-0 z-40 w-full transition-colors duration-300 bg-washi/80 backdrop-blur-[2px] border-b border-indigoDark/10"
+  >
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-8 h-14 sm:h-16 grid grid-cols-3 items-center">
+      <!-- Left Editorial Links -->
+      <nav aria-label="Primary Navigation" class="flex items-center gap-4 sm:gap-6 text-[11px] sm:text-xs font-grotesk uppercase tracking-[0.14em] text-indigoDark/80">
+        <a href="#sneak-peak" class="hover:text-hanko transition-colors">Collection</a>
+        <a href="#street-cats" class="hidden sm:inline-block hover:text-hanko transition-colors">Street Cat</a>
+        <a href="#digital" class="hidden md:inline-block hover:text-hanko transition-colors">Digital</a>
+        <a href="#paw-thread-lab" class="hidden lg:inline-block hover:text-hanko transition-colors">Paw &amp; Thread Lab</a>
+      </nav>
+
+      <!-- Centered Brand Emblem & Wordmark Lockup (KOKORO [Emblem] WEAR) -->
+      <div class="flex justify-center">
+        <a href="#" aria-label="Kokoro Wear Home" class="group inline-flex items-center gap-2 sm:gap-2.5 text-indigoDark">
+          <span class="font-display text-[11px] sm:text-xs md:text-sm tracking-[0.14em] uppercase">
+            KOKORO
+          </span>
+          <svg
+            viewBox="0 0 400 320"
+            class="w-6 h-5 sm:w-7 sm:h-6 text-indigoDark transition-transform duration-300 group-hover:scale-105 shrink-0"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <polygon points="108,180 108,52 178,135" />
+            <polygon points="292,180 292,52 222,135" />
+            <path d="M 60,260 A 140,140 0 0,1 340,260 L 310,260 A 110,110 0 0,0 90,260 Z" />
+            <path d="M 115,260 A 85,85 0 0,1 285,260 L 255,260 A 55,55 0 0,0 145,260 Z" />
+            <path d="M 170,260 A 30,30 0 0,1 230,260 Z" />
+          </svg>
+          <span class="font-display text-[11px] sm:text-xs md:text-sm tracking-[0.14em] uppercase">
+            WEAR
+          </span>
+        </a>
+      </div>
+
+      <!-- Right Utility: Search Bar & Bag Drawer Trigger -->
+      <div class="flex items-center justify-end gap-3 sm:gap-5 text-[11px] sm:text-xs font-grotesk uppercase tracking-[0.12em] text-indigoDark/80">
+        <div class="relative hidden sm:flex items-center border-b border-indigoDark/40 focus-within:border-hanko transition-colors">
+          <input
+            id="navSearchInput"
+            type="text"
+            placeholder="SEARCH..."
+            aria-label="Search Kokoro Wear collection"
+            class="w-28 md:w-36 bg-transparent py-1 pr-5 text-[11px] font-grotesk uppercase tracking-[0.12em] text-indigoDark placeholder:text-slateMuted focus:outline-none"
+          />
+          <button
+            id="clearSearchBtn"
+            type="button"
+            aria-label="Clear search"
+            class="hidden absolute right-0 text-[10px] font-display text-slateMuted hover:text-hanko cursor-pointer px-1"
+          >
+            X
+          </button>
+        </div>
+
+        <button
+          id="openCartBtn"
+          type="button"
+          class="hover:text-hanko transition-colors cursor-pointer uppercase tracking-[0.14em] font-semibold"
+        >
+          Bag (<span id="cartCountBadge">0</span>)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- FULL-BLEED INTERACTIVE 16:9 HERO PHYSICS SECTION                      -->
+  <!-- ===================================================================== -->
+  <main
+    id="hero-frame"
+    class="relative w-full aspect-[16/9] max-h-[92vh] mt-14 sm:mt-16 overflow-hidden bg-washi border-b border-indigoDark/15"
+  >
+    <canvas id="physics-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+    <div class="grain-overlay"></div>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 01: FLUSH HEADBOARD & BRAND MANIFESTO                         -->
+  <!-- ===================================================================== -->
+  <section
+    id="collection"
+    aria-label="Kokoro Wear Atelier Headboard"
+    class="w-full bg-washi"
+  >
+    <!-- Flush Full-Width Headboard Image -->
+    <div class="w-full overflow-hidden">
+      <img
+        src="headboard.jfif"
+        alt="Kokoro Wear Japanese Sashiko Indigo Textiles, Hanko Stamps, and Cat Embroidery Craft"
+        onerror="this.onerror=null; this.src='headboard_2.jfif';"
+        class="w-full h-auto max-h-[78vh] object-cover object-center block"
+      />
+    </div>
+
+    <!-- Centered Editorial Manifesto Line -->
+    <div class="max-w-3xl mx-auto px-6 py-12 sm:py-16 text-center">
+      <p class="font-mincho text-base sm:text-lg md:text-xl text-indigoDark leading-relaxed tracking-wide">
+        Worn in by the city, built to stay, pairing feline poise with unhurried Japanese texture.
+      </p>
+    </div>
+
+    <!-- Fine Dashed Divider -->
+    <div class="w-full max-w-[1440px] mx-auto px-6 sm:px-12">
+      <hr class="border-0 border-t border-dashed border-indigoDark/35" />
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 02: NINE LIVES, ONE LOOK — 5-PRODUCT CATALOGUE                -->
+  <!-- ===================================================================== -->
+  <section
+    id="sneak-peak"
+    aria-label="Nine Lives, One Look — A Sneak Peak"
+    class="w-full bg-washi px-6 sm:px-12 py-14 sm:py-20"
+  >
+    <div class="max-w-[1440px] mx-auto">
+      <!-- Section Heading & Subheading -->
+      <div class="text-center mb-10 sm:mb-12">
+        <h2 class="font-display text-xl sm:text-2xl md:text-3xl text-indigoDark tracking-wide uppercase">
+          NINE LIVES, <span class="text-ochre">ONE LOOK</span>
+        </h2>
+        <p class="font-grotesk text-xs sm:text-sm tracking-[0.08em] text-slateMuted mt-2">
+          A sneak peak into Kokoro Wear's first collection
+        </p>
+      </div>
+
+      <!-- 5 Equal Rectangular Product Photos Flush Next to Each Other -->
+      <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-0 border border-indigoDark/15 bg-white">
+        <!-- Product 1: Neko Seigaiha Drawstring Pouch -->
+        <div
+          data-product-index="0"
+          data-search-terms="neko seigaiha kinchaku pouch bag indigo drawstring"
+          class="product-card group flex flex-col bg-kinari/40 border-b lg:border-b-0 border-r border-indigoDark/15 cursor-pointer"
+        >
+          <div class="relative aspect-[3/4] w-full overflow-hidden bg-[#F7F7F7] border-b border-indigoDark/10">
+            <img
+              src="product1.jfif"
+              alt="Neko Seigaiha Indigo Drawstring Pouch"
+              onerror="this.onerror=null; this.src='https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+01';"
+              class="w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
+            />
+            <span class="quick-add-btn absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-indigoDark text-kinari font-display text-[10px] px-2.5 py-1.5 tracking-wider uppercase hover:bg-hanko">
+              + ADD
+            </span>
+          </div>
+          <div class="p-3 sm:p-3.5 flex flex-col justify-between flex-1 bg-washi">
+            <h3 class="font-grotesk text-xs font-semibold uppercase tracking-[0.06em] text-indigoDark leading-snug">
+              Neko Seigaiha Kinchaku Pouch
+            </h3>
+            <div class="mt-2 flex items-center justify-between text-xs font-grotesk">
+              <span class="font-medium text-sumi">$68.00</span>
+              <span class="text-[10px] uppercase tracking-widest text-slateMuted">OS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product 2: Kinari Claw-Scratch Embroidered Hoodie -->
+        <div
+          data-product-index="1"
+          data-search-terms="kinari claw scratch hoodie sweatshirt ecru tabby"
+          class="product-card group flex flex-col bg-kinari/40 border-b lg:border-b-0 sm:border-r border-indigoDark/15 cursor-pointer"
+        >
+          <div class="relative aspect-[3/4] w-full overflow-hidden bg-[#F7F7F7] border-b border-indigoDark/10">
+            <img
+              src="product2.jfif"
+              alt="Kinari Tabby Scratch Hoodie with Seigaiha Elbow Patches"
+              onerror="this.onerror=null; this.src='https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+02';"
+              class="w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
+            />
+            <span class="quick-add-btn absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-indigoDark text-kinari font-display text-[10px] px-2.5 py-1.5 tracking-wider uppercase hover:bg-hanko">
+              + ADD
+            </span>
+          </div>
+          <div class="p-3 sm:p-3.5 flex flex-col justify-between flex-1 bg-washi">
+            <h3 class="font-grotesk text-xs font-semibold uppercase tracking-[0.06em] text-indigoDark leading-snug">
+              Kinari Claw-Scratch Hoodie
+            </h3>
+            <div class="mt-2 flex items-center justify-between text-xs font-grotesk">
+              <span class="font-medium text-sumi">$165.00</span>
+              <span class="text-[10px] uppercase tracking-widest text-slateMuted">S–XL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product 3: Indigo & Ecru Checkered Leather-Trim Tote -->
+        <div
+          data-product-index="2"
+          data-search-terms="indigo checkered atelier tote bag leather jacquard"
+          class="product-card group flex flex-col bg-kinari/40 border-b lg:border-b-0 border-r sm:border-r-0 lg:border-r border-indigoDark/15 cursor-pointer"
+        >
+          <div class="relative aspect-[3/4] w-full overflow-hidden bg-[#F7F7F7] border-b border-indigoDark/10">
+            <img
+              src="product3.jfif"
+              alt="Indigo Checkered Structured Tote Bag"
+              onerror="this.onerror=null; this.src='https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+03';"
+              class="w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
+            />
+            <span class="quick-add-btn absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-indigoDark text-kinari font-display text-[10px] px-2.5 py-1.5 tracking-wider uppercase hover:bg-hanko">
+              + ADD
+            </span>
+          </div>
+          <div class="p-3 sm:p-3.5 flex flex-col justify-between flex-1 bg-washi">
+            <h3 class="font-grotesk text-xs font-semibold uppercase tracking-[0.06em] text-indigoDark leading-snug">
+              Indigo Checkered Atelier Tote
+            </h3>
+            <div class="mt-2 flex items-center justify-between text-xs font-grotesk">
+              <span class="font-medium text-sumi">$195.00</span>
+              <span class="text-[10px] uppercase tracking-widest text-slateMuted">OS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product 4: Aizome Sashiko Enso Cat Haori Jacket -->
+        <div
+          data-product-index="3"
+          data-search-terms="aizome sashiko enso haori jacket kimono coat navy"
+          class="product-card group flex flex-col bg-kinari/40 border-b sm:border-b-0 sm:border-r border-indigoDark/15 cursor-pointer"
+        >
+          <div class="relative aspect-[3/4] w-full overflow-hidden bg-[#F7F7F7] border-b border-indigoDark/10">
+            <img
+              src="product4.jfif"
+              alt="Aizome Sashiko Enso Cat Haori Jacket"
+              onerror="this.onerror=null; this.src='https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+04';"
+              class="w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
+            />
+            <span class="quick-add-btn absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-indigoDark text-kinari font-display text-[10px] px-2.5 py-1.5 tracking-wider uppercase hover:bg-hanko">
+              + ADD
+            </span>
+          </div>
+          <div class="p-3 sm:p-3.5 flex flex-col justify-between flex-1 bg-washi">
+            <h3 class="font-grotesk text-xs font-semibold uppercase tracking-[0.06em] text-indigoDark leading-snug">
+              Aizome Sashiko Enso Haori
+            </h3>
+            <div class="mt-2 flex items-center justify-between text-xs font-grotesk">
+              <span class="font-medium text-sumi">$240.00</span>
+              <span class="text-[10px] uppercase tracking-widest text-slateMuted">S–XL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product 5: Split-Panel Neko Seigaiha Camp Collar Shirt -->
+        <div
+          data-product-index="4"
+          data-search-terms="split panel neko camp shirt button down black"
+          class="product-card group flex flex-col bg-kinari/40 col-span-2 sm:col-span-1 cursor-pointer"
+        >
+          <div class="relative aspect-[3/4] w-full overflow-hidden bg-[#F7F7F7] border-b border-indigoDark/10">
+            <img
+              src="product5.jfif"
+              alt="Split-Panel Neko Seigaiha Camp Collar Shirt"
+              onerror="this.onerror=null; this.src='https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+05';"
+              class="w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
+            />
+            <span class="quick-add-btn absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-indigoDark text-kinari font-display text-[10px] px-2.5 py-1.5 tracking-wider uppercase hover:bg-hanko">
+              + ADD
+            </span>
+          </div>
+          <div class="p-3 sm:p-3.5 flex flex-col justify-between flex-1 bg-washi">
+            <h3 class="font-grotesk text-xs font-semibold uppercase tracking-[0.06em] text-indigoDark leading-snug">
+              Split-Panel Neko Camp Shirt
+            </h3>
+            <div class="mt-2 flex items-center justify-between text-xs font-grotesk">
+              <span class="font-medium text-sumi">$135.00</span>
+              <span class="text-[10px] uppercase tracking-widest text-slateMuted">S–XL</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Search State Message -->
+      <div id="noSearchResults" class="hidden py-12 text-center border border-t-0 border-indigoDark/15 bg-kinari/50">
+        <p class="font-display text-xs uppercase tracking-wider text-indigoDark">NO ARCHIVE ITEMS MATCH YOUR SEARCH</p>
+        <button id="resetSearchStateBtn" type="button" class="mt-3 px-4 py-1.5 bg-indigoDark text-kinari font-grotesk text-xs uppercase tracking-widest cursor-pointer">
+          View All 5 Pieces
+        </button>
+      </div>
+    </div>
+
+    <!-- Fine Dashed Divider -->
+    <div class="w-full max-w-[1440px] mx-auto mt-14 sm:mt-20">
+      <hr class="border-0 border-t border-dashed border-indigoDark/35" />
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 03: STREET CATS — THE CAT TAKEOVER IN NEW YORK CITY           -->
+  <!-- ===================================================================== -->
+  <section
+    id="street-cats"
+    aria-label="Street Cats — the cat takeover in New York City"
+    class="w-full bg-washi pb-16 sm:pb-24"
+  >
+    <div class="max-w-[1440px] mx-auto px-6 sm:px-12">
+      <!-- Section Heading & Subheading -->
+      <div class="text-center mb-10 sm:mb-12">
+        <h2 class="font-display text-xl sm:text-2xl md:text-3xl text-indigoDark tracking-wide uppercase">
+          STREET <span class="text-ochre">CATS</span>
+        </h2>
+        <p class="font-grotesk text-xs sm:text-sm tracking-[0.08em] text-slateMuted mt-2">
+          the cat takeover in New York City
+        </p>
+      </div>
+    </div>
+
+    <!-- Full-Bleed Continuous Rotating Marquee (Zero Gaps, No Captions Underneath) -->
+    <div class="marquee-wrapper w-full overflow-hidden border-y border-indigoDark/15 bg-kinari">
+      <div id="streetCatsTrack" class="marquee-track">
+        <!-- Populated dynamically with duplicated set of printmock1-5 for seamless looping -->
+      </div>
+    </div>
+
+    <!-- Fine Dashed Divider -->
+    <div class="w-full max-w-[1440px] mx-auto px-6 sm:px-12 mt-14 sm:mt-20">
+      <hr class="border-0 border-t border-dashed border-indigoDark/35" />
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 04: DIGITAL — CURIOSITY ON SCREEN (ROTATING PHONE MOCKUPS)    -->
+  <!-- ===================================================================== -->
+  <section
+    id="digital"
+    aria-label="Curiosity on Screen — digital campaigns of Kokoro Wear"
+    class="w-full bg-washi pb-16 sm:pb-24"
+  >
+    <div class="max-w-[1440px] mx-auto px-6 sm:px-12">
+      <!-- Section Heading & Subheading -->
+      <div class="text-center mb-10 sm:mb-12">
+        <h2 class="font-display text-xl sm:text-2xl md:text-3xl text-indigoDark tracking-wide uppercase">
+          CURIOSITY <span class="text-ochre">ON SCREEN</span>
+        </h2>
+        <p class="font-grotesk text-xs sm:text-sm tracking-[0.08em] text-slateMuted mt-2">
+          digital campaigns of Kokoro Wear
+        </p>
+      </div>
+    </div>
+
+    <!-- Continuous Rotating Phone Mockup Marquee -->
+    <div class="marquee-wrapper w-full overflow-hidden border-y border-indigoDark/15 bg-kinari/60">
+      <div id="digitalFeedTrack" class="digital-marquee-track">
+        <!-- Populated dynamically with duplicated set of digmock1-5 inside smartphone frames -->
+      </div>
+    </div>
+
+    <!-- Fine Dashed Divider -->
+    <div class="w-full max-w-[1440px] mx-auto px-6 sm:px-12 mt-14 sm:mt-20">
+      <hr class="border-0 border-t border-dashed border-indigoDark/35" />
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 05: PAW & THREAD LAB — STITCH YOUR MARK PATCH STUDIO          -->
+  <!-- ===================================================================== -->
+  <section
+    id="paw-thread-lab"
+    aria-label="Stitch Your Mark — Custom Embroidered Ironable Kokoro Patches"
+    class="w-full bg-washi px-6 sm:px-12 pb-20 sm:pb-28"
+  >
+    <div class="max-w-[1160px] mx-auto">
+      <!-- Section Heading & Subheading -->
+      <div class="text-center mb-10 sm:mb-12">
+        <h2 class="font-display text-xl sm:text-2xl md:text-3xl text-indigoDark tracking-wide uppercase">
+          STITCH <span class="text-ochre">YOUR MARK</span>
+        </h2>
+        <p class="font-grotesk text-xs sm:text-sm tracking-[0.08em] text-slateMuted mt-2">
+          Custom embroidered ironable Kokoro patches, crafted to order
+        </p>
+      </div>
+
+      <!-- Patch Generator Studio Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
+
+        <!-- Left Controls Panel (5 cols) -->
+        <div class="lg:col-span-5 bg-kinari p-5 sm:p-6 rounded-sm border-2 border-indigoDark flex flex-col justify-between space-y-5">
+          <div class="space-y-5">
+            <div class="border-b-2 border-indigoDark pb-3 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-display text-xs sm:text-sm text-indigoDark uppercase tracking-wide">PATCH PARAMETERS</span>
+                <span class="font-mincho text-xs font-bold text-hanko">刺繍</span>
+              </div>
+              <span class="text-[10px] font-display uppercase tracking-wider bg-hanko text-kinari px-2 py-0.5 rounded-sm">LIVE SYNC</span>
+            </div>
+
+            <!-- Shape Selector -->
+            <div>
+              <label class="block font-grotesk text-[11px] font-semibold uppercase tracking-[0.14em] text-slateMuted mb-2">
+                PATCH SILHOUETTE
+              </label>
+              <div class="grid grid-cols-4 gap-2">
+                <button type="button" data-patch-shape="square" class="patch-shape-btn px-2.5 py-2 text-xs font-grotesk uppercase tracking-wider rounded-sm bg-washi text-indigoDark border-[1.5px] border-indigoDark/40 hover:border-indigoDark transition font-semibold cursor-pointer">Square</button>
+                <button type="button" data-patch-shape="cat" class="patch-shape-btn px-2.5 py-2 text-xs font-grotesk uppercase tracking-wider rounded-sm bg-ochre text-kinari border-[1.5px] border-indigoDark transition font-semibold cursor-pointer">Cat</button>
+                <button type="button" data-patch-shape="circle" class="patch-shape-btn px-2.5 py-2 text-xs font-grotesk uppercase tracking-wider rounded-sm bg-washi text-indigoDark border-[1.5px] border-indigoDark/40 hover:border-indigoDark transition font-semibold cursor-pointer">Circle</button>
+                <button type="button" data-patch-shape="heart" class="patch-shape-btn px-2.5 py-2 text-xs font-grotesk uppercase tracking-wider rounded-sm bg-washi text-indigoDark border-[1.5px] border-indigoDark/40 hover:border-indigoDark transition font-semibold cursor-pointer">Heart</button>
+              </div>
+            </div>
+
+            <!-- Embroidery Thread Overlay Toggle -->
+            <div class="bg-washi p-3.5 rounded-sm border border-indigoDark/30 flex items-center justify-between gap-3">
+              <div>
+                <span class="font-grotesk text-xs font-bold uppercase tracking-wider text-indigoDark block">Embroidery Thread Overlay</span>
+                <span class="font-grotesk text-[11px] text-slateMuted">Layer directional satin stitch fibers &amp; sheen</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                <input type="checkbox" id="embroideryToggle" checked class="sr-only peer" />
+                <div class="w-11 h-6 bg-indigoDark/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-kinari after:border-indigoDark after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ochre"></div>
+              </label>
+            </div>
+
+            <!-- Base & Wave Colors -->
+            <div class="grid grid-cols-2 gap-3.5">
+              <div>
+                <label class="block font-grotesk text-[11px] font-semibold uppercase tracking-[0.14em] text-slateMuted mb-1.5">FABRIC BASE</label>
+                <div class="flex items-center space-x-2 bg-washi p-2 rounded-sm border border-indigoDark/30">
+                  <input type="color" id="patchBgColor" value="#1A2B3C" class="w-7 h-7 rounded-sm cursor-pointer bg-transparent border-0" />
+                  <span id="patchBgColorVal" class="text-xs font-mono text-indigoDark font-semibold">#1A2B3C</span>
+                </div>
+              </div>
+              <div>
+                <label class="block font-grotesk text-[11px] font-semibold uppercase tracking-[0.14em] text-slateMuted mb-1.5">WAVE STITCH</label>
+                <div class="flex items-center space-x-2 bg-washi p-2 rounded-sm border border-indigoDark/30">
+                  <input type="color" id="patchLineColor" value="#F4EFE6" class="w-7 h-7 rounded-sm cursor-pointer bg-transparent border-0" />
+                  <span id="patchLineColorVal" class="text-xs font-mono text-indigoDark font-semibold">#F4EFE6</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Up to 3 Cat Thread Colors & Distribution Mode -->
+            <div class="bg-washi p-3.5 rounded-sm border border-indigoDark/30 space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="font-grotesk text-[11px] font-semibold uppercase tracking-[0.14em] text-slateMuted">CAT SILHOUETTE COLORS</label>
+                <div class="flex space-x-1">
+                  <button type="button" data-cat-count="1" class="patch-count-btn px-2 py-0.5 text-[11px] font-grotesk rounded-sm bg-kinari text-indigoDark border border-indigoDark/30 cursor-pointer">1</button>
+                  <button type="button" data-cat-count="2" class="patch-count-btn px-2 py-0.5 text-[11px] font-grotesk rounded-sm bg-kinari text-indigoDark border border-indigoDark/30 cursor-pointer">2</button>
+                  <button type="button" data-cat-count="3" class="patch-count-btn px-2 py-0.5 text-[11px] font-grotesk rounded-sm bg-ochre text-kinari border border-indigoDark font-bold cursor-pointer">3</button>
+                </div>
+              </div>
+
+              <!-- Color Arrangement Mode Buttons -->
+              <div class="grid grid-cols-3 gap-1.5">
+                <button type="button" data-cat-mode="horizontal" class="patch-mode-btn px-2 py-1.5 text-[11px] font-grotesk uppercase tracking-wider rounded-sm bg-ochre text-kinari border border-indigoDark font-semibold transition cursor-pointer">Horizontal</button>
+                <button type="button" data-cat-mode="vertical" class="patch-mode-btn px-2 py-1.5 text-[11px] font-grotesk uppercase tracking-wider rounded-sm bg-kinari text-indigoDark border border-indigoDark/30 hover:border-indigoDark font-semibold transition cursor-pointer">Vertical</button>
+                <button type="button" data-cat-mode="random" class="patch-mode-btn px-2 py-1.5 text-[11px] font-grotesk uppercase tracking-wider rounded-sm bg-kinari text-indigoDark border border-indigoDark/30 hover:border-indigoDark font-semibold transition cursor-pointer">Randomize</button>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2">
+                <div id="patchCatColorBox1" class="flex flex-col items-center bg-kinari p-2 rounded-sm border border-indigoDark/25">
+                  <span class="text-[10px] font-grotesk uppercase tracking-wider text-slateMuted mb-1">Cat 1</span>
+                  <input type="color" id="patchCatColor1" value="#C85A32" class="w-7 h-7 rounded-sm cursor-pointer bg-transparent border-0" />
+                  <span id="patchCatColorVal1" class="text-[10px] font-mono text-indigoDark mt-1">#C85A32</span>
+                </div>
+                <div id="patchCatColorBox2" class="flex flex-col items-center bg-kinari p-2 rounded-sm border border-indigoDark/25">
+                  <span class="text-[10px] font-grotesk uppercase tracking-wider text-slateMuted mb-1">Cat 2</span>
+                  <input type="color" id="patchCatColor2" value="#BA3B2E" class="w-7 h-7 rounded-sm cursor-pointer bg-transparent border-0" />
+                  <span id="patchCatColorVal2" class="text-[10px] font-mono text-indigoDark mt-1">#BA3B2E</span>
+                </div>
+                <div id="patchCatColorBox3" class="flex flex-col items-center bg-kinari p-2 rounded-sm border border-indigoDark/25">
+                  <span class="text-[10px] font-grotesk uppercase tracking-wider text-slateMuted mb-1">Cat 3</span>
+                  <input type="color" id="patchCatColor3" value="#9D8870" class="w-7 h-7 rounded-sm cursor-pointer bg-transparent border-0" />
+                  <span id="patchCatColorVal3" class="text-[10px] font-mono text-indigoDark mt-1">#9D8870</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Line Thickness & Wave Scale -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="flex justify-between items-center mb-1.5">
+                  <label class="font-grotesk text-[11px] font-semibold uppercase tracking-[0.14em] text-slateMuted">LINE WIDTH</label>
+                  <span id="patchStrokeWeightVal" class="text-xs font-mono text-hanko font-bold">2.5px</span>
+                </div>
+                <input type="range" id="patchStrokeWeight" min="1.5" max="4.5" step="0.5" value="2.5" class="w-full accent-ochre cursor-pointer" />
+              </div>
+              <div>
+                <div class="flex justify-between items-center mb-1.5">
+                  <label class="font-grotesk text-[11px] font-semibold uppercase tracking-[0.14em] text-slateMuted">PATTERN SCALE</label>
+                  <span id="patchScaleVal" class="text-xs font-mono text-hanko font-bold">36px</span>
+                </div>
+                <input type="range" id="patchWaveScale" min="26" max="52" step="2" value="36" class="w-full accent-ochre cursor-pointer" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Utility Buttons -->
+          <div class="pt-2 flex gap-3 border-t border-dashed border-indigoDark/30">
+            <button type="button" id="randomizePatchBtn" class="flex-1 bg-washi hover:bg-indigoDark hover:text-kinari text-indigoDark py-2.5 rounded-sm font-grotesk uppercase tracking-wider font-semibold text-xs border-[1.5px] border-indigoDark transition cursor-pointer">
+              Randomize
+            </button>
+            <button type="button" id="downloadPatchBtn" class="flex-1 bg-washi hover:bg-indigoDark hover:text-kinari text-indigoDark py-2.5 rounded-sm font-grotesk uppercase tracking-wider font-semibold text-xs border-[1.5px] border-indigoDark transition cursor-pointer">
+              Download PNG
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Preview & Add-to-Cart Stage (7 cols) -->
+        <div class="lg:col-span-7 bg-kinari rounded-sm border-2 border-indigoDark flex flex-col justify-between overflow-hidden">
+          <!-- Stage Header Bar -->
+          <div class="px-5 py-3 border-b-2 border-indigoDark bg-washi flex items-center justify-between text-xs font-grotesk">
+            <span class="uppercase tracking-[0.14em] text-slateMuted font-semibold">ATELIER HOOP // 3.5" IRON-ON BACKING</span>
+            <span class="font-display text-xs text-indigoDark">$15.00 USD</span>
+          </div>
+
+          <!-- Embroidery Patch Preview Stage with Tatami Grid -->
+          <div class="flex-1 flex flex-col items-center justify-center p-6 sm:p-10 bg-[#EFE8DC] relative min-h-[380px]" style="background-image: linear-gradient(to right, rgba(26, 43, 60, 0.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(26, 43, 60, 0.07) 1px, transparent 1px); background-size: 32px 32px;">
+            <span class="absolute top-3 left-3 font-display text-[10px] text-indigoDark/40 pointer-events-none">+ HOOP 01</span>
+            <span class="absolute top-3 right-3 font-display text-[10px] text-indigoDark/40 pointer-events-none">3.5 IN +</span>
+
+            <div id="patchSvgContainer" class="relative p-4">
+              <svg id="patchSvg" width="320" height="310" viewBox="0 0 320 310" class="block max-w-full h-auto">
+                <defs>
+                  <!-- Dynamic Clip Paths for Patch Shapes -->
+                  <clipPath id="clip-square">
+                    <rect x="20" y="15" width="280" height="280" rx="34" ry="34" />
+                  </clipPath>
+                  <clipPath id="clip-cat">
+                    <path d="
+                      M 160,64
+                      C 143,64 130,68 122,74
+                      C 118,77 114,76 111,73
+                      C 101,62 85,46 73,37
+                      C 67,33 61,36 59,44
+                      C 53,66 49,95 51,115
+                      C 52,123 48,131 44,140
+                      C 35,161 35,192 43,215
+                      C 56,254 98,278 160,278
+                      C 222,278 264,254 277,215
+                      C 285,192 285,161 276,140
+                      C 272,131 268,123 269,115
+                      C 271,95 267,66 261,44
+                      C 259,36 253,33 247,37
+                      C 235,46 219,62 209,73
+                      C 206,76 202,77 198,74
+                      C 190,68 177,64 160,64 Z" />
+                  </clipPath>
+                  <clipPath id="clip-circle">
+                    <circle cx="160" cy="155" r="140" />
+                  </clipPath>
+                  <clipPath id="clip-heart">
+                    <path d="M 160,275 C 160,275 288,195 288,115 C 288,75 256,42 218,42 C 186,42 160,70 160,70 C 160,70 134,42 102,42 C 64,42 32,75 32,115 C 32,195 160,275 160,275 Z" />
+                  </clipPath>
+
+                  <!-- Directional Satin Thread Fiber Pattern -->
+                  <pattern id="satinThreadPattern" width="12" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
+                    <line x1="1" y1="0" x2="1" y2="40" stroke="#FFFFFF" stroke-width="0.65" opacity="0.22" />
+                    <line x1="2.2" y1="0" x2="2.2" y2="40" stroke="#000000" stroke-width="0.7" opacity="0.28" />
+                    <line x1="3.5" y1="0" x2="3.5" y2="40" stroke="#FFFFFF" stroke-width="0.5" opacity="0.16" />
+                    <line x1="4.8" y1="0" x2="4.8" y2="40" stroke="#000000" stroke-width="0.65" opacity="0.25" />
+                    <line x1="6.2" y1="0" x2="6.2" y2="40" stroke="#FFFFFF" stroke-width="0.75" opacity="0.26" />
+                    <line x1="7.5" y1="0" x2="7.5" y2="40" stroke="#000000" stroke-width="0.6" opacity="0.24" />
+                    <line x1="9.0" y1="0" x2="9.0" y2="40" stroke="#FFFFFF" stroke-width="0.55" opacity="0.18" />
+                    <line x1="10.4" y1="0" x2="10.4" y2="40" stroke="#000000" stroke-width="0.75" opacity="0.30" />
+                    <line x1="0" y1="0" x2="12" y2="40" stroke="#FFFFFF" stroke-width="0.4" opacity="0.12" />
+                  </pattern>
+
+                  <!-- Glossy Silk Sheen Gradient Overlay -->
+                  <linearGradient id="silkSheenGradient" x1="0%" y1="0%" x2="100%" y2="35%">
+                    <stop offset="0%" stop-color="#000000" stop-opacity="0.22" />
+                    <stop offset="28%" stop-color="#FFFFFF" stop-opacity="0.18" />
+                    <stop offset="52%" stop-color="#000000" stop-opacity="0.12" />
+                    <stop offset="78%" stop-color="#FFFFFF" stop-opacity="0.22" />
+                    <stop offset="100%" stop-color="#000000" stop-opacity="0.25" />
+                  </linearGradient>
+
+                  <!-- Subtle 3D Stitch Relief & Drop Shadow Filter -->
+                  <filter id="stitchReliefFilter" x="-10%" y="-10%" width="120%" height="120%">
+                    <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#1A2B3C" flood-opacity="0.35" />
+                  </filter>
+                </defs>
+
+                <!-- Clipped Patch Body (Background + Vector Waves/Cats + Overlay Thread Texture) -->
+                <g id="clippedGroup" clip-path="url(#clip-cat)" filter="url(#stitchReliefFilter)">
+                  <!-- Base Fabric Fill -->
+                  <rect id="patchSvgBg" width="320" height="310" fill="#1A2B3C" />
+
+                  <!-- Vector Seigaiha Waves & Cat Silhouettes -->
+                  <g id="patchWavesGroup"></g>
+
+                  <!-- Directional Embroidery Thread Texture Overlay -->
+                  <g id="embroideryOverlayGroup" style="mix-blend-mode: overlay;" opacity="0.95">
+                    <rect width="320" height="310" fill="url(#satinThreadPattern)" />
+                    <rect width="320" height="310" fill="url(#silkSheenGradient)" />
+                  </g>
+                  <!-- Crisp Micro-Fiber Highlight Layer -->
+                  <rect id="embroideryHighlightLayer" width="320" height="310" fill="url(#satinThreadPattern)" opacity="0.38" pointer-events="none" />
+                </g>
+              </svg>
+            </div>
+
+            <p class="font-grotesk text-[11px] text-slateMuted text-center mt-2">
+              Directional satin stitch fiber overlay mapped directly onto vector geometry.
+            </p>
+          </div>
+
+          <!-- Bottom Price Tag & Add to Cart Action Bar -->
+          <div class="p-4 sm:p-5 border-t-2 border-indigoDark bg-kinari flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span class="block font-grotesk text-[10px] uppercase tracking-[0.14em] text-slateMuted font-semibold">
+                MADE TO ORDER // HEAT-SEAL BACKING
+              </span>
+              <div class="flex items-baseline gap-2.5 mt-0.5">
+                <span id="patchSummaryLabel" class="font-grotesk text-xs sm:text-sm font-bold uppercase text-indigoDark">
+                  CUSTOM CAT PATCH
+                </span>
+                <span class="font-display text-base sm:text-lg text-hanko">
+                  $15.00
+                </span>
+              </div>
+            </div>
+
+            <button
+              id="addCustomPatchToCartBtn"
+              type="button"
+              class="px-6 py-3 bg-ochre text-kinari font-display text-xs sm:text-sm uppercase tracking-[0.1em] border-2 border-indigoDark hover:bg-hanko transition-colors cursor-pointer rounded-sm"
+            >
+              ADD TO CART — $15
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 06: ARCHITECTURAL ATELIER FOOTER & EDITORIAL SIGN-OFF         -->
+  <!-- ===================================================================== -->
+  <footer
+    aria-label="Kokoro Wear Site Footer"
+    class="w-full bg-kinari border-t-2 border-indigoDark text-indigoDark"
+  >
+    <!-- Editorial Closing Manifesto & Shelter Pledge -->
+    <div class="max-w-3xl mx-auto px-6 pt-14 sm:pt-20 pb-10 sm:pb-14 text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 border border-indigoDark/30 bg-washi rounded-sm mb-5">
+        <span class="font-mincho text-xs font-bold text-hanko">心猫</span>
+        <span class="font-grotesk text-[10px] font-semibold uppercase tracking-[0.16em] text-indigoDark">
+          TOKYO LOOMS // LOWER EAST SIDE
+        </span>
+      </div>
+      <p class="font-mincho text-base sm:text-lg md:text-xl text-indigoDark leading-relaxed tracking-wide">
+        Crafted between Japanese looms and Lower East Side sidewalks — 10% of every SS27 drop directly supports NYC rescue cat shelters.
+      </p>
+    </div>
+
+    <!-- Fine Dashed Divider -->
+    <div class="w-full max-w-[1440px] mx-auto px-6 sm:px-12">
+      <hr class="border-0 border-t border-dashed border-indigoDark/35" />
+    </div>
+
+    <!-- 4-Column Archive Index -->
+    <div class="max-w-[1440px] mx-auto px-6 sm:px-12 py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
+      <!-- Column 1: Brand Stamp & NYC Atelier Coordinates -->
+      <div class="lg:col-span-4 space-y-4">
+        <a href="#" aria-label="Kokoro Wear Top" class="group inline-flex items-center gap-2.5 text-indigoDark">
+          <span class="font-display text-sm sm:text-base tracking-[0.14em] uppercase">
+            KOKORO
+          </span>
+          <svg
+            viewBox="0 0 400 320"
+            class="w-7 h-6 text-indigoDark transition-transform duration-300 group-hover:scale-105 shrink-0"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <polygon points="108,180 108,52 178,135" />
+            <polygon points="292,180 292,52 222,135" />
+            <path d="M 60,260 A 140,140 0 0,1 340,260 L 310,260 A 110,110 0 0,0 90,260 Z" />
+            <path d="M 115,260 A 85,85 0 0,1 285,260 L 255,260 A 55,55 0 0,0 145,260 Z" />
+            <path d="M 170,260 A 30,30 0 0,1 230,260 Z" />
+          </svg>
+          <span class="font-display text-sm sm:text-base tracking-[0.14em] uppercase">
+            WEAR
+          </span>
+        </a>
+
+        <p class="font-grotesk text-xs text-sumi/80 leading-relaxed max-w-xs">
+          Unhurried Aizome sashiko garments, custom iron-on patches, and feline-inspired essentials built for daily city mileage.
+        </p>
+
+        <div class="pt-1 font-grotesk text-[11px] uppercase tracking-[0.12em] text-slateMuted space-y-0.5">
+          <p>40.7185° N, 73.9903° W — ORCHARD ST, LES</p>
+          <p class="text-hanko font-semibold">@KOKORO_NYC // ISSUE 01</p>
+        </div>
+      </div>
+
+      <!-- Column 2: Archive Navigation -->
+      <div class="lg:col-span-2 space-y-3">
+        <h3 class="font-display text-xs uppercase tracking-[0.12em] text-indigoDark">
+          ARCHIVE
+        </h3>
+        <ul class="space-y-2.5 font-grotesk text-xs uppercase tracking-[0.12em] text-sumi/80">
+          <li><a href="#collection" class="hover:text-hanko transition-colors">Atelier Craft</a></li>
+          <li><a href="#sneak-peak" class="hover:text-hanko transition-colors">SS27 Collection</a></li>
+          <li><a href="#street-cats" class="hover:text-hanko transition-colors">Street Cats NYC</a></li>
+          <li><a href="#digital" class="hover:text-hanko transition-colors">Digital Feed</a></li>
+          <li><a href="#paw-thread-lab" class="hover:text-hanko transition-colors">Paw &amp; Thread Lab</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Atelier Care & Stockists -->
+      <div class="lg:col-span-2 space-y-3">
+        <h3 class="font-display text-xs uppercase tracking-[0.12em] text-indigoDark">
+          DISPATCH
+        </h3>
+        <ul class="space-y-2.5 font-grotesk text-xs uppercase tracking-[0.12em] text-sumi/80">
+          <li><a href="#sneak-peak" class="hover:text-hanko transition-colors">Sashiko Care Guide</a></li>
+          <li><a href="#paw-thread-lab" class="hover:text-hanko transition-colors">Iron-On Instructions</a></li>
+          <li><a href="#street-cats" class="hover:text-hanko transition-colors">NYC Cat Cafe Pop-Ups</a></li>
+          <li><button type="button" id="footerOpenBagBtn" class="uppercase tracking-[0.12em] hover:text-hanko transition-colors cursor-pointer">Shopping Bag</button></li>
+        </ul>
+      </div>
+
+      <!-- Column 4: Newsletter / Shelter Drop Alerts -->
+      <div class="lg:col-span-4 space-y-3">
+        <h3 class="font-display text-xs uppercase tracking-[0.12em] text-indigoDark">
+          CAT CAFE DISPATCH
+        </h3>
+        <p class="font-grotesk text-xs text-sumi/80 leading-relaxed">
+          First access to limited Spring 2027 batches, secret NYC cat cafe pop-ups, and shelter adoption drives.
+        </p>
+        <form id="footerNewsletterForm" class="pt-1">
+          <div class="flex items-stretch border-2 border-indigoDark rounded-sm overflow-hidden bg-washi">
+            <input
+              id="footerEmailInput"
+              type="email"
+              required
+              placeholder="YOUR@EMAIL.COM"
+              aria-label="Email address for Kokoro Wear newsletter"
+              class="flex-1 min-w-0 px-3.5 py-2.5 bg-transparent font-grotesk text-xs uppercase tracking-wider text-indigoDark placeholder:text-slateMuted focus:outline-none"
+            />
+            <button
+              type="submit"
+              id="footerNewsletterBtn"
+              class="px-5 py-2.5 bg-ochre text-kinari font-display text-xs uppercase tracking-wider hover:bg-hanko transition-colors cursor-pointer shrink-0 border-l-2 border-indigoDark"
+            >
+              JOIN
+            </button>
+          </div>
+          <p id="footerNewsletterMsg" class="hidden font-grotesk text-[11px] font-semibold text-hanko mt-2 uppercase tracking-wider"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bottom Legal Colophon Bar -->
+    <div class="border-t border-indigoDark/20 bg-washi">
+      <div class="max-w-[1440px] mx-auto px-6 sm:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] font-grotesk uppercase tracking-[0.14em] text-slateMuted">
+        <span>&copy; 2027 KOKORO WEAR LLC // ALL RIGHTS RESERVED</span>
+        <span class="text-indigoDark font-medium">HEART, MIND &amp; SPIRIT — <span class="font-mincho font-bold text-hanko">心猫</span></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- PRODUCT LIGHTBOX SHOWCASE MODAL                                       -->
+  <!-- ===================================================================== -->
+  <div
+    id="productModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="productModalTitle"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-6"
+  >
+    <div class="relative w-full max-w-[680px] flex items-center justify-center">
+      <!-- Previous Product Arrow -->
+      <button
+        id="prevProductBtn"
+        type="button"
+        aria-label="Previous product"
+        class="z-10 -mr-3 sm:mr-3 w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-kinari border-2 border-indigoDark text-indigoDark hover:bg-indigoDark hover:text-kinari transition-colors flex items-center justify-center cursor-pointer font-display text-sm sm:text-base rounded-sm"
+      >
+        &#8592;
+      </button>
+
+      <!-- Main Product Card -->
+      <div class="w-full max-w-[520px] bg-kinari border-2 border-indigoDark rounded-sm overflow-hidden">
+        <!-- Top Bar -->
+        <div class="flex items-stretch justify-between border-b-2 border-indigoDark bg-kinari">
+          <div class="px-4 py-2.5 flex items-center gap-2.5">
+            <span id="productModalIndex" class="font-display text-xs text-hanko tracking-wider">01 / 05</span>
+            <span class="text-indigoDark/30">|</span>
+            <span class="font-grotesk text-[11px] uppercase tracking-[0.14em] text-slateMuted font-semibold">
+              SS27 ARCHIVE PIECE
+            </span>
+          </div>
+
+          <button
+            id="closeProductModalBtn"
+            type="button"
+            aria-label="Close product preview"
+            class="w-11 border-l-2 border-indigoDark flex items-center justify-center text-indigoDark hover:bg-hanko hover:text-kinari transition-colors cursor-pointer font-display text-sm"
+          >
+            X
+          </button>
+        </div>
+
+        <!-- Large Product Image -->
+        <div class="w-full aspect-[4/4.3] bg-[#F7F7F7] overflow-hidden flex items-center justify-center border-b-2 border-indigoDark">
+          <img
+            id="productModalImg"
+            src=""
+            alt=""
+            class="w-full h-full object-contain object-center p-4"
+          />
+        </div>
+
+        <!-- Product Info & Size/Bag Controls -->
+        <div class="p-4 sm:p-5 bg-kinari text-left space-y-3">
+          <div class="flex items-baseline justify-between gap-3">
+            <h3 id="productModalTitle" class="font-display text-xs sm:text-sm text-indigoDark tracking-wide uppercase">
+              PRODUCT TITLE
+            </h3>
+            <span id="productModalPrice" class="font-display text-sm text-hanko shrink-0">
+              $0.00
+            </span>
+          </div>
+
+          <p id="productModalDesc" class="font-grotesk text-xs sm:text-sm text-sumi/85 leading-relaxed">
+            Product description appears here.
+          </p>
+
+          <!-- Size Selector & Add to Bag -->
+          <div class="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-dashed border-indigoDark/30">
+            <div class="flex items-center gap-2">
+              <span class="font-grotesk text-[11px] uppercase tracking-widest text-slateMuted font-semibold">SIZE:</span>
+              <div id="sizeSelectorGroup" class="flex items-center gap-1.5"></div>
+            </div>
+
+            <button
+              id="modalAddToCartBtn"
+              type="button"
+              class="px-5 py-2.5 bg-ochre text-kinari font-display text-xs uppercase tracking-[0.1em] border-2 border-indigoDark hover:bg-hanko transition-colors cursor-pointer rounded-sm"
+            >
+              ADD TO BAG
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Next Product Arrow -->
+      <button
+        id="nextProductBtn"
+        type="button"
+        aria-label="Next product"
+        class="z-10 -ml-3 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-kinari border-2 border-indigoDark text-indigoDark hover:bg-indigoDark hover:text-kinari transition-colors flex items-center justify-center cursor-pointer font-display text-sm sm:text-base rounded-sm"
+      >
+        &#8594;
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- STREET CATS CAMPAIGN LIGHTBOX POPUP MODAL                             -->
+  <!-- ===================================================================== -->
+  <div
+    id="streetCatModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="streetCatModalTitle"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-6"
+  >
+    <div class="relative w-full max-w-[680px] flex items-center justify-center">
+      <!-- Previous Campaign Image Arrow -->
+      <button
+        id="prevStreetCatBtn"
+        type="button"
+        aria-label="Previous Street Cat campaign photo"
+        class="z-10 -mr-3 sm:mr-3 w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-kinari border-2 border-indigoDark text-indigoDark hover:bg-indigoDark hover:text-kinari transition-colors flex items-center justify-center cursor-pointer font-display text-sm sm:text-base rounded-sm"
+      >
+        &#8592;
+      </button>
+
+      <!-- Main Street Cat Campaign Card -->
+      <div class="w-full max-w-[520px] bg-kinari border-2 border-indigoDark rounded-sm overflow-hidden">
+        <!-- Top Header Bar -->
+        <div class="flex items-stretch justify-between border-b-2 border-indigoDark bg-kinari">
+          <div class="px-4 py-2.5 flex items-center gap-2.5">
+            <span id="streetCatModalIndex" class="font-display text-xs text-hanko tracking-wider">01 / 05</span>
+            <span class="text-indigoDark/30">|</span>
+            <span class="font-grotesk text-[11px] uppercase tracking-[0.14em] text-slateMuted font-semibold">
+              STREET CATS // NYC TAKEOVER
+            </span>
+          </div>
+
+          <button
+            id="closeStreetCatModalBtn"
+            type="button"
+            aria-label="Close Street Cat campaign preview"
+            class="w-11 border-l-2 border-indigoDark flex items-center justify-center text-indigoDark hover:bg-hanko hover:text-kinari transition-colors cursor-pointer font-display text-sm"
+          >
+            X
+          </button>
+        </div>
+
+        <!-- Campaign Image Showcase -->
+        <div class="w-full aspect-[4/4.4] bg-[#1E1E1E] overflow-hidden flex items-center justify-center border-b-2 border-indigoDark">
+          <img
+            id="streetCatModalImg"
+            src=""
+            alt=""
+            class="w-full h-full object-contain object-center"
+          />
+        </div>
+
+        <!-- Campaign Caption Underneath Image -->
+        <div class="p-4 sm:p-5 bg-kinari text-left">
+          <div class="flex items-baseline justify-between gap-3">
+            <h3 id="streetCatModalTitle" class="font-display text-xs sm:text-sm text-indigoDark tracking-wide uppercase">
+              CAMPAIGN LOCATION
+            </h3>
+            <span id="streetCatModalCoords" class="font-grotesk text-[11px] font-semibold text-hanko shrink-0">
+              NYC
+            </span>
+          </div>
+          <p id="streetCatModalCaption" class="font-grotesk text-xs sm:text-sm text-sumi/85 leading-relaxed mt-1.5">
+            Campaign caption appears here.
+          </p>
+        </div>
+      </div>
+
+      <!-- Next Campaign Image Arrow -->
+      <button
+        id="nextStreetCatBtn"
+        type="button"
+        aria-label="Next Street Cat campaign photo"
+        class="z-10 -ml-3 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-kinari border-2 border-indigoDark text-indigoDark hover:bg-indigoDark hover:text-kinari transition-colors flex items-center justify-center cursor-pointer font-display text-sm sm:text-base rounded-sm"
+      >
+        &#8594;
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- DIGITAL CAMPAIGN LIGHTBOX POPUP MODAL                                 -->
+  <!-- ===================================================================== -->
+  <div
+    id="digitalModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="digitalModalTitle"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-6"
+  >
+    <div class="relative w-full max-w-[680px] flex items-center justify-center">
+      <!-- Previous Digital Ad Arrow -->
+      <button
+        id="prevDigitalBtn"
+        type="button"
+        aria-label="Previous digital campaign"
+        class="z-10 -mr-3 sm:mr-3 w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-kinari border-2 border-indigoDark text-indigoDark hover:bg-indigoDark hover:text-kinari transition-colors flex items-center justify-center cursor-pointer font-display text-sm sm:text-base rounded-sm"
+      >
+        &#8592;
+      </button>
+
+      <!-- Main Digital Campaign Card -->
+      <div class="w-full max-w-[520px] bg-kinari border-2 border-indigoDark rounded-sm overflow-hidden">
+        <!-- Top Header Bar -->
+        <div class="flex items-stretch justify-between border-b-2 border-indigoDark bg-kinari">
+          <div class="px-4 py-2.5 flex items-center gap-2.5">
+            <span id="digitalModalIndex" class="font-display text-xs text-hanko tracking-wider">01 / 03</span>
+            <span class="text-indigoDark/30">|</span>
+            <span id="digitalModalPlatform" class="font-grotesk text-[11px] uppercase tracking-[0.14em] text-slateMuted font-semibold">
+              IG STORY // FEED
+            </span>
+          </div>
+
+          <button
+            id="closeDigitalModalBtn"
+            type="button"
+            aria-label="Close digital campaign preview"
+            class="w-11 border-l-2 border-indigoDark flex items-center justify-center text-indigoDark hover:bg-hanko hover:text-kinari transition-colors cursor-pointer font-display text-sm"
+          >
+            X
+          </button>
+        </div>
+
+        <!-- Digital Campaign Visual Showcase -->
+        <div class="w-full aspect-[4/4.4] bg-[#1E1E1E] overflow-hidden flex items-center justify-center border-b-2 border-indigoDark" id="digitalModalMediaWrap">
+          <img
+            id="digitalModalImg"
+            src=""
+            alt=""
+            class="w-full h-full object-contain object-center"
+          />
+          <video
+            id="digitalModalVideo"
+            src=""
+            autoplay
+            loop
+            muted
+            playsinline
+            class="hidden w-full h-full object-contain object-center"
+          ></video>
+        </div>
+
+        <!-- Digital Campaign Caption Underneath Image -->
+        <div class="p-4 sm:p-5 bg-kinari text-left">
+          <div class="flex items-baseline justify-between gap-3">
+            <h3 id="digitalModalTitle" class="font-display text-xs sm:text-sm text-indigoDark tracking-wide uppercase">
+              CAMPAIGN TITLE
+            </h3>
+            <span id="digitalModalHandle" class="font-grotesk text-[11px] font-semibold text-hanko shrink-0">
+              @KOKORO_NYC
+            </span>
+          </div>
+          <p id="digitalModalCaption" class="font-grotesk text-xs sm:text-sm text-sumi/85 leading-relaxed mt-1.5">
+            Digital campaign details appear here.
+          </p>
+        </div>
+      </div>
+
+      <!-- Next Digital Ad Arrow -->
+      <button
+        id="nextDigitalBtn"
+        type="button"
+        aria-label="Next digital campaign"
+        class="z-10 -ml-3 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-kinari border-2 border-indigoDark text-indigoDark hover:bg-indigoDark hover:text-kinari transition-colors flex items-center justify-center cursor-pointer font-display text-sm sm:text-base rounded-sm"
+      >
+        &#8594;
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SLIDE-OUT SHOPPING BAG / CHECKOUT DRAWER                              -->
+  <!-- ===================================================================== -->
+  <div
+    id="cartDrawerOverlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cartDrawerTitle"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex justify-end"
+  >
+    <div class="w-full max-w-md h-full bg-kinari border-l-2 border-indigoDark flex flex-col justify-between overflow-hidden">
+      <!-- Drawer Header -->
+      <div class="flex items-stretch justify-between border-b-2 border-indigoDark bg-kinari">
+        <div class="px-5 py-3.5 flex items-center gap-2.5">
+          <h2 id="cartDrawerTitle" class="font-display text-sm text-indigoDark tracking-wide uppercase">
+            SHOPPING BAG
+          </h2>
+          <span class="font-mincho text-xs font-bold text-hanko">心猫</span>
+        </div>
+        <button
+          id="closeCartDrawerBtn"
+          type="button"
+          aria-label="Close shopping bag"
+          class="w-12 border-l-2 border-indigoDark flex items-center justify-center text-indigoDark hover:bg-hanko hover:text-kinari transition-colors cursor-pointer font-display text-sm"
+        >
+          X
+        </button>
+      </div>
+
+      <!-- Cart Items List -->
+      <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-5 space-y-4">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Cart Footer: Promo Code & Totals -->
+      <div class="border-t-2 border-indigoDark bg-washi p-5 space-y-4">
+        <!-- Promo Code Input -->
+        <div>
+          <label for="cartPromoInput" class="block font-grotesk text-[10px] font-semibold uppercase tracking-[0.14em] text-slateMuted mb-1.5">
+            PROMO CODE (TRY: KOKORO15)
+          </label>
+          <div class="flex items-stretch border-[1.5px] border-indigoDark rounded-sm overflow-hidden bg-white">
+            <input
+              id="cartPromoInput"
+              type="text"
+              placeholder="ENTER CODE"
+              class="flex-1 px-3 py-2 font-display text-xs uppercase tracking-wider text-indigoDark focus:outline-none"
+            />
+            <button
+              id="applyCartPromoBtn"
+              type="button"
+              class="px-4 py-2 bg-indigoDark text-kinari font-display text-[11px] uppercase tracking-wider hover:bg-ochre transition-colors cursor-pointer"
+            >
+              APPLY
+            </button>
+          </div>
+          <p id="cartPromoMessage" class="hidden font-grotesk text-[11px] mt-1 font-medium"></p>
+        </div>
+
+        <!-- Totals Breakdown -->
+        <div class="space-y-1.5 text-xs font-grotesk border-t border-dashed border-indigoDark/30 pt-3">
+          <div class="flex justify-between text-sumi/80">
+            <span>SUBTOTAL</span>
+            <span id="cartSubtotal">$0.00</span>
+          </div>
+          <div id="cartDiscountRow" class="hidden flex justify-between text-hanko font-semibold">
+            <span>DISCOUNT (15% OFF — KOKORO15)</span>
+            <span id="cartDiscountAmount">-$0.00</span>
+          </div>
+          <div class="flex justify-between font-display text-sm text-indigoDark pt-1.5 border-t border-indigoDark/15">
+            <span>TOTAL</span>
+            <span id="cartTotal">$0.00</span>
+          </div>
+        </div>
+
+        <!-- Checkout Button -->
+        <button
+          id="checkoutBtn"
+          type="button"
+          class="w-full py-3.5 bg-ochre text-kinari font-display text-xs sm:text-sm uppercase tracking-[0.12em] border-2 border-indigoDark hover:bg-hanko transition-colors cursor-pointer rounded-sm"
+        >
+          PROCEED TO CHECKOUT
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- KOKORO WEAR INTERACTIVE ENTRY PROMO MODAL (15% OFF LASER CATCH)       -->
+  <!-- ===================================================================== -->
+  <div
+    id="promoModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalTitle"
+    class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-3 sm:p-6"
+  >
+    <!-- Crisp Architectural Card -->
+    <div class="w-full max-w-[680px] bg-kinari border-2 border-indigoDark rounded-sm overflow-hidden">
+
+      <!-- Top Swiss Grid Bar -->
+      <div class="flex items-stretch justify-between border-b-2 border-indigoDark bg-kinari">
+        <div class="px-4 sm:px-5 py-3 flex flex-col justify-center">
+          <div class="flex items-center gap-2.5">
+            <span class="font-display text-xs sm:text-sm tracking-wide text-indigoDark">
+              KOKORO WEAR // 01
+            </span>
+            <span class="font-mincho text-xs font-bold text-hanko">心猫</span>
+          </div>
+          <p id="modalTitle" class="font-grotesk text-xs sm:text-sm font-semibold tracking-wide text-slateMuted mt-0.5 uppercase">
+            CATCH THE LASER TO UNLOCK 15% OFF
+          </p>
+        </div>
+
+        <!-- Clean 'X' Close Button -->
+        <button
+          id="closeModalBtn"
+          type="button"
+          aria-label="Close promotional game"
+          class="w-12 sm:w-14 border-l-2 border-indigoDark flex items-center justify-center text-indigoDark hover:bg-hanko hover:text-kinari transition-colors cursor-pointer font-display text-base"
+        >
+          X
+        </button>
+      </div>
+
+      <!-- STATE 1: INTERACTIVE LASER POINTER GAME ARENA -->
+      <div id="gameState" class="p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3 text-xs font-grotesk">
+          <div class="flex items-center gap-2 text-indigoDark font-medium">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-hanko"></span>
+            <span>Move your cat &amp; <strong class="underline decoration-ochre decoration-2">click / tap</strong> directly on the laser dot!</span>
+          </div>
+          <div class="font-display text-[11px] tracking-wide text-slateMuted">
+            ATTEMPTS: <span id="attemptCounter" class="text-indigoDark">0</span>
+          </div>
+        </div>
+
+        <!-- Play Arena -->
+        <div
+          id="playArena"
+          class="arena-canvas relative w-full max-w-[640px] h-[340px] sm:h-[380px] mx-auto border-[1.5px] border-indigoDark rounded-sm overflow-hidden"
+        >
+          <span class="absolute top-2 left-2 font-display text-[10px] text-indigoDark/40 pointer-events-none">+ NW</span>
+          <span class="absolute top-2 right-2 font-display text-[10px] text-indigoDark/40 pointer-events-none">NE +</span>
+          <span class="absolute bottom-2 left-2 font-display text-[10px] text-indigoDark/40 pointer-events-none">+ SW</span>
+          <span class="absolute bottom-2 right-2 font-display text-[10px] text-indigoDark/40 pointer-events-none">SE +</span>
+
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.07]">
+            <span class="font-mincho text-7xl sm:text-8xl font-bold text-indigoDark">心猫</span>
+          </div>
+
+          <!-- Sporadic Glowing Laser Pointer Target -->
+          <div id="laserDot" class="laser-dot" style="left: 50%; top: 50%;"></div>
+
+          <!-- Custom Kokoro SVG Cat Cursor Chaser -->
+          <div id="catCursor" class="cat-cursor" style="left: 25%; top: 50%;">
+            <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 44 L16 14 L42 28 Z" fill="#1A2B3C" stroke="#1A2B3C" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M24 39 L20 21 L36 30 Z" fill="#C85A32"/>
+              <path d="M78 44 L84 14 L58 28 Z" fill="#1A2B3C" stroke="#1A2B3C" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M76 39 L80 21 L64 30 Z" fill="#C85A32"/>
+              <rect x="18" y="26" width="64" height="54" rx="26" fill="#F4EFE6" stroke="#1A2B3C" stroke-width="4"/>
+              <path d="M50 27 V36" stroke="#C85A32" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M41 29 L43 35" stroke="#C85A32" stroke-width="3" stroke-linecap="round"/>
+              <path d="M59 29 L57 35" stroke="#C85A32" stroke-width="3" stroke-linecap="round"/>
+              <ellipse cx="36" cy="51" rx="6.5" ry="7.5" fill="#1A2B3C"/>
+              <circle cx="34" cy="48.5" r="2.2" fill="#F4EFE6"/>
+              <ellipse cx="64" cy="51" rx="6.5" ry="7.5" fill="#1A2B3C"/>
+              <circle cx="62" cy="48.5" r="2.2" fill="#F4EFE6"/>
+              <path d="M46 60 H54 L50 65 Z" fill="#BA3B2E"/>
+              <path d="M50 65 C50 69 44 71 41 68" stroke="#1A2B3C" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M50 65 C50 69 56 71 59 68" stroke="#1A2B3C" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M12 56 H24" stroke="#1A2B3C" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M14 63 H24" stroke="#1A2B3C" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M76 56 H88" stroke="#1A2B3C" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M76 63 H86" stroke="#1A2B3C" stroke-width="2.2" stroke-linecap="round"/>
+              <rect x="27" y="75" width="16" height="12" rx="6" fill="#F4EFE6" stroke="#1A2B3C" stroke-width="3"/>
+              <path d="M32 81 V86 M38 81 V86" stroke="#C85A32" stroke-width="2" stroke-linecap="round"/>
+              <rect x="57" y="75" width="16" height="12" rx="6" fill="#F4EFE6" stroke="#1A2B3C" stroke-width="3"/>
+              <path d="M62 81 V86 M68 81 V86" stroke="#C85A32" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="mt-3 flex items-center justify-between text-[11px] font-grotesk text-slateMuted">
+          <span>TARGET: <strong class="text-hanko font-semibold">RED LASER DOT</strong></span>
+          <span>REWARD: <strong class="text-indigoDark font-semibold">15% OFF FIRST ORDER</strong></span>
+        </div>
+      </div>
+
+      <!-- STATE 2: REWARD UNLOCKED STATE -->
+      <div id="rewardState" class="hidden p-6 sm:p-8 text-center">
+        <div class="inline-block mb-5">
+          <div class="hanko-stamp border-[3px] border-hanko text-hanko px-4 py-2 rounded-sm inline-flex flex-col items-center">
+            <span class="font-mincho text-xs font-bold tracking-[0.25em]">心猫認証印</span>
+            <span class="font-display text-sm sm:text-base tracking-wide mt-0.5">
+              15% OFF UNLOCKED
+            </span>
+          </div>
+        </div>
+
+        <h2 class="font-display text-lg sm:text-xl text-indigoDark tracking-wide">
+          TARGET CAPTURED!
+        </h2>
+        <p class="font-grotesk text-sm text-slateMuted max-w-md mx-auto mt-2">
+          Reflexes verified. Apply your exclusive Kokoro Cat Cafe streetwear code at checkout for 15% off your order.
+        </p>
+
+        <div class="mt-6 max-w-md mx-auto flex flex-col sm:flex-row items-stretch border-2 border-indigoDark rounded-sm overflow-hidden bg-white/50">
+          <div class="flex-1 px-4 py-3.5 flex items-center justify-center sm:justify-between border-b-2 sm:border-b-0 sm:border-r-2 border-indigoDark">
+            <span class="hidden sm:inline font-grotesk text-[11px] uppercase tracking-wider text-slateMuted font-semibold">
+              CODE
+            </span>
+            <input
+              id="promoCodeInput"
+              type="text"
+              value="KOKORO15"
+              readonly
+              aria-label="Promo code KOKORO15"
+              class="font-display text-lg sm:text-xl tracking-[0.12em] text-indigoDark bg-transparent text-center sm:text-right w-full focus:outline-none"
+            />
+          </div>
+
+          <button
+            id="copyCodeBtn"
+            type="button"
+            class="px-5 py-3.5 bg-ochre text-kinari font-display text-xs sm:text-sm tracking-wide uppercase hover:bg-hanko transition-colors cursor-pointer whitespace-nowrap"
+          >
+            COPY CODE
+          </button>
+        </div>
+
+        <div class="mt-6">
+          <button
+            id="enterSiteBtn"
+            type="button"
+            class="w-full max-w-md py-3.5 px-6 bg-indigoDark text-kinari font-display text-sm sm:text-base tracking-[0.1em] uppercase border-2 border-indigoDark hover:bg-hanko hover:border-hanko transition-colors rounded-sm cursor-pointer"
+          >
+            ENTER SITE
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SCROLL TO TOP BUTTON (UPWARD-POINTING CAT PAW)                        -->
+  <!-- ===================================================================== -->
+  <button
+    id="scrollToTopPawBtn"
+    type="button"
+    aria-label="Scroll back to top"
+    title="Back to top"
+    class="fixed bottom-6 right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 bg-kinari text-indigoDark border-2 border-indigoDark rounded-sm shadow-[0_8px_20px_rgba(26,43,60,0.18)] hover:bg-ochre hover:text-kinari hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer opacity-0 pointer-events-none translate-y-4"
+  >
+    <!-- Upward-Pointing Cat Paw SVG -->
+    <svg
+      viewBox="0 0 100 100"
+      class="w-7 h-7 sm:w-8 sm:h-8 transition-transform duration-300"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <!-- Upward Directional Chevron Tip -->
+      <path d="M50 7 L41 16 H59 Z" fill="#BA3B2E" />
+      <!-- Four Toe Beans Arced Upward -->
+      <ellipse cx="24" cy="44" rx="7.5" ry="10.5" transform="rotate(-22 24 44)" />
+      <ellipse cx="41" cy="31" rx="7.5" ry="11" transform="rotate(-8 41 31)" />
+      <ellipse cx="59" cy="31" rx="7.5" ry="11" transform="rotate(8 59 31)" />
+      <ellipse cx="76" cy="44" rx="7.5" ry="10.5" transform="rotate(22 76 44)" />
+      <!-- Central Metacarpal Paw Pad -->
+      <path d="M50 51 C37 51 27 61 28 73 C29 82 37 86 44 83 C48 81.5 52 81.5 56 83 C63 86 71 82 72 73 C73 61 63 51 50 51 Z" />
+    </svg>
+    <span class="font-display text-[8px] tracking-widest uppercase leading-none mt-0.5">TOP</span>
+  </button>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT: HERO PHYSICS ENGINE & LASER PROMO MINI-GAME               -->
+  <!-- ===================================================================== -->
+  <script>
+    /* =====================================================================
+       1. KOKORO WEAR — INTERACTIVE HERO PHYSICS ENGINE
+       ===================================================================== */
+    (function initHeroPhysics() {
+      const V_WIDTH = 1600;
+      const V_HEIGHT = 900;
+      const FLOOR_Y = 830;
+
+      const theme = {
+        ground: '#F5F2EB',
+        sumi: '#1E1E1E',
+        indigo: '#1A2B3C',
+        persimmon: '#C85A3A',
+        matcha: '#7A8B6E',
+        grid: 'rgba(30, 30, 30, 0.045)',
+        gridSub: 'rgba(30, 30, 30, 0.08)'
+      };
+
+      const config = {
+        gravityY: 1.0,
+        restitution: 0.45,
+        centerpieceCollapsed: false
+      };
+
+      const canvas = document.getElementById('physics-canvas');
+      if (!canvas || typeof Matter === 'undefined') return;
+      const ctx = canvas.getContext('2d');
+      const heroFrame = document.getElementById('hero-frame');
+
+      const { Engine, World, Bodies, Body, Mouse, MouseConstraint, Events } = Matter;
+
+      const engine = Engine.create({ enableSleeping: false });
+      engine.gravity.y = config.gravityY;
+      engine.gravity.scale = 0.001;
+      const world = engine.world;
+
+      let bounds = [];
+      let shelfBody = null;
+      let ctaObstacle = null;
+      let centerpieceBlocks = [];
+      let dynamicBodies = [];
+      let mouse = null;
+      let mouseConstraint = null;
+
+      function resizeCanvas() {
+        const rect = heroFrame.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+
+        if (mouse && rect.width > 0 && rect.height > 0) {
+          mouse.pixelRatio = 1;
+          Mouse.setScale(mouse, {
+            x: V_WIDTH / rect.width,
+            y: V_HEIGHT / rect.height
+          });
+        }
+      }
+
+      function createBoundaries() {
+        bounds.forEach(b => World.remove(world, b));
+        bounds = [];
+
+        const wallThick = 200;
+        const floor = Bodies.rectangle(V_WIDTH / 2, FLOOR_Y + wallThick / 2, V_WIDTH * 2, wallThick, {
+          isStatic: true,
+          label: 'floor',
+          friction: 0.8,
+          restitution: config.restitution
+        });
+
+        const leftWall = Bodies.rectangle(-wallThick / 2, V_HEIGHT / 2, wallThick, V_HEIGHT * 3, {
+          isStatic: true,
+          label: 'wall-left',
+          friction: 0.1
+        });
+
+        const rightWall = Bodies.rectangle(V_WIDTH + wallThick / 2, V_HEIGHT / 2, wallThick, V_HEIGHT * 3, {
+          isStatic: true,
+          label: 'wall-right',
+          friction: 0.1
+        });
+
+        const ceiling = Bodies.rectangle(V_WIDTH / 2, -wallThick * 2, V_WIDTH * 2, wallThick, {
+          isStatic: true,
+          label: 'ceiling'
+        });
+
+        bounds = [floor, leftWall, rightWall, ceiling];
+        World.add(world, bounds);
+      }
+
+      function buildCenterpiece() {
+        centerpieceBlocks.forEach(b => World.remove(world, b));
+        centerpieceBlocks = [];
+        if (shelfBody) World.remove(world, shelfBody);
+        if (ctaObstacle) World.remove(world, ctaObstacle);
+
+        config.centerpieceCollapsed = false;
+
+        const text = "KOKORO WEAR";
+        const letters = text.split('');
+        const boxSize = 58;
+        const spacing = 4;
+        const totalWidth = letters.length * (boxSize + spacing) - spacing;
+        const centerY = 530;
+
+        shelfBody = Bodies.rectangle(V_WIDTH / 2, centerY + boxSize / 2 + 5, totalWidth + 40, 10, {
+          isStatic: true,
+          label: 'shelf-bar',
+          renderCustom: { type: 'shelf', width: totalWidth + 40 }
+        });
+        World.add(world, shelfBody);
+
+        let currentX = (V_WIDTH - totalWidth) / 2 + boxSize / 2;
+        letters.forEach((char) => {
+          if (char === ' ') {
+            currentX += boxSize * 0.6;
+            return;
+          }
+
+          const block = Bodies.rectangle(currentX, centerY, boxSize, boxSize, {
+            isStatic: true,
+            restitution: config.restitution,
+            friction: 0.6,
+            label: 'kokoro-letter-box',
+            renderCustom: {
+              type: 'kokoro-letter',
+              char: char,
+              size: boxSize,
+              bgColor: '#FAF8F5',
+              textColor: theme.indigo,
+              strokeColor: theme.indigo
+            }
+          });
+
+          centerpieceBlocks.push(block);
+          World.add(world, block);
+          currentX += boxSize + spacing;
+        });
+
+        const pillWidth = 176;
+        const pillHeight = 52;
+        const pillY = 745;
+
+        ctaObstacle = Bodies.rectangle(V_WIDTH / 2, pillY, pillWidth, pillHeight, {
+          isStatic: true,
+          chamfer: { radius: 26 },
+          label: 'cta-obstacle',
+          renderCustom: {
+            type: 'cta-pill',
+            width: pillWidth,
+            height: pillHeight,
+            text: 'EXPLORE'
+          }
+        });
+        World.add(world, ctaObstacle);
+      }
+
+      function collapseCenterpiece() {
+        const scrollToNextSection = () => {
+          const collectionSection = document.getElementById('collection');
+          if (!collectionSection) return;
+
+          const startY = window.scrollY;
+          const headerOffset = document.getElementById('siteHeader')?.offsetHeight || 64;
+          const targetY = collectionSection.getBoundingClientRect().top + startY - headerOffset;
+          const distance = targetY - startY;
+          const duration = 2200;
+          let startTime = null;
+
+          function stepScroll(currentTime) {
+            if (startTime === null) startTime = currentTime;
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Smooth cubic ease-in-out glide
+            const ease = progress < 0.5
+              ? 4 * progress * progress * progress
+              : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+            window.scrollTo(0, startY + distance * ease);
+            if (progress < 1) {
+              requestAnimationFrame(stepScroll);
+            }
+          }
+
+          requestAnimationFrame(stepScroll);
+        };
+
+        if (config.centerpieceCollapsed) {
+          spawnDropWave(12);
+          setTimeout(scrollToNextSection, 700);
+          return;
+        }
+
+        config.centerpieceCollapsed = true;
+
+        if (shelfBody) {
+          World.remove(world, shelfBody);
+          shelfBody = null;
+        }
+
+        centerpieceBlocks.forEach((block) => {
+          Body.setStatic(block, false);
+          Body.applyForce(block, block.position, {
+            x: (Math.random() - 0.5) * 0.04,
+            y: -0.02 - Math.random() * 0.02
+          });
+          Body.setAngularVelocity(block, (Math.random() - 0.5) * 0.08);
+        });
+
+        setTimeout(() => {
+          spawnDropWave(10);
+        }, 150);
+
+        // Give the shelf collapse and falling tokens 1.35s to play out before gliding down
+        setTimeout(() => {
+          scrollToNextSection();
+        }, 1350);
+      }
+
+      function getRandomSpawnPos() {
+        return {
+          x: 200 + Math.random() * (V_WIDTH - 400),
+          y: -40 - Math.random() * 160
+        };
+      }
+
+      function createKanjiTile(pos, char) {
+        const size = 66 + Math.random() * 14;
+        const isHollow = Math.random() < 0.22;
+        return Bodies.rectangle(pos.x, pos.y, size, size, {
+          restitution: config.restitution,
+          friction: 0.5,
+          chamfer: { radius: 8 },
+          label: 'kanji-tile',
+          renderCustom: {
+            type: 'kanji-box',
+            char: char,
+            size: size,
+            isHollow: isHollow,
+            strokeColor: theme.sumi,
+            fillColor: isHollow ? 'transparent' : '#FAF8F5',
+            textColor: theme.sumi
+          }
+        });
+      }
+
+      function createCatHeadBody(pos) {
+        const scale = 0.85 + Math.random() * 0.35;
+        const baseWidth = 72 * scale;
+        const baseHeight = 62 * scale;
+        const allowedColors = [theme.persimmon, theme.matcha, theme.indigo];
+        const fillColor = allowedColors[Math.floor(Math.random() * allowedColors.length)];
+        const isHollow = Math.random() < 0.18;
+
+        return Bodies.rectangle(pos.x, pos.y, baseWidth, baseHeight, {
+          restitution: config.restitution,
+          friction: 0.4,
+          chamfer: { radius: baseHeight * 0.45 },
+          label: 'cat-head',
+          renderCustom: {
+            type: 'cat-head',
+            width: baseWidth,
+            height: baseHeight,
+            fillColor: isHollow ? 'transparent' : fillColor,
+            strokeColor: isHollow ? fillColor : 'transparent',
+            isHollow: isHollow,
+            scale: scale
+          }
+        });
+      }
+
+      function createSeigaihaArchBody(pos) {
+        const width = 84 + Math.random() * 24;
+        const height = width * 0.52;
+        const colors = [theme.persimmon, theme.matcha, theme.indigo];
+        const strokeColor = colors[Math.floor(Math.random() * colors.length)];
+
+        return Bodies.rectangle(pos.x, pos.y, width, height, {
+          restitution: config.restitution,
+          friction: 0.5,
+          chamfer: { radius: 4 },
+          label: 'seigaiha-arch',
+          renderCustom: {
+            type: 'seigaiha',
+            width: width,
+            height: height,
+            color: strokeColor
+          }
+        });
+      }
+
+      function createCoinBody(pos) {
+        const radius = 28 + Math.random() * 16;
+        const isMonCoin = Math.random() > 0.4;
+        const isPersimmon = Math.random() > 0.5;
+        const isHollow = Math.random() < 0.15;
+
+        return Bodies.circle(pos.x, pos.y, radius, {
+          restitution: config.restitution,
+          friction: 0.4,
+          label: 'coin-disc',
+          renderCustom: {
+            type: 'coin',
+            radius: radius,
+            isMon: isMonCoin,
+            fillColor: isHollow ? 'transparent' : (isPersimmon ? theme.persimmon : theme.indigo),
+            strokeColor: theme.sumi,
+            isHollow: isHollow
+          }
+        });
+      }
+
+      function spawnRandomObject() {
+        const pos = getRandomSpawnPos();
+        const rand = Math.random();
+        let body;
+
+        if (rand < 0.34) {
+          const kanjis = ['心', '猫', '波'];
+          body = createKanjiTile(pos, kanjis[Math.floor(Math.random() * kanjis.length)]);
+        } else if (rand < 0.62) {
+          body = createCatHeadBody(pos);
+        } else if (rand < 0.84) {
+          body = createSeigaihaArchBody(pos);
+        } else {
+          body = createCoinBody(pos);
+        }
+
+        Body.setVelocity(body, { x: (Math.random() - 0.5) * 4, y: Math.random() * 2 + 1 });
+        Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.05);
+
+        dynamicBodies.push(body);
+        World.add(world, body);
+      }
+
+      function spawnDropWave(count = 8) {
+        for (let i = 0; i < count; i++) {
+          setTimeout(() => {
+            if (dynamicBodies.length < 48) {
+              spawnRandomObject();
+            }
+          }, i * 75);
+        }
+      }
+
+      function setupInteractions() {
+        mouse = Mouse.create(canvas);
+        // Prevent Matter.js from hijacking page scroll when scrolling over hero
+        mouse.element.removeEventListener('mousewheel', mouse.mousewheel);
+        mouse.element.removeEventListener('DOMMouseScroll', mouse.mousewheel);
+
+        mouseConstraint = MouseConstraint.create(engine, {
+          mouse: mouse,
+          constraint: {
+            stiffness: 0.22,
+            render: { visible: false }
+          }
+        });
+
+        World.add(world, mouseConstraint);
+
+        Events.on(mouseConstraint, 'mousedown', (event) => {
+          const virtualX = event.mouse.position.x;
+          const virtualY = event.mouse.position.y;
+
+          // Allow dragging individual KOKORO WEAR blocks directly if clicked before CTA collapse
+          if (!config.centerpieceCollapsed) {
+            for (const block of centerpieceBlocks) {
+              const half = 29;
+              if (
+                virtualX >= block.position.x - half &&
+                virtualX <= block.position.x + half &&
+                virtualY >= block.position.y - half &&
+                virtualY <= block.position.y + half
+              ) {
+                Body.setStatic(block, false);
+                break;
+              }
+            }
+          }
+
+          if (ctaObstacle) {
+            const minX = ctaObstacle.position.x - 88;
+            const maxX = ctaObstacle.position.x + 88;
+            const minY = ctaObstacle.position.y - 26;
+            const maxY = ctaObstacle.position.y + 26;
+
+            if (virtualX >= minX && virtualX <= maxX && virtualY >= minY && virtualY <= maxY) {
+              collapseCenterpiece();
+            }
+          }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+          const boundsRect = canvas.getBoundingClientRect();
+          const virtualX = ((e.clientX - boundsRect.left) / boundsRect.width) * V_WIDTH;
+          const virtualY = ((e.clientY - boundsRect.top) / boundsRect.height) * V_HEIGHT;
+
+          if (ctaObstacle) {
+            const overCta =
+              virtualX >= ctaObstacle.position.x - 88 &&
+              virtualX <= ctaObstacle.position.x + 88 &&
+              virtualY >= ctaObstacle.position.y - 26 &&
+              virtualY <= ctaObstacle.position.y + 26;
+            canvas.style.cursor = overCta ? 'pointer' : (mouseConstraint.body ? 'grabbing' : 'grab');
+          }
+        });
+      }
+
+      function drawStaticBackground() {
+        // 1. Solid Washi Canvas Ground
+        ctx.fillStyle = theme.ground;
+        ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+
+        // 2. Architectural Hairline Grid (50px pitch)
+        ctx.lineWidth = 0.75;
+        ctx.strokeStyle = theme.grid;
+        const gridSize = 50;
+        ctx.beginPath();
+        for (let x = 0; x <= V_WIDTH; x += gridSize) {
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, V_HEIGHT);
+        }
+        for (let y = 0; y <= V_HEIGHT; y += gridSize) {
+          ctx.moveTo(0, y);
+          ctx.lineTo(V_WIDTH, y);
+        }
+        ctx.stroke();
+
+        // Major Grid Cross Markers every 200px
+        ctx.strokeStyle = theme.gridSub;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = 100; x < V_WIDTH; x += 200) {
+          for (let y = 100; y < V_HEIGHT; y += 200) {
+            ctx.moveTo(x - 6, y);
+            ctx.lineTo(x + 6, y);
+            ctx.moveTo(x, y - 6);
+            ctx.lineTo(x, y + 6);
+          }
+        }
+        ctx.stroke();
+
+        // 3. Central Translucent Kanji Watermark: 「心」
+        ctx.save();
+        ctx.font = '700 480px "Shippori Mincho", serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(30, 30, 30, 0.05)';
+        ctx.fillText('心', V_WIDTH / 2, V_HEIGHT / 2 - 30);
+        ctx.restore();
+
+        // 4. Minimalist Editorial Metadata Overlays
+        ctx.save();
+        ctx.fillStyle = theme.sumi;
+        ctx.font = '600 11px "Space Grotesk", monospace';
+        ctx.letterSpacing = '1px';
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(30, 30, 30, 0.7)';
+        ctx.fillText('SPRING 2027 CAMPAIGN', 44, 868);
+
+        // Vertical Right Spine ("心 — KOKORO")
+        ctx.textAlign = 'center';
+        ctx.font = '400 18px "Shippori Mincho", serif';
+        ctx.fillStyle = 'rgba(30, 30, 30, 0.65)';
+        const spineX = V_WIDTH - 60;
+        const spineYStart = 320;
+        const spineChars = ['心', '—', 'K', 'O', 'K', 'O', 'R', 'O'];
+        spineChars.forEach((ch, idx) => {
+          ctx.fillText(ch, spineX, spineYStart + idx * 30);
+        });
+        ctx.restore();
+
+        // 5. Architectural Datum Floor Line with Calibration Ticks
+        ctx.save();
+        ctx.strokeStyle = theme.sumi;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(30, FLOOR_Y);
+        ctx.lineTo(V_WIDTH - 30, FLOOR_Y);
+        ctx.stroke();
+
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = 40; x <= V_WIDTH - 40; x += 20) {
+          const tickHeight = (x % 100 === 0) ? 9 : 4;
+          ctx.moveTo(x, FLOOR_Y);
+          ctx.lineTo(x, FLOOR_Y + tickHeight);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function renderCustomBody(body) {
+        const data = body.renderCustom;
+        if (!data) return;
+
+        const { x, y } = body.position;
+        const angle = body.angle;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        switch (data.type) {
+          case 'shelf': {
+            ctx.strokeStyle = 'rgba(26, 43, 60, 0.45)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-data.width / 2 || -300, 0);
+            ctx.lineTo(data.width / 2 || 300, 0);
+            ctx.stroke();
+            break;
+          }
+
+          case 'kokoro-letter': {
+            const s = data.size;
+            ctx.fillStyle = data.bgColor;
+            ctx.beginPath();
+            ctx.roundRect(-s / 2, -s / 2, s, s, 6);
+            ctx.fill();
+
+            ctx.strokeStyle = data.strokeColor;
+            ctx.lineWidth = 2.4;
+            ctx.stroke();
+
+            ctx.fillStyle = data.textColor;
+            ctx.font = '400 28px "Poller One", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(data.char, 0, 2);
+            break;
+          }
+
+          case 'cta-pill': {
+            const w = data.width;
+            const h = data.height;
+
+            ctx.fillStyle = theme.persimmon;
+            ctx.beginPath();
+            ctx.roundRect(-w / 2, -h / 2, w, h, h / 2);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(30, 30, 30, 0.4)';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '600 12px "Space Grotesk", sans-serif';
+            ctx.letterSpacing = '1.5px';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(data.text, 0, 1);
+            break;
+          }
+
+          case 'kanji-box': {
+            const s = data.size;
+            if (!data.isHollow) {
+              ctx.fillStyle = data.fillColor;
+              ctx.beginPath();
+              ctx.roundRect(-s / 2, -s / 2, s, s, 8);
+              ctx.fill();
+            }
+
+            ctx.strokeStyle = data.strokeColor;
+            ctx.lineWidth = data.isHollow ? 1.8 : 2.0;
+            ctx.beginPath();
+            ctx.roundRect(-s / 2, -s / 2, s, s, 8);
+            ctx.stroke();
+
+            ctx.fillStyle = data.isHollow ? data.strokeColor : data.textColor;
+            ctx.font = '700 36px "Shippori Mincho", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(data.char, 0, 2);
+            break;
+          }
+
+          case 'cat-head': {
+            const w = data.width;
+            const h = data.height;
+
+            ctx.beginPath();
+            const headR = w * 0.44;
+            const cy = h * 0.14;
+            const rightEarBaseAngle = -0.35;
+            const leftEarBaseAngle = -Math.PI + 0.35;
+
+            ctx.arc(0, cy, headR, rightEarBaseAngle, leftEarBaseAngle, false);
+            ctx.lineTo(-headR * 0.52, cy - headR * 1.58);
+            const leftCrownX = -headR * 0.22;
+            const leftCrownY = cy - headR * 0.94;
+            ctx.lineTo(leftCrownX, leftCrownY);
+            ctx.quadraticCurveTo(0, cy - headR * 0.88, -leftCrownX, leftCrownY);
+            ctx.lineTo(headR * 0.52, cy - headR * 1.58);
+            ctx.closePath();
+
+            if (!data.isHollow) {
+              ctx.fillStyle = data.fillColor;
+              ctx.fill();
+
+              ctx.fillStyle = '#FFFFFF';
+              const eyeOffset = headR * 0.36;
+              const eyeY = cy - 1;
+              ctx.beginPath();
+              ctx.arc(-eyeOffset, eyeY, 3.0, 0, Math.PI * 2);
+              ctx.arc(eyeOffset, eyeY, 3.0, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.beginPath();
+              ctx.arc(0, eyeY + 6.0, 1.6, 0, Math.PI * 2);
+              ctx.fill();
+            } else {
+              ctx.strokeStyle = data.strokeColor;
+              ctx.lineWidth = 2.0;
+              ctx.stroke();
+            }
+            break;
+          }
+
+          case 'seigaiha': {
+            const w = data.width;
+            const h = data.height;
+            const rOuter = w / 2;
+            const baseY = h * 0.42;
+
+            ctx.lineCap = 'butt';
+            ctx.strokeStyle = data.color;
+
+            ctx.lineWidth = 13;
+            ctx.beginPath();
+            ctx.arc(0, baseY, rOuter * 0.76, Math.PI, 0, false);
+            ctx.stroke();
+
+            ctx.lineWidth = 9;
+            ctx.beginPath();
+            ctx.arc(0, baseY, rOuter * 0.42, Math.PI, 0, false);
+            ctx.stroke();
+            break;
+          }
+
+          case 'coin': {
+            const r = data.radius;
+            ctx.fillStyle = data.fillColor;
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (data.isHollow) {
+              ctx.strokeStyle = data.strokeColor;
+              ctx.lineWidth = 1.6;
+              ctx.stroke();
+            }
+
+            if (data.isMon) {
+              const cut = r * 0.4;
+              ctx.fillStyle = theme.ground;
+              ctx.fillRect(-cut / 2, -cut / 2, cut, cut);
+            } else {
+              ctx.fillStyle = '#FFFFFF';
+              ctx.beginPath();
+              ctx.arc(r * 0.3, -r * 0.25, 3.5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            break;
+          }
+        }
+
+        ctx.restore();
+      }
+
+      function renderLoop() {
+        Engine.update(engine, 1000 / 60);
+
+        const dpr = window.devicePixelRatio || 1;
+        const scaleX = canvas.width / (V_WIDTH * dpr);
+        const scaleY = canvas.height / (V_HEIGHT * dpr);
+
+        ctx.save();
+        ctx.setTransform(dpr * scaleX, 0, 0, dpr * scaleY, 0, 0);
+
+        drawStaticBackground();
+
+        if (shelfBody) renderCustomBody(shelfBody);
+        if (ctaObstacle) renderCustomBody(ctaObstacle);
+        centerpieceBlocks.forEach(renderCustomBody);
+        dynamicBodies.forEach(renderCustomBody);
+
+        if (mouseConstraint && mouseConstraint.body) {
+          const bodyPos = mouseConstraint.body.position;
+          const mousePos = mouseConstraint.mouse.position;
+
+          ctx.strokeStyle = 'rgba(200, 90, 58, 0.55)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(mousePos.x, mousePos.y);
+          ctx.lineTo(bodyPos.x, bodyPos.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        ctx.restore();
+        requestAnimationFrame(renderLoop);
+      }
+
+      window.addEventListener('resize', resizeCanvas);
+      setupInteractions();
+      resizeCanvas();
+      createBoundaries();
+      buildCenterpiece();
+
+      // Initial curated drop onto the Kokoro Wear shelf
+      setTimeout(() => {
+        spawnDropWave(7);
+      }, 300);
+
+      requestAnimationFrame(renderLoop);
+    })();
+
+    /* =====================================================================
+       2. KOKORO WEAR — ENTRY LASER POINTER PROMO MINI-GAME
+       ===================================================================== */
+    (function initPromoGame() {
+      const promoModal = document.getElementById('promoModal');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const gameState = document.getElementById('gameState');
+      const rewardState = document.getElementById('rewardState');
+      const playArena = document.getElementById('playArena');
+      const laserDot = document.getElementById('laserDot');
+      const catCursor = document.getElementById('catCursor');
+      const attemptCounter = document.getElementById('attemptCounter');
+      const promoCodeInput = document.getElementById('promoCodeInput');
+      const copyCodeBtn = document.getElementById('copyCodeBtn');
+      const enterSiteBtn = document.getElementById('enterSiteBtn');
+      const headerEl = document.getElementById('siteHeader');
+
+      let isModalOpen = true;
+      let isCaught = false;
+      let attempts = 0;
+      let animationFrameId = null;
+
+      // Laser & Cat state objects
+      const laser = {
+        x: 200,
+        y: 180,
+        targetX: 200,
+        targetY: 180,
+        speed: 0.14,
+        nextHopTime: 0
+      };
+
+      const cat = {
+        x: 100,
+        y: 180,
+        prevX: 100
+      };
+
+      // Sync header border/bg subtly on scroll
+      window.addEventListener('scroll', () => {
+        if (!headerEl) return;
+        if (window.scrollY > 24) {
+          headerEl.classList.add('bg-washi/95');
+        } else {
+          headerEl.classList.remove('bg-washi/95');
+        }
+      });
+
+      function pickNewLaserTarget(now) {
+        const rect = playArena.getBoundingClientRect();
+        const pad = 28;
+        const maxW = Math.max(pad * 2 + 20, rect.width - pad);
+        const maxH = Math.max(pad * 2 + 20, rect.height - pad);
+
+        laser.targetX = pad + Math.random() * (maxW - pad);
+        laser.targetY = pad + Math.random() * (maxH - pad);
+        laser.speed = 0.08 + Math.random() * 0.14;
+        laser.nextHopTime = now + 220 + Math.random() * 480;
+      }
+
+      function handlePointerMove(clientX, clientY) {
+        if (!isModalOpen) return;
+        const rect = playArena.getBoundingClientRect();
+        const x = Math.max(20, Math.min(rect.width - 20, clientX - rect.left));
+        const y = Math.max(20, Math.min(rect.height - 20, clientY - rect.top));
+
+        const vx = x - cat.prevX;
+        const tilt = Math.max(-18, Math.min(18, vx * 0.9));
+
+        cat.x = x;
+        cat.y = y;
+        cat.prevX = x;
+
+        catCursor.style.left = `${x}px`;
+        catCursor.style.top = `${y}px`;
+        catCursor.style.transform = `translate(-50%, -50%) rotate(${tilt}deg)`;
+      }
+
+      playArena.addEventListener('mousemove', (e) => {
+        catCursor.style.opacity = '1';
+        handlePointerMove(e.clientX, e.clientY);
+      });
+
+      playArena.addEventListener('mouseleave', () => {
+        if (!isCaught) {
+          catCursor.style.opacity = '0.7';
+        }
+      });
+
+      playArena.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+          e.preventDefault();
+          catCursor.style.opacity = '1';
+          handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+
+      function updateLoop(now) {
+        if (!isModalOpen || isCaught) return;
+
+        if (now >= laser.nextHopTime) {
+          pickNewLaserTarget(now);
+        }
+
+        laser.x += (laser.targetX - laser.x) * laser.speed;
+        laser.y += (laser.targetY - laser.y) * laser.speed;
+
+        const jitterX = (Math.random() - 0.5) * 2.5;
+        const jitterY = (Math.random() - 0.5) * 2.5;
+
+        laserDot.style.left = `${laser.x + jitterX}px`;
+        laserDot.style.top = `${laser.y + jitterY}px`;
+
+        animationFrameId = requestAnimationFrame(updateLoop);
+      }
+
+      function spawnFeedbackTag(x, y, text, isSuccess) {
+        const tag = document.createElement('div');
+        tag.className = `feedback-tag px-2.5 py-1 font-display text-[11px] tracking-wide uppercase border-[1.5px] rounded-sm ${
+          isSuccess
+            ? 'bg-hanko text-kinari border-indigoDark'
+            : 'bg-kinari text-indigoDark border-indigoDark'
+        }`;
+        tag.style.left = `${x}px`;
+        tag.style.top = `${Math.max(24, y - 34)}px`;
+        tag.textContent = text;
+        playArena.appendChild(tag);
+
+        setTimeout(() => {
+          tag.remove();
+        }, 680);
+      }
+
+      function triggerCatPounce() {
+        catCursor.classList.remove('cat-pounce');
+        void catCursor.offsetWidth;
+        catCursor.classList.add('cat-pounce');
+      }
+
+      function attemptCatch(clientX, clientY) {
+        if (isCaught || !isModalOpen) return;
+
+        const rect = playArena.getBoundingClientRect();
+        const clickX = clientX - rect.left;
+        const clickY = clientY - rect.top;
+
+        handlePointerMove(clientX, clientY);
+        triggerCatPounce();
+
+        attempts += 1;
+        attemptCounter.textContent = attempts;
+
+        const dx = clickX - laser.x;
+        const dy = clickY - laser.y;
+        const distance = Math.hypot(dx, dy);
+
+        if (distance <= 46) {
+          isCaught = true;
+          cancelAnimationFrame(animationFrameId);
+
+          laserDot.style.left = `${clickX}px`;
+          laserDot.style.top = `${clickY + 18}px`;
+          spawnFeedbackTag(clickX, clickY, 'CAUGHT!', true);
+
+          setTimeout(() => {
+            gameState.classList.add('hidden');
+            rewardState.classList.remove('hidden');
+          }, 550);
+        } else {
+          spawnFeedbackTag(clickX, clickY, 'MISSED!', false);
+          pickNewLaserTarget(performance.now());
+        }
+      }
+
+      playArena.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        attemptCatch(e.clientX, e.clientY);
+      });
+
+      playArena.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+          e.preventDefault();
+          catCursor.style.opacity = '1';
+          const touch = e.touches[0];
+          attemptCatch(touch.clientX, touch.clientY);
+        }
+      }, { passive: false });
+
+      copyCodeBtn.addEventListener('click', () => {
+        promoCodeInput.select();
+        promoCodeInput.setSelectionRange(0, 99999);
+        try {
+          document.execCommand('copy');
+        } catch (err) {}
+        copyCodeBtn.textContent = 'COPIED ✓';
+        copyCodeBtn.classList.remove('bg-ochre');
+        copyCodeBtn.classList.add('bg-indigoDark');
+
+        setTimeout(() => {
+          copyCodeBtn.textContent = 'COPY CODE';
+          copyCodeBtn.classList.remove('bg-indigoDark');
+          copyCodeBtn.classList.add('bg-ochre');
+        }, 2000);
+      });
+
+      function closeModal() {
+        isModalOpen = false;
+        promoModal.remove();
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      }
+
+      function openAndResetModal() {
+        if (!document.body.contains(promoModal)) return;
+        isModalOpen = true;
+        isCaught = false;
+        attempts = 0;
+        attemptCounter.textContent = '0';
+
+        rewardState.classList.add('hidden');
+        gameState.classList.remove('hidden');
+        promoModal.classList.remove('hidden');
+
+        const rect = playArena.getBoundingClientRect();
+        laser.x = rect.width * 0.5;
+        laser.y = rect.height * 0.5;
+        laser.targetX = laser.x;
+        laser.targetY = laser.y;
+        laser.nextHopTime = performance.now() + 250;
+
+        cat.x = rect.width * 0.25;
+        cat.y = rect.height * 0.5;
+        catCursor.style.left = `${cat.x}px`;
+        catCursor.style.top = `${cat.y}px`;
+        catCursor.style.opacity = '1';
+
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(updateLoop);
+      }
+
+      closeModalBtn.addEventListener('click', closeModal);
+      enterSiteBtn.addEventListener('click', closeModal);
+
+      window.addEventListener('load', openAndResetModal);
+    })();
+
+    /* =====================================================================
+       3. KOKORO WEAR — PRODUCT LIGHTBOX, SEARCH & SHOPPING CART ENGINE
+       ===================================================================== */
+    (function initStoreExperience() {
+      const products = [
+        {
+          id: 'neko-kinchaku-pouch',
+          src: 'product1.jfif',
+          fallback: 'https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+01',
+          title: 'NEKO SEIGAIHA KINCHAKU POUCH',
+          price: 68,
+          sizes: ['OS'],
+          desc: 'Heavyweight Aizome indigo and unbleached cotton drawstring pouch featuring woven cat-wave motifs, sculpted ear gussets, and braided cotton cords.'
+        },
+        {
+          id: 'kinari-claw-hoodie',
+          src: 'product2.jfif',
+          fallback: 'https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+02',
+          title: 'KINARI CLAW-SCRATCH HOODIE',
+          price: 165,
+          sizes: ['S', 'M', 'L', 'XL'],
+          desc: '480gsm organic French terry pullover in raw Kinari ecru, detailed with raised tabby claw embroidery on the chest and persimmon Seigaiha-lined hood and cat-silhouette elbow patches.'
+        },
+        {
+          id: 'indigo-atelier-tote',
+          src: 'product3.jfif',
+          fallback: 'https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+03',
+          title: 'INDIGO CHECKERED ATELIER TOTE',
+          price: 195,
+          sizes: ['OS'],
+          desc: 'Structured Japanese jacquard-weave carryall reinforced with full-grain Aizome navy leather corner guards, rolled handles, and signature red Hanko woven tabs.'
+        },
+        {
+          id: 'aizome-enso-haori',
+          src: 'product4.jfif',
+          fallback: 'https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+04',
+          title: 'AIZOME SASHIKO ENSO HAORI',
+          price: 240,
+          sizes: ['S', 'M', 'L', 'XL'],
+          desc: 'Traditional drop-shoulder kimono jacket crafted from textured indigo sashiko cotton, finished with a sumi-ink brushed Enso cat back graphic and crimson Hanko seal.'
+        },
+        {
+          id: 'split-neko-camp-shirt',
+          src: 'product5.jfif',
+          fallback: 'https://placehold.co/600x800/F7F7F7/1A2B3C?text=PRODUCT+05',
+          title: 'SPLIT-PANEL NEKO CAMP SHIRT',
+          price: 135,
+          sizes: ['S', 'M', 'L', 'XL'],
+          desc: 'Relaxed boxy camp-collar shirt contrasting custom Neko-Seigaiha jacquard cotton on the right panel against matte sumi-black poplin with embroidered Kokoro Wear chest branding.'
+        }
+      ];
+
+      // Lightbox DOM
+      const modal = document.getElementById('productModal');
+      const modalImg = document.getElementById('productModalImg');
+      const modalTitle = document.getElementById('productModalTitle');
+      const modalPrice = document.getElementById('productModalPrice');
+      const modalDesc = document.getElementById('productModalDesc');
+      const modalIndex = document.getElementById('productModalIndex');
+      const sizeSelectorGroup = document.getElementById('sizeSelectorGroup');
+      const modalAddToCartBtn = document.getElementById('modalAddToCartBtn');
+      const closeBtn = document.getElementById('closeProductModalBtn');
+      const prevBtn = document.getElementById('prevProductBtn');
+      const nextBtn = document.getElementById('nextProductBtn');
+      const cards = document.querySelectorAll('.product-card');
+
+      // Search DOM
+      const navSearchInput = document.getElementById('navSearchInput');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+      const noSearchResults = document.getElementById('noSearchResults');
+      const resetSearchStateBtn = document.getElementById('resetSearchStateBtn');
+
+      // Cart Drawer DOM
+      const openCartBtn = document.getElementById('openCartBtn');
+      const closeCartDrawerBtn = document.getElementById('closeCartDrawerBtn');
+      const cartDrawerOverlay = document.getElementById('cartDrawerOverlay');
+      const cartCountBadge = document.getElementById('cartCountBadge');
+      const cartItemsContainer = document.getElementById('cartItemsContainer');
+      const cartSubtotalEl = document.getElementById('cartSubtotal');
+      const cartDiscountRow = document.getElementById('cartDiscountRow');
+      const cartDiscountAmountEl = document.getElementById('cartDiscountAmount');
+      const cartTotalEl = document.getElementById('cartTotal');
+      const cartPromoInput = document.getElementById('cartPromoInput');
+      const applyCartPromoBtn = document.getElementById('applyCartPromoBtn');
+      const cartPromoMessage = document.getElementById('cartPromoMessage');
+      const checkoutBtn = document.getElementById('checkoutBtn');
+
+      let currentIndex = 0;
+      let selectedSize = 'OS';
+      let cart = [];
+      let discountApplied = false;
+
+      function formatCurrency(val) {
+        return `$${val.toFixed(2)}`;
+      }
+
+      /* ---------------- SEARCH FILTERING ---------------- */
+      function filterProducts(query) {
+        const q = query.trim().toLowerCase();
+        if (clearSearchBtn) {
+          clearSearchBtn.classList.toggle('hidden', q.length === 0);
+        }
+
+        let visibleCount = 0;
+        cards.forEach((card) => {
+          const terms = (card.dataset.searchTerms || '').toLowerCase();
+          const matches = !q || terms.includes(q);
+          card.classList.toggle('hidden', !matches);
+          if (matches) visibleCount++;
+        });
+
+        if (noSearchResults) {
+          noSearchResults.classList.toggle('hidden', visibleCount > 0);
+        }
+      }
+
+      if (navSearchInput) {
+        const scrollToCollectionCatalog = () => {
+          const sneakPeak = document.getElementById('sneak-peak');
+          if (sneakPeak) {
+            sneakPeak.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        };
+
+        navSearchInput.addEventListener('input', (e) => {
+          filterProducts(e.target.value);
+          if (e.target.value.trim().length > 0) {
+            scrollToCollectionCatalog();
+          }
+        });
+
+        navSearchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            filterProducts(navSearchInput.value);
+            scrollToCollectionCatalog();
+          }
+        });
+      }
+
+      if (clearSearchBtn && navSearchInput) {
+        clearSearchBtn.addEventListener('click', () => {
+          navSearchInput.value = '';
+          filterProducts('');
+          navSearchInput.focus();
+        });
+      }
+
+      if (resetSearchStateBtn && navSearchInput) {
+        resetSearchStateBtn.addEventListener('click', () => {
+          navSearchInput.value = '';
+          filterProducts('');
+        });
+      }
+
+      /* ---------------- PRODUCT LIGHTBOX ---------------- */
+      function renderSizeButtons(sizes) {
+        selectedSize = sizes.includes('M') ? 'M' : sizes[0];
+        sizeSelectorGroup.innerHTML = '';
+
+        sizes.forEach((size) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = size;
+          const isSelected = size === selectedSize;
+          btn.className = `w-8 h-8 text-xs font-grotesk font-semibold border transition-colors cursor-pointer ${
+            isSelected
+              ? 'bg-indigoDark text-kinari border-indigoDark'
+              : 'bg-white text-indigoDark border-indigoDark/40 hover:border-indigoDark'
+          }`;
+          btn.addEventListener('click', () => {
+            selectedSize = size;
+            Array.from(sizeSelectorGroup.children).forEach((child) => {
+              const active = child.textContent === selectedSize;
+              child.className = `w-8 h-8 text-xs font-grotesk font-semibold border transition-colors cursor-pointer ${
+                active
+                  ? 'bg-indigoDark text-kinari border-indigoDark'
+                  : 'bg-white text-indigoDark border-indigoDark/40 hover:border-indigoDark'
+              }`;
+            });
+          });
+          sizeSelectorGroup.appendChild(btn);
+        });
+      }
+
+      function renderProduct(index) {
+        currentIndex = (index + products.length) % products.length;
+        const item = products[currentIndex];
+        modalImg.onerror = () => {
+          modalImg.onerror = null;
+          modalImg.src = item.fallback;
+        };
+        modalImg.src = item.src;
+        modalImg.alt = item.title;
+        modalTitle.textContent = item.title;
+        modalPrice.textContent = formatCurrency(item.price);
+        modalDesc.textContent = item.desc;
+        modalIndex.textContent = `0${currentIndex + 1} / 0${products.length}`;
+        renderSizeButtons(item.sizes);
+      }
+
+      function openProductModal(index) {
+        renderProduct(index);
+        modal.classList.remove('hidden');
+      }
+
+      function closeProductModal() {
+        modal.classList.add('hidden');
+      }
+
+      cards.forEach((card) => {
+        const idx = parseInt(card.dataset.productIndex, 10) || 0;
+        const quickAdd = card.querySelector('.quick-add-btn');
+
+        if (quickAdd) {
+          quickAdd.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const item = products[idx];
+            const defaultSize = item.sizes.includes('M') ? 'M' : item.sizes[0];
+            addToCart(item, defaultSize);
+            openCartDrawer();
+          });
+        }
+
+        card.addEventListener('click', () => {
+          openProductModal(idx);
+        });
+      });
+
+      modalAddToCartBtn.addEventListener('click', () => {
+        const item = products[currentIndex];
+        addToCart(item, selectedSize);
+        closeProductModal();
+        openCartDrawer();
+      });
+
+      prevBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderProduct(currentIndex - 1);
+      });
+
+      nextBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderProduct(currentIndex + 1);
+      });
+
+      closeBtn.addEventListener('click', closeProductModal);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeProductModal();
+        }
+      });
+
+      /* ---------------- SHOPPING BAG / CART ---------------- */
+      function addToCart(product, size) {
+        const key = `${product.id}-${size}`;
+        const existing = cart.find((entry) => entry.key === key);
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          cart.push({
+            key,
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            src: product.src,
+            fallback: product.fallback,
+            size,
+            qty: 1
+          });
+        }
+        renderCart();
+      }
+
+      function updateCartQty(key, delta) {
+        const idx = cart.findIndex((entry) => entry.key === key);
+        if (idx === -1) return;
+        cart[idx].qty += delta;
+        if (cart[idx].qty <= 0) {
+          cart.splice(idx, 1);
+        }
+        renderCart();
+      }
+
+      function renderCart() {
+        const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+        cartCountBadge.textContent = totalItems;
+
+        if (cart.length === 0) {
+          cartItemsContainer.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center text-center py-12">
+              <span class="font-mincho text-3xl text-indigoDark/30 mb-2">心猫</span>
+              <p class="font-display text-xs uppercase tracking-wider text-indigoDark">YOUR BAG IS EMPTY</p>
+              <p class="font-grotesk text-xs text-slateMuted mt-1">Explore the SS27 Sneak Peak catalogue to add pieces.</p>
+            </div>
+          `;
+        } else {
+          cartItemsContainer.innerHTML = '';
+          cart.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'flex gap-3.5 p-3 bg-washi border border-indigoDark/20 rounded-sm';
+            row.innerHTML = `
+              <img src="${item.src}" alt="${item.title}" onerror="this.onerror=null;this.src='${item.fallback}';" class="w-16 h-20 object-cover bg-[#F7F7F7] border border-indigoDark/15 shrink-0" />
+              <div class="flex-1 flex flex-col justify-between">
+                <div>
+                  <h4 class="font-grotesk text-xs font-bold uppercase tracking-wide text-indigoDark leading-snug">${item.title}</h4>
+                  <p class="font-grotesk text-[11px] text-slateMuted mt-0.5">SIZE: ${item.size} &middot; ${formatCurrency(item.price)}</p>
+                </div>
+                <div class="flex items-center justify-between mt-2">
+                  <div class="inline-flex items-center border border-indigoDark bg-white">
+                    <button type="button" data-action="dec" class="w-6 h-6 text-xs font-bold text-indigoDark hover:bg-kinari cursor-pointer">-</button>
+                    <span class="px-2.5 text-xs font-grotesk font-semibold text-indigoDark">${item.qty}</span>
+                    <button type="button" data-action="inc" class="w-6 h-6 text-xs font-bold text-indigoDark hover:bg-kinari cursor-pointer">+</button>
+                  </div>
+                  <span class="font-grotesk text-xs font-bold text-sumi">${formatCurrency(item.price * item.qty)}</span>
+                </div>
+              </div>
+            `;
+            row.querySelector('[data-action="dec"]').addEventListener('click', () => updateCartQty(item.key, -1));
+            row.querySelector('[data-action="inc"]').addEventListener('click', () => updateCartQty(item.key, 1));
+            cartItemsContainer.appendChild(row);
+          });
+        }
+
+        const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+        const discount = discountApplied ? subtotal * 0.15 : 0;
+        const total = Math.max(0, subtotal - discount);
+
+        cartSubtotalEl.textContent = formatCurrency(subtotal);
+        if (discountApplied && subtotal > 0) {
+          cartDiscountRow.classList.remove('hidden');
+          cartDiscountAmountEl.textContent = `-${formatCurrency(discount)}`;
+        } else {
+          cartDiscountRow.classList.add('hidden');
+        }
+        cartTotalEl.textContent = formatCurrency(total);
+      }
+
+      function openCartDrawer() {
+        renderCart();
+        cartDrawerOverlay.classList.remove('hidden');
+      }
+
+      function closeCartDrawer() {
+        cartDrawerOverlay.classList.add('hidden');
+      }
+
+      openCartBtn.addEventListener('click', openCartDrawer);
+      closeCartDrawerBtn.addEventListener('click', closeCartDrawer);
+      cartDrawerOverlay.addEventListener('click', (e) => {
+        if (e.target === cartDrawerOverlay) closeCartDrawer();
+      });
+
+      applyCartPromoBtn.addEventListener('click', () => {
+        const code = cartPromoInput.value.trim().toUpperCase();
+        cartPromoMessage.classList.remove('hidden');
+        if (code === 'KOKORO15') {
+          discountApplied = true;
+          cartPromoMessage.textContent = '15% DISCOUNT APPLIED (KOKORO15)';
+          cartPromoMessage.className = 'font-grotesk text-[11px] mt-1 font-semibold text-hanko';
+          renderCart();
+        } else {
+          discountApplied = false;
+          cartPromoMessage.textContent = 'INVALID PROMO CODE — TRY KOKORO15';
+          cartPromoMessage.className = 'font-grotesk text-[11px] mt-1 font-medium text-slateMuted';
+          renderCart();
+        }
+      });
+
+      checkoutBtn.addEventListener('click', () => {
+        if (cart.length === 0) {
+          cartPromoMessage.classList.remove('hidden');
+          cartPromoMessage.textContent = 'ADD AT LEAST ONE ITEM BEFORE CHECKOUT.';
+          cartPromoMessage.className = 'font-grotesk text-[11px] mt-1 font-semibold text-hanko';
+          return;
+        }
+        checkoutBtn.textContent = 'ORDER CONFIRMED — ARIGATO!';
+        checkoutBtn.classList.remove('bg-ochre');
+        checkoutBtn.classList.add('bg-indigoDark');
+        cart = [];
+        renderCart();
+        setTimeout(() => {
+          checkoutBtn.textContent = 'PROCEED TO CHECKOUT';
+          checkoutBtn.classList.remove('bg-indigoDark');
+          checkoutBtn.classList.add('bg-ochre');
+          closeCartDrawer();
+        }, 1800);
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (!modal.classList.contains('hidden')) {
+          if (e.key === 'Escape') closeProductModal();
+          if (e.key === 'ArrowLeft') renderProduct(currentIndex - 1);
+          if (e.key === 'ArrowRight') renderProduct(currentIndex + 1);
+        }
+        if (!cartDrawerOverlay.classList.contains('hidden') && e.key === 'Escape') {
+          closeCartDrawer();
+        }
+      });
+
+      // Expose global helper so the Custom Embroidery Patch Studio can add to the same cart
+      window.kokoroAddCustomItem = function(customItem) {
+        addToCart(customItem, customItem.size || '3.5"');
+        openCartDrawer();
+      };
+
+      renderCart();
+    })();
+
+    /* =====================================================================
+       4. KOKORO WEAR — STREET CATS NYC ROTATING CAROUSEL & CAPTION POPUP
+       ===================================================================== */
+    (function initStreetCatsTakeover() {
+      const streetCatMockups = [
+        {
+          sources: ['printmock1_2.jfif', 'printmock1.jfif'],
+          fallback: 'https://placehold.co/600x760/1A2B3C/F4EFE6?text=NYC+SUBWAY+WRAP',
+          title: 'MTA SUBWAY CAR WRAP — EXPRESS LINE',
+          coords: '40.7580° N, 73.9855° W',
+          caption: 'Full exterior commuter train takeover featuring linear zoetrope cat silhouettes that look like an animated cat running when the train is moving. It also features the Kokoro Wear garment line.'
+        },
+        {
+          sources: ['printmock2_4.jfif', 'printmock2_3.jfif', 'printmock2_2.jfif', 'printmock2.jfif'],
+          fallback: 'https://placehold.co/600x760/1A2B3C/F4EFE6?text=KOKORO+EDITORIAL+ISSUE+01',
+          title: 'KOKORO PRINT ZINE — ISSUE 01 COVER',
+          coords: 'LOWER EAST SIDE, NYC',
+          caption: 'Street Smart: Wabi-Sabi Denim and Beyond. Editorial lookbook pairing raw selvedge silhouettes with our Indigo Checkered Tote and neighborhood tabby cats.'
+        },
+        {
+          sources: ['printmock3_2.jfif', 'printmock3.jfif'],
+          fallback: 'https://placehold.co/600x760/1A2B3C/F4EFE6?text=SUBWAY+CAR+POSTER',
+          title: 'R5 CAR INTERIOR — HAORI COLLECTION',
+          coords: 'CANAL ST STATION, NYC',
+          caption: 'Modern craft, traditional soul. Framed subway car print showcasing the Aizome Sashiko Enso Haori above a sleeping late-night commuter tabby.'
+        },
+        {
+          sources: ['printmock4_4.jfif', 'printmock4_3.jfif', 'printmock4_2.jfif', 'printmock4.jfif'],
+          fallback: 'https://placehold.co/600x760/1A2B3C/F4EFE6?text=TIMES+SQUARE+BILLBOARD',
+          title: 'CATS IN THE CITY — MIDTOWN BILLBOARD',
+          coords: '42ND ST & BROADWAY, NYC',
+          caption: 'Monumental illuminated tower takeover highlighting the Neko Seigaiha Kinchaku Pouch and contrast-panel streetwear above Midtown traffic.'
+        },
+        {
+          sources: ['printmock5_4.jfif', 'printmock5_3.jfif', 'printmock5_2.jfif', 'printmock5.jfif'],
+          fallback: 'https://placehold.co/600x760/1A2B3C/F4EFE6?text=PLATFORM+2-SHEET+AD',
+          title: 'PLATFORM 2-SHEET — [KO-KO-RO] NOUN',
+          coords: '14TH ST — UNION SQUARE, NYC',
+          caption: 'Subway tile installation defining Kokoro ("Heart, Mind, Spirit") alongside the embroidered peeking-cat Kinari pullover hoodie.'
+        }
+      ];
+
+      const track = document.getElementById('streetCatsTrack');
+      const scModal = document.getElementById('streetCatModal');
+      const scImg = document.getElementById('streetCatModalImg');
+      const scTitle = document.getElementById('streetCatModalTitle');
+      const scCoords = document.getElementById('streetCatModalCoords');
+      const scCaption = document.getElementById('streetCatModalCaption');
+      const scIndex = document.getElementById('streetCatModalIndex');
+      const closeScBtn = document.getElementById('closeStreetCatModalBtn');
+      const prevScBtn = document.getElementById('prevStreetCatBtn');
+      const nextScBtn = document.getElementById('nextStreetCatBtn');
+
+      if (!track || !scModal) return;
+
+      let activeScIndex = 0;
+
+      function applyImageFallback(imgEl, item) {
+        let attemptIdx = 0;
+        function tryNext() {
+          if (attemptIdx < item.sources.length) {
+            imgEl.src = item.sources[attemptIdx++];
+          } else {
+            imgEl.onerror = null;
+            imgEl.src = item.fallback;
+          }
+        }
+        imgEl.onerror = tryNext;
+        tryNext();
+      }
+
+      function renderStreetCatSlide(index) {
+        activeScIndex = (index + streetCatMockups.length) % streetCatMockups.length;
+        const item = streetCatMockups[activeScIndex];
+        applyImageFallback(scImg, item);
+        scImg.alt = item.title;
+        scTitle.textContent = item.title;
+        scCoords.textContent = item.coords;
+        scCaption.textContent = item.caption;
+        scIndex.textContent = `0${activeScIndex + 1} / 0${streetCatMockups.length}`;
+      }
+
+      function openStreetCatModal(index) {
+        renderStreetCatSlide(index);
+        scModal.classList.remove('hidden');
+      }
+
+      function closeStreetCatModal() {
+        scModal.classList.add('hidden');
+      }
+
+      // Build two identical sets side-by-side with zero gaps for seamless infinite loop
+      const fullLoopItems = [...streetCatMockups, ...streetCatMockups];
+      fullLoopItems.forEach((item, loopIdx) => {
+        const originalIdx = loopIdx % streetCatMockups.length;
+        const tile = document.createElement('button');
+        tile.type = 'button';
+        tile.setAttribute('aria-label', `View ${item.title}`);
+        tile.className = 'group relative w-[240px] sm:w-[300px] md:w-[340px] aspect-[3/4] shrink-0 overflow-hidden border-r border-indigoDark/15 bg-kinari cursor-pointer focus:outline-none';
+
+        const img = document.createElement('img');
+        applyImageFallback(img, item);
+        img.alt = item.title;
+        img.className = 'w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110 block';
+
+        tile.appendChild(img);
+        tile.addEventListener('click', () => openStreetCatModal(originalIdx));
+        track.appendChild(tile);
+      });
+
+      prevScBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderStreetCatSlide(activeScIndex - 1);
+      });
+
+      nextScBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderStreetCatSlide(activeScIndex + 1);
+      });
+
+      closeScBtn.addEventListener('click', closeStreetCatModal);
+
+      scModal.addEventListener('click', (e) => {
+        if (e.target === scModal) {
+          closeStreetCatModal();
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (!scModal.classList.contains('hidden')) {
+          if (e.key === 'Escape') closeStreetCatModal();
+          if (e.key === 'ArrowLeft') renderStreetCatSlide(activeScIndex - 1);
+          if (e.key === 'ArrowRight') renderStreetCatSlide(activeScIndex + 1);
+        }
+      });
+    })();
+
+    /* =====================================================================
+       5. KOKORO WEAR — DIGITAL FEED PHONE MOCKUPS ("CURIOSITY ON SCREEN")
+       ===================================================================== */
+    (function initDigitalFeedSection() {
+      const digitalCampaigns = [
+        {
+          type: 'image',
+          src: 'digmock1.jfif',
+          secondarySrc: 'digmock1.jpg',
+          placeholder: 'https://placehold.co/540x960/1A2B3C/F4EFE6?text=NINE+LIVES+IG+POST',
+          platform: 'INSTAGRAM FEED // KYOTO, JAPAN',
+          handle: '@KOKOROWEAR',
+          title: 'NINE LIVES, ONE LOOK — KYOTO FLAT-LAY',
+          caption: 'Verified social feed post pairing the Aizome Sashiko Enso Haori and Indigo Checkered Atelier Tote on raw Japanese cotton with a sunlit ginger tabby.'
+        },
+        {
+          type: 'video',
+          src: 'digmock2.mp4',
+          secondarySrc: 'digmock2.jfif',
+          placeholder: 'https://placehold.co/540x960/1A2B3C/F4EFE6?text=WEARING+YOUR+CAT+STORY',
+          platform: 'IG STORY // ANIMATED 9:16 REEL',
+          handle: 'KOKORO WEAR',
+          title: 'WEARING YOUR CAT ON YOUR SLEEVE',
+          caption: 'Animated vertical story spotlighting custom line-art cat-paw sleeve tailoring with sparkling stitch accents and tap-to-shop links.'
+        },
+        {
+          type: 'image',
+          src: 'digmock3.jfif',
+          secondarySrc: 'digmock3.jpg',
+          placeholder: 'https://placehold.co/540x960/1A2B3C/F4EFE6?text=CAT+NAP+HOODIE+FEED',
+          platform: 'INSTAGRAM FEED // PRODUCT DROP',
+          handle: '@KOKOROWEAR',
+          title: 'CAT NAP HOODIE — EMBROIDERY SPOTLIGHT',
+          caption: 'Social carousel feature highlighting the peeking tabby embroidery, clawed chest detailing, and cat-ear cuff cutouts paired with the Neko Kinchaku Pouch.'
+        },
+        {
+          type: 'image',
+          src: 'digmock4.jfif',
+          secondarySrc: 'digmock4.jpg',
+          placeholder: 'https://placehold.co/540x960/1A2B3C/F4EFE6?text=BORO+WEAVING+NATIVE+AD',
+          platform: 'EDITORIAL NATIVE AD // MOBILE WEB',
+          handle: 'KOKORO WEAR',
+          title: 'THE ART OF JAPANESE TEXTILES — BORO BANNER',
+          caption: 'In-article digital display banner embedded inside Japanese textile journalism, showcasing plaid boro cat patchwork alongside the Kinari Kinchaku pouch.'
+        },
+        {
+          type: 'video',
+          src: 'digmock5.mp4',
+          secondarySrc: 'digmock5.jfif',
+          placeholder: 'https://placehold.co/540x960/1A2B3C/F4EFE6?text=NEKO+SEIGAIHA+STITCH+STORY',
+          platform: 'IG STORY // MACRO MOTION LOOP',
+          handle: 'KOKORO WEAR',
+          title: 'NEKO-SEIGAIHA POCKET EMBROIDERY',
+          caption: 'Macro close-up motion story capturing high-density navy satin-stitch Neko-Seigaiha embroidery emerging from an unbleached woven cotton pocket.'
+        }
+      ];
+
+      const feedTrack = document.getElementById('digitalFeedTrack');
+      const dModal = document.getElementById('digitalModal');
+      const dImg = document.getElementById('digitalModalImg');
+      const dVideo = document.getElementById('digitalModalVideo');
+      const dTitle = document.getElementById('digitalModalTitle');
+      const dPlatform = document.getElementById('digitalModalPlatform');
+      const dHandle = document.getElementById('digitalModalHandle');
+      const dCaption = document.getElementById('digitalModalCaption');
+      const dIndex = document.getElementById('digitalModalIndex');
+      const closeDBtn = document.getElementById('closeDigitalModalBtn');
+      const prevDBtn = document.getElementById('prevDigitalBtn');
+      const nextDBtn = document.getElementById('nextDigitalBtn');
+
+      if (!feedTrack || !dModal) return;
+
+      let activeDigitalIdx = 0;
+
+      function applyDigitalImageFallback(imgEl, item) {
+        imgEl.onerror = () => {
+          imgEl.onerror = () => {
+            imgEl.onerror = null;
+            imgEl.src = item.placeholder;
+          };
+          imgEl.src = item.secondarySrc;
+        };
+        imgEl.src = item.src;
+      }
+
+      function renderDigitalSlide(index) {
+        activeDigitalIdx = (index + digitalCampaigns.length) % digitalCampaigns.length;
+        const item = digitalCampaigns[activeDigitalIdx];
+
+        if (item.type === 'video' && dVideo) {
+          dImg.classList.add('hidden');
+          dVideo.classList.remove('hidden');
+          dVideo.poster = item.secondarySrc;
+          dVideo.onerror = () => {
+            dVideo.classList.add('hidden');
+            dImg.classList.remove('hidden');
+            applyDigitalImageFallback(dImg, { ...item, src: item.secondarySrc });
+          };
+          dVideo.src = item.src;
+          dVideo.play().catch(() => {});
+        } else {
+          if (dVideo) {
+            dVideo.pause();
+            dVideo.classList.add('hidden');
+          }
+          dImg.classList.remove('hidden');
+          applyDigitalImageFallback(dImg, item);
+          dImg.alt = item.title;
+        }
+
+        dTitle.textContent = item.title;
+        dPlatform.textContent = item.platform;
+        dHandle.textContent = item.handle;
+        dCaption.textContent = item.caption;
+        dIndex.textContent = `0${activeDigitalIdx + 1} / 0${digitalCampaigns.length}`;
+      }
+
+      function openDigitalModal(index) {
+        renderDigitalSlide(index);
+        dModal.classList.remove('hidden');
+      }
+
+      function closeDigitalModal() {
+        if (dVideo) dVideo.pause();
+        dModal.classList.add('hidden');
+      }
+
+      // Build two identical sets of smartphone-framed screens for continuous marquee rotation
+      const loopCampaigns = [...digitalCampaigns, ...digitalCampaigns];
+      loopCampaigns.forEach((item, loopIdx) => {
+        const originalIdx = loopIdx % digitalCampaigns.length;
+        const isFramedFeedPost = item.src.startsWith('digmock1') || item.src.startsWith('digmock3');
+
+        // Outer Smartphone Chassis Border
+        const phoneFrame = document.createElement('button');
+        phoneFrame.type = 'button';
+        phoneFrame.setAttribute('aria-label', `Inspect ${item.title}`);
+        phoneFrame.className = 'group relative w-[245px] sm:w-[270px] md:w-[285px] shrink-0 bg-[#1A2B3C] p-[10px] rounded-[36px] border-2 border-indigoDark shadow-[0_14px_30px_rgba(26,43,60,0.14)] cursor-pointer focus:outline-none transition-transform duration-300 hover:-translate-y-1.5';
+
+        if (isFramedFeedPost) {
+          // Uncropped Smartphone Feed Frame (dedicated top/bottom bezels for digmock1 & digmock3)
+          const screen = document.createElement('div');
+          screen.className = 'relative w-full rounded-[26px] overflow-hidden bg-white flex flex-col';
+
+          const topBezel = document.createElement('div');
+          topBezel.className = 'w-full h-6 bg-white flex items-center justify-center shrink-0';
+          topBezel.innerHTML = '<span class="w-16 h-3 bg-[#1A2B3C] rounded-full flex items-center justify-end px-2"><span class="w-1.5 h-1.5 rounded-full bg-slateMuted/50"></span></span>';
+          screen.appendChild(topBezel);
+
+          const mediaSlot = document.createElement('div');
+          mediaSlot.className = 'w-full aspect-[9/16.2] overflow-hidden bg-white flex items-center justify-center';
+
+          const img = document.createElement('img');
+          applyDigitalImageFallback(img, item);
+          img.alt = item.title;
+          img.className = 'w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105 block';
+          mediaSlot.appendChild(img);
+
+          screen.appendChild(mediaSlot);
+
+          const bottomBezel = document.createElement('div');
+          bottomBezel.className = 'w-full h-4 bg-white flex items-center justify-center shrink-0';
+          bottomBezel.innerHTML = '<span class="w-20 h-1 rounded-full bg-indigoDark/35"></span>';
+          screen.appendChild(bottomBezel);
+
+          phoneFrame.appendChild(screen);
+        } else {
+          // Full-Bleed Smartphone Screen Viewport (digmock2, digmock4, digmock5)
+          const screen = document.createElement('div');
+          screen.className = 'relative w-full aspect-[9/17.5] rounded-[26px] overflow-hidden bg-[#1E1E1E]';
+
+          // Top Speaker / Dynamic Island Notch
+          const notch = document.createElement('div');
+          notch.className = 'absolute top-2.5 left-1/2 -translate-x-1/2 z-10 w-16 h-3.5 bg-[#1A2B3C] rounded-full pointer-events-none flex items-center justify-end px-2';
+          notch.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-slateMuted/50"></span>';
+          screen.appendChild(notch);
+
+          if (item.type === 'video') {
+            const vid = document.createElement('video');
+            vid.src = item.src;
+            vid.poster = item.secondarySrc;
+            vid.autoplay = true;
+            vid.loop = true;
+            vid.muted = true;
+            vid.playsInline = true;
+            vid.className = 'w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110 block';
+            vid.onerror = () => {
+              const fallbackImg = document.createElement('img');
+              applyDigitalImageFallback(fallbackImg, { ...item, src: item.secondarySrc });
+              fallbackImg.alt = item.title;
+              fallbackImg.className = 'w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110 block';
+              vid.replaceWith(fallbackImg);
+            };
+            screen.appendChild(vid);
+          } else {
+            const img = document.createElement('img');
+            applyDigitalImageFallback(img, item);
+            img.alt = item.title;
+            img.className = 'w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110 block';
+            screen.appendChild(img);
+          }
+
+          // Bottom Home Indicator Bar
+          const homeBar = document.createElement('div');
+          homeBar.className = 'absolute bottom-2 left-1/2 -translate-x-1/2 z-10 w-20 h-1 rounded-full bg-white/75 pointer-events-none';
+          screen.appendChild(homeBar);
+
+          phoneFrame.appendChild(screen);
+        }
+
+        phoneFrame.addEventListener('click', () => openDigitalModal(originalIdx));
+        feedTrack.appendChild(phoneFrame);
+      });
+
+      prevDBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderDigitalSlide(activeDigitalIdx - 1);
+      });
+
+      nextDBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderDigitalSlide(activeDigitalIdx + 1);
+      });
+
+      closeDBtn.addEventListener('click', closeDigitalModal);
+
+      dModal.addEventListener('click', (e) => {
+        if (e.target === dModal) {
+          closeDigitalModal();
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (!dModal.classList.contains('hidden')) {
+          if (e.key === 'Escape') closeDigitalModal();
+          if (e.key === 'ArrowLeft') renderDigitalSlide(activeDigitalIdx - 1);
+          if (e.key === 'ArrowRight') renderDigitalSlide(activeDigitalIdx + 1);
+        }
+      });
+    })();
+
+    /* =====================================================================
+       6. KOKORO WEAR — PAW & THREAD LAB ("STITCH YOUR MARK" PATCH STUDIO)
+       ===================================================================== */
+    (function initPatchGeneratorStudio() {
+      const patchSvg = document.getElementById('patchSvg');
+      const wavesGroup = document.getElementById('patchWavesGroup');
+      const svgBg = document.getElementById('patchSvgBg');
+      const clippedGroup = document.getElementById('clippedGroup');
+      const embroideryToggle = document.getElementById('embroideryToggle');
+      const overlayGroup = document.getElementById('embroideryOverlayGroup');
+      const highlightLayer = document.getElementById('embroideryHighlightLayer');
+
+      const bgColorInput = document.getElementById('patchBgColor');
+      const bgColorVal = document.getElementById('patchBgColorVal');
+      const lineColorInput = document.getElementById('patchLineColor');
+      const lineColorVal = document.getElementById('patchLineColorVal');
+      const strokeWeightInput = document.getElementById('patchStrokeWeight');
+      const strokeWeightVal = document.getElementById('patchStrokeWeightVal');
+      const waveScaleInput = document.getElementById('patchWaveScale');
+      const scaleVal = document.getElementById('patchScaleVal');
+      const patchSummaryLabel = document.getElementById('patchSummaryLabel');
+
+      const shapeBtns = document.querySelectorAll('.patch-shape-btn');
+      const countBtns = document.querySelectorAll('.patch-count-btn');
+      const modeBtns = document.querySelectorAll('.patch-mode-btn');
+      const randomizeBtn = document.getElementById('randomizePatchBtn');
+      const downloadBtn = document.getElementById('downloadPatchBtn');
+      const addPatchToCartBtn = document.getElementById('addCustomPatchToCartBtn');
+
+      if (!patchSvg || !wavesGroup) return;
+
+      let currentShape = 'cat';
+      let catColorCount = 3;
+      let catColorMode = 'horizontal';
+
+      function updateSummaryText() {
+        if (patchSummaryLabel) {
+          patchSummaryLabel.textContent = `CUSTOM ${currentShape.toUpperCase()} PATCH`;
+        }
+      }
+
+      function setShape(shape) {
+        currentShape = shape;
+        shapeBtns.forEach((btn) => {
+          const isMatch = btn.dataset.patchShape === shape;
+          btn.className = `patch-shape-btn px-2.5 py-2 text-xs font-grotesk uppercase tracking-wider rounded-sm transition font-semibold cursor-pointer ${
+            isMatch
+              ? 'bg-ochre text-kinari border-[1.5px] border-indigoDark'
+              : 'bg-washi text-indigoDark border-[1.5px] border-indigoDark/40 hover:border-indigoDark'
+          }`;
+        });
+        clippedGroup.setAttribute('clip-path', `url(#clip-${shape})`);
+        updateSummaryText();
+      }
+
+      function toggleEmbroideryMode() {
+        const isChecked = embroideryToggle.checked;
+        if (isChecked) {
+          overlayGroup.style.display = 'block';
+          highlightLayer.style.display = 'block';
+          clippedGroup.setAttribute('filter', 'url(#stitchReliefFilter)');
+        } else {
+          overlayGroup.style.display = 'none';
+          highlightLayer.style.display = 'none';
+          clippedGroup.removeAttribute('filter');
+        }
+      }
+
+      function setCatColorCount(count) {
+        catColorCount = count;
+        countBtns.forEach((btn) => {
+          const isMatch = parseInt(btn.dataset.catCount, 10) === count;
+          btn.className = `patch-count-btn px-2 py-0.5 text-[11px] font-grotesk rounded-sm cursor-pointer ${
+            isMatch
+              ? 'bg-ochre text-kinari border border-indigoDark font-bold'
+              : 'bg-kinari text-indigoDark border border-indigoDark/30'
+          }`;
+        });
+
+        const box2 = document.getElementById('patchCatColorBox2');
+        const box3 = document.getElementById('patchCatColorBox3');
+        if (box2) {
+          box2.style.opacity = count >= 2 ? '1' : '0.35';
+          box2.style.pointerEvents = count >= 2 ? 'auto' : 'none';
+        }
+        if (box3) {
+          box3.style.opacity = count >= 3 ? '1' : '0.35';
+          box3.style.pointerEvents = count >= 3 ? 'auto' : 'none';
+        }
+
+        generateSeigaihaWaves();
+      }
+
+      function setCatColorMode(mode) {
+        catColorMode = mode;
+        modeBtns.forEach((btn) => {
+          const isMatch = btn.dataset.catMode === mode;
+          btn.className = `patch-mode-btn px-2 py-1.5 text-[11px] font-grotesk uppercase tracking-wider rounded-sm font-semibold transition cursor-pointer ${
+            isMatch
+              ? 'bg-ochre text-kinari border border-indigoDark'
+              : 'bg-kinari text-indigoDark border border-indigoDark/30 hover:border-indigoDark'
+          }`;
+        });
+
+        generateSeigaihaWaves();
+      }
+
+      function getCatFillColor(activeCatColors, row, col) {
+        const count = activeCatColors.length;
+        if (count === 1) return activeCatColors[0];
+
+        if (catColorMode === 'vertical') {
+          const vIndex = (col + 10) % count;
+          return activeCatColors[vIndex];
+        }
+
+        if (catColorMode === 'random') {
+          const rIndex = Math.floor(Math.random() * count);
+          return activeCatColors[rIndex];
+        }
+
+        const hIndex = (Math.floor(row / 2) + 10) % count;
+        return activeCatColors[hIndex];
+      }
+
+      function generateSeigaihaWaves() {
+        const R = parseInt(waveScaleInput.value, 10);
+        const bgColor = bgColorInput.value;
+        const strokeColor = lineColorInput.value;
+        const strokeWeight = parseFloat(strokeWeightInput.value);
+
+        const activeCatColors = [
+          document.getElementById('patchCatColor1').value,
+          document.getElementById('patchCatColor2').value,
+          document.getElementById('patchCatColor3').value
+        ].slice(0, catColorCount);
+
+        wavesGroup.innerHTML = '';
+
+        const rowHeight = R * 0.62;
+        const colWidth = R * 2;
+        const totalRows = Math.ceil(380 / rowHeight);
+        const totalCols = Math.ceil(380 / colWidth) + 2;
+
+        for (let row = -1; row < totalRows; row++) {
+          const isOddRow = row % 2 !== 0;
+          const xOffset = isOddRow ? R : 0;
+          const centerY = row * rowHeight + 10;
+
+          for (let col = -1; col < totalCols; col++) {
+            const centerX = col * colWidth + xOffset;
+            const isCatTile = row % 2 === 0 && (((col + Math.floor(row / 2)) % 2 + 2) % 2 === 0);
+
+            if (isCatTile) {
+              const catFill = getCatFillColor(activeCatColors, row, col);
+              const catPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              const d = `
+                M ${centerX - R * 0.98} ${centerY + R * 0.25}
+                C ${centerX - R * 0.98} ${centerY - R * 0.15}, ${centerX - R * 0.85} ${centerY - R * 0.45}, ${centerX - R * 0.78} ${centerY - R * 0.72}
+                L ${centerX - R * 0.72} ${centerY - R * 1.18}
+                L ${centerX - R * 0.34} ${centerY - R * 0.92}
+                C ${centerX - R * 0.12} ${centerY - R * 0.98}, ${centerX + R * 0.12} ${centerY - R * 0.98}, ${centerX + R * 0.34} ${centerY - R * 0.92}
+                L ${centerX + R * 0.72} ${centerY - R * 1.18}
+                L ${centerX + R * 0.78} ${centerY - R * 0.72}
+                C ${centerX + R * 0.85} ${centerY - R * 0.45}, ${centerX + R * 0.98} ${centerY - R * 0.15}, ${centerX + R * 0.98} ${centerY + R * 0.25}
+                Z
+              `;
+              catPath.setAttribute('d', d);
+              catPath.setAttribute('fill', catFill);
+              wavesGroup.appendChild(catPath);
+            } else {
+              const baseArch = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              baseArch.setAttribute('d', `M ${centerX - R} ${centerY + R * 0.25} L ${centerX - R} ${centerY} A ${R} ${R} 0 0 1 ${centerX + R} ${centerY} L ${centerX + R} ${centerY + R * 0.25} Z`);
+              baseArch.setAttribute('fill', bgColor);
+              wavesGroup.appendChild(baseArch);
+
+              const ringRadii = [R * 0.92, R * 0.70, R * 0.48, R * 0.26];
+              ringRadii.forEach((r) => {
+                const arc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                arc.setAttribute('d', `M ${centerX - r} ${centerY} A ${r} ${r} 0 0 1 ${centerX + r} ${centerY}`);
+                arc.setAttribute('fill', 'none');
+                arc.setAttribute('stroke', strokeColor);
+                arc.setAttribute('stroke-width', strokeWeight);
+                arc.setAttribute('stroke-linecap', 'butt');
+                wavesGroup.appendChild(arc);
+              });
+            }
+          }
+        }
+      }
+
+      shapeBtns.forEach((btn) => {
+        btn.addEventListener('click', () => setShape(btn.dataset.patchShape));
+      });
+
+      countBtns.forEach((btn) => {
+        btn.addEventListener('click', () => setCatColorCount(parseInt(btn.dataset.catCount, 10)));
+      });
+
+      modeBtns.forEach((btn) => {
+        btn.addEventListener('click', () => setCatColorMode(btn.dataset.catMode));
+      });
+
+      embroideryToggle.addEventListener('change', toggleEmbroideryMode);
+
+      bgColorInput.addEventListener('input', (e) => {
+        svgBg.setAttribute('fill', e.target.value);
+        bgColorVal.textContent = e.target.value.toUpperCase();
+        generateSeigaihaWaves();
+      });
+
+      lineColorInput.addEventListener('input', (e) => {
+        lineColorVal.textContent = e.target.value.toUpperCase();
+        generateSeigaihaWaves();
+      });
+
+      [1, 2, 3].forEach((num) => {
+        const inp = document.getElementById(`patchCatColor${num}`);
+        const val = document.getElementById(`patchCatColorVal${num}`);
+        inp.addEventListener('input', (e) => {
+          val.textContent = e.target.value.toUpperCase();
+          generateSeigaihaWaves();
+        });
+      });
+
+      strokeWeightInput.addEventListener('input', (e) => {
+        strokeWeightVal.textContent = `${e.target.value}px`;
+        generateSeigaihaWaves();
+      });
+
+      waveScaleInput.addEventListener('input', (e) => {
+        scaleVal.textContent = `${e.target.value}px`;
+        generateSeigaihaWaves();
+      });
+
+      randomizeBtn.addEventListener('click', () => {
+        const bgPalette = ['#1A2B3C', '#0F1C2E', '#243748', '#F4EFE6'];
+        const linePalette = ['#F4EFE6', '#75848F', '#1A2B3C', '#9D8870'];
+        const catPalette = ['#C85A32', '#BA3B2E', '#9D8870', '#E2A03F', '#75848F'];
+        const shapes = ['square', 'cat', 'circle', 'heart'];
+
+        const bg = bgPalette[Math.floor(Math.random() * bgPalette.length)];
+        let line = linePalette[Math.floor(Math.random() * linePalette.length)];
+        if (line === bg) line = bg === '#F4EFE6' ? '#1A2B3C' : '#F4EFE6';
+
+        const shuffledCats = [...catPalette].sort(() => 0.5 - Math.random());
+
+        bgColorInput.value = bg;
+        svgBg.setAttribute('fill', bg);
+        bgColorVal.textContent = bg.toUpperCase();
+
+        lineColorInput.value = line;
+        lineColorVal.textContent = line.toUpperCase();
+
+        [1, 2, 3].forEach((num, idx) => {
+          const inp = document.getElementById(`patchCatColor${num}`);
+          const val = document.getElementById(`patchCatColorVal${num}`);
+          inp.value = shuffledCats[idx];
+          val.textContent = shuffledCats[idx].toUpperCase();
+        });
+
+        const randomScale = [32, 36, 40, 44][Math.floor(Math.random() * 4)];
+        waveScaleInput.value = randomScale;
+        scaleVal.textContent = `${randomScale}px`;
+
+        setShape(shapes[Math.floor(Math.random() * shapes.length)]);
+        generateSeigaihaWaves();
+      });
+
+      function renderPatchToDataUrl(callback) {
+        const serializer = new XMLSerializer();
+        const source = serializer.serializeToString(patchSvg);
+        const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          canvas.width = 640;
+          canvas.height = 620;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, 640, 620);
+          URL.revokeObjectURL(url);
+          callback(canvas.toDataURL('image/png'));
+        };
+        img.onerror = function() {
+          URL.revokeObjectURL(url);
+          callback('https://placehold.co/320x310/1A2B3C/F4EFE6?text=CUSTOM+PATCH');
+        };
+        img.src = url;
+      }
+
+      downloadBtn.addEventListener('click', () => {
+        renderPatchToDataUrl((pngUrl) => {
+          const downloadLink = document.createElement('a');
+          downloadLink.href = pngUrl;
+          downloadLink.download = `kokoro-wear-patch-${currentShape}.png`;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+        });
+      });
+
+      addPatchToCartBtn.addEventListener('click', () => {
+        const originalText = addPatchToCartBtn.textContent;
+        addPatchToCartBtn.textContent = 'STITCHING TO BAG...';
+
+        renderPatchToDataUrl((snapshotUrl) => {
+          const bgHex = bgColorInput.value.toUpperCase();
+          const waveHex = lineColorInput.value.toUpperCase();
+          const uniqueDesignId = `custom-patch-${currentShape}-${bgHex}-${waveHex}-${catColorCount}-${catColorMode}`;
+
+          if (typeof window.kokoroAddCustomItem === 'function') {
+            window.kokoroAddCustomItem({
+              id: uniqueDesignId,
+              title: `CUSTOM ${currentShape.toUpperCase()} SEIGAIHA PATCH`,
+              price: 15,
+              src: snapshotUrl,
+              fallback: 'https://placehold.co/320x310/1A2B3C/F4EFE6?text=KOKORO+PATCH',
+              size: '3.5" IRON-ON'
+            });
+          }
+
+          addPatchToCartBtn.textContent = 'ADDED TO BAG ✓';
+          setTimeout(() => {
+            addPatchToCartBtn.textContent = originalText;
+          }, 1400);
+        });
+      });
+
+      // Initialize studio
+      setShape('cat');
+      setCatColorCount(3);
+      setCatColorMode('horizontal');
+      toggleEmbroideryMode();
+    })();
+
+    /* =====================================================================
+       7. KOKORO WEAR — SCROLL-TO-TOP PAW BUTTON (APPEARS AFTER HERO)
+       ===================================================================== */
+    (function initScrollToTopPaw() {
+      const scrollBtn = document.getElementById('scrollToTopPawBtn');
+      const heroFrame = document.getElementById('hero-frame');
+      if (!scrollBtn || !heroFrame) return;
+
+      function updateScrollButtonVisibility() {
+        const heroBottom = heroFrame.offsetTop + heroFrame.offsetHeight;
+        const passedHero = window.scrollY >= heroBottom - 80;
+
+        if (passedHero) {
+          scrollBtn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+          scrollBtn.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+        } else {
+          scrollBtn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+          scrollBtn.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+        }
+      }
+
+      scrollBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      window.addEventListener('scroll', updateScrollButtonVisibility, { passive: true });
+      window.addEventListener('resize', updateScrollButtonVisibility);
+      updateScrollButtonVisibility();
+    })();
+
+    /* =====================================================================
+       8. KOKORO WEAR — FOOTER DISPATCH NEWSLETTER & BAG TRIGGER
+       ===================================================================== */
+    (function initFooterInteractions() {
+      const newsletterForm = document.getElementById('footerNewsletterForm');
+      const emailInput = document.getElementById('footerEmailInput');
+      const newsletterBtn = document.getElementById('footerNewsletterBtn');
+      const newsletterMsg = document.getElementById('footerNewsletterMsg');
+      const footerOpenBagBtn = document.getElementById('footerOpenBagBtn');
+      const topCartBtn = document.getElementById('openCartBtn');
+
+      if (footerOpenBagBtn && topCartBtn) {
+        footerOpenBagBtn.addEventListener('click', () => topCartBtn.click());
+      }
+
+      if (newsletterForm && emailInput && newsletterMsg) {
+        newsletterForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const email = emailInput.value.trim();
+          if (!email) return;
+
+          newsletterMsg.textContent = 'WELCOME TO THE CLOWDER — USE CODE KOKORO15 FOR 15% OFF.';
+          newsletterMsg.classList.remove('hidden');
+          newsletterBtn.textContent = 'JOINED ✓';
+          newsletterBtn.classList.remove('bg-ochre');
+          newsletterBtn.classList.add('bg-indigoDark');
+          emailInput.value = '';
+
+          setTimeout(() => {
+            newsletterBtn.textContent = 'JOIN';
+            newsletterBtn.classList.remove('bg-indigoDark');
+            newsletterBtn.classList.add('bg-ochre');
+          }, 2500);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
