@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kokoro Wear - Seigaiha Embroidery Patch Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #1A2B3C;
+            color: #F4EFE6;
+        }
+        .brand-title {
+            font-family: 'Michroma', sans-serif;
+        }
+        .preview-stage {
+            border: 1px solid rgba(117, 132, 143, 0.22);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <span class="text-xs tracking-widest uppercase text-[#9D8870] font-semibold block mb-1">Kokoro Wear Spring 2027</span>
+        <h1 class="brand-title text-2xl md:text-3xl tracking-wide text-[#F4EFE6]">Seigaiha Embroidery Patch Studio</h1>
+        <p class="text-sm text-[#75848F] mt-2">Interlocking Japanese wave patches with custom feline silhouettes & satin thread simulation</p>
+    </header>
+
+    <div class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+        
+        <!-- Controls Panel -->
+        <div class="md:col-span-5 bg-[#243748] p-6 rounded-2xl shadow-xl border border-[#75848F]/20 space-y-5">
+            <h2 class="text-lg font-bold border-b border-[#75848F]/30 pb-3 flex items-center justify-between">
+                <span>Patch Parameters</span>
+                <span class="text-xs bg-[#C85A32] text-white px-2 py-0.5 rounded-full">Live Sync</span>
+            </h2>
+
+            <!-- Shape Selector -->
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9D8870] mb-2">Patch Silhouette</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="setShape('square')" id="btn-shape-square" class="shape-btn px-3 py-2 text-xs rounded-lg bg-[#1A2B3C] border border-[#75848F]/40 hover:border-[#C85A32] transition font-semibold">Square</button>
+                    <button onclick="setShape('cat')" id="btn-shape-cat" class="shape-btn px-3 py-2 text-xs rounded-lg bg-[#C85A32] text-white border border-[#C85A32] transition font-semibold">Cat</button>
+                    <button onclick="setShape('circle')" id="btn-shape-circle" class="shape-btn px-3 py-2 text-xs rounded-lg bg-[#1A2B3C] border border-[#75848F]/40 hover:border-[#C85A32] transition font-semibold">Circle</button>
+                    <button onclick="setShape('heart')" id="btn-shape-heart" class="shape-btn px-3 py-2 text-xs rounded-lg bg-[#1A2B3C] border border-[#75848F]/40 hover:border-[#C85A32] transition font-semibold">Heart</button>
+                </div>
+            </div>
+
+            <!-- Embroidery Thread Overlay Toggle -->
+            <div class="bg-[#1A2B3C]/70 p-3.5 rounded-xl border border-[#75848F]/30 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-[#F4EFE6] block">Embroidery Thread Overlay</span>
+                    <span class="text-[11px] text-[#75848F]">Layer directional satin stitch fibers & sheen over vectors</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="embroideryToggle" onchange="toggleEmbroideryMode()" checked class="sr-only peer">
+                    <div class="w-11 h-6 bg-[#243748] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#75848F] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C85A32]"></div>
+                </label>
+            </div>
+
+            <!-- Base & Wave Colors -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-[#9D8870] mb-2">Fabric Base</label>
+                    <div class="flex items-center space-x-2 bg-[#1A2B3C] p-2 rounded-lg border border-[#75848F]/30">
+                        <input type="color" id="bgColor" value="#1A2B3C" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0">
+                        <span id="bgColorVal" class="text-xs font-mono text-[#F4EFE6]">#1A2B3C</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-[#9D8870] mb-2">Wave Stitch</label>
+                    <div class="flex items-center space-x-2 bg-[#1A2B3C] p-2 rounded-lg border border-[#75848F]/30">
+                        <input type="color" id="lineColor" value="#F4EFE6" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0">
+                        <span id="lineColorVal" class="text-xs font-mono text-[#F4EFE6]">#F4EFE6</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Up to 3 Cat Thread Colors & Distribution Mode -->
+            <div class="bg-[#1A2B3C]/60 p-3.5 rounded-xl border border-[#75848F]/25 space-y-3">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-[#9D8870]">Cat Silhouette Colors</label>
+                    <div class="flex space-x-1">
+                        <button onclick="setCatColorCount(1)" id="count-btn-1" class="cat-count-btn px-2 py-0.5 text-[11px] rounded bg-[#243748] text-[#75848F] border border-[#75848F]/30">1</button>
+                        <button onclick="setCatColorCount(2)" id="count-btn-2" class="cat-count-btn px-2 py-0.5 text-[11px] rounded bg-[#243748] text-[#75848F] border border-[#75848F]/30">2</button>
+                        <button onclick="setCatColorCount(3)" id="count-btn-3" class="cat-count-btn px-2 py-0.5 text-[11px] rounded bg-[#C85A32] text-white font-bold">3</button>
+                    </div>
+                </div>
+
+                <!-- Color Arrangement Mode Buttons -->
+                <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+                    <button onclick="setCatColorMode('horizontal')" id="mode-cat-horizontal" class="cat-mode-btn px-2 py-1.5 text-[11px] rounded-lg bg-[#C85A32] text-white font-semibold transition">Horizontal</button>
+                    <button onclick="setCatColorMode('vertical')" id="mode-cat-vertical" class="cat-mode-btn px-2 py-1.5 text-[11px] rounded-lg bg-[#243748] text-[#75848F] border border-[#75848F]/30 hover:text-[#F4EFE6] font-semibold transition">Vertical</button>
+                    <button onclick="setCatColorMode('random')" id="mode-cat-random" class="cat-mode-btn px-2 py-1.5 text-[11px] rounded-lg bg-[#243748] text-[#75848F] border border-[#75848F]/30 hover:text-[#F4EFE6] font-semibold transition">Randomize</button>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <div id="catColorBox1" class="flex flex-col items-center bg-[#1A2B3C] p-2 rounded-lg border border-[#75848F]/30">
+                        <span class="text-[10px] uppercase tracking-wider text-[#75848F] mb-1">Cat 1</span>
+                        <input type="color" id="catColor1" value="#C85A32" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0">
+                        <span id="catColorVal1" class="text-[10px] font-mono text-[#F4EFE6] mt-1">#C85A32</span>
+                    </div>
+                    <div id="catColorBox2" class="flex flex-col items-center bg-[#1A2B3C] p-2 rounded-lg border border-[#75848F]/30">
+                        <span class="text-[10px] uppercase tracking-wider text-[#75848F] mb-1">Cat 2</span>
+                        <input type="color" id="catColor2" value="#BA3B2E" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0">
+                        <span id="catColorVal2" class="text-[10px] font-mono text-[#F4EFE6] mt-1">#BA3B2E</span>
+                    </div>
+                    <div id="catColorBox3" class="flex flex-col items-center bg-[#1A2B3C] p-2 rounded-lg border border-[#75848F]/30">
+                        <span class="text-[10px] uppercase tracking-wider text-[#75848F] mb-1">Cat 3</span>
+                        <input type="color" id="catColor3" value="#9D8870" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0">
+                        <span id="catColorVal3" class="text-[10px] font-mono text-[#F4EFE6] mt-1">#9D8870</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Line Thickness & Wave Scale -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="text-xs font-semibold uppercase tracking-wider text-[#9D8870]">Line Width</label>
+                        <span id="strokeWeightVal" class="text-xs font-mono text-[#C85A32] font-bold">2.5px</span>
+                    </div>
+                    <input type="range" id="strokeWeight" min="1.5" max="4.5" step="0.5" value="2.5" class="w-full accent-[#C85A32] cursor-pointer">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="text-xs font-semibold uppercase tracking-wider text-[#9D8870]">Pattern Scale</label>
+                        <span id="scaleVal" class="text-xs font-mono text-[#C85A32] font-bold">36px</span>
+                    </div>
+                    <input type="range" id="waveScale" min="26" max="52" step="2" value="36" class="w-full accent-[#C85A32] cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-2 flex space-x-3">
+                <button onclick="downloadPatch()" class="flex-1 bg-[#C85A32] hover:bg-[#b04d2a] text-white py-2.5 rounded-xl font-semibold text-sm transition shadow-lg">Download PNG</button>
+                <button onclick="randomizePatch()" class="px-4 bg-[#1A2B3C] hover:bg-[#15222e] text-[#F4EFE6] py-2.5 rounded-xl font-semibold text-sm border border-[#75848F]/30 transition">Randomize</button>
+            </div>
+        </div>
+
+        <!-- Preview Canvas Area -->
+        <div class="md:col-span-7 flex flex-col items-center justify-center bg-[#15222e] p-8 rounded-2xl shadow-2xl border border-[#75848F]/25 relative min-h-[480px]">
+            
+            <!-- Embroidery Patch Preview Stage -->
+            <div id="patchWrapper" class="relative transition-all duration-300 p-8 rounded-2xl bg-[#1A2B3C]/50 preview-stage flex flex-col items-center justify-center">
+                
+                <!-- SVG Canvas for Interlocking Seigaiha Waves + Directional Satin Thread Overlay -->
+                <div id="svgContainer" class="relative">
+                    <svg id="patchSvg" width="320" height="310" viewBox="0 0 320 310" class="block">
+                        <defs>
+                            <!-- Dynamic Clip Paths for Patch Shapes -->
+                            <clipPath id="clip-square">
+                                <rect x="20" y="15" width="280" height="280" rx="34" ry="34" />
+                            </clipPath>
+                            <clipPath id="clip-cat">
+                                <path d="
+                                    M 160,64
+                                    C 143,64 130,68 122,74
+                                    C 118,77 114,76 111,73
+                                    C 101,62 85,46 73,37
+                                    C 67,33 61,36 59,44
+                                    C 53,66 49,95 51,115
+                                    C 52,123 48,131 44,140
+                                    C 35,161 35,192 43,215
+                                    C 56,254 98,278 160,278
+                                    C 222,278 264,254 277,215
+                                    C 285,192 285,161 276,140
+                                    C 272,131 268,123 269,115
+                                    C 271,95 267,66 261,44
+                                    C 259,36 253,33 247,37
+                                    C 235,46 219,62 209,73
+                                    C 206,76 202,77 198,74
+                                    C 190,68 177,64 160,64 Z" />
+                            </clipPath>
+                            <clipPath id="clip-circle">
+                                <circle cx="160" cy="155" r="140" />
+                            </clipPath>
+                            <clipPath id="clip-heart">
+                                <path d="M 160,275 C 160,275 288,195 288,115 C 288,75 256,42 218,42 C 186,42 160,70 160,70 C 160,70 134,42 102,42 C 64,42 32,75 32,115 C 32,195 160,275 160,275 Z" />
+                            </clipPath>
+
+                            <!-- Directional Satin Thread Fiber Pattern -->
+                            <pattern id="satinThreadPattern" width="12" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
+                                <line x1="1" y1="0" x2="1" y2="40" stroke="#FFFFFF" stroke-width="0.65" opacity="0.22" />
+                                <line x1="2.2" y1="0" x2="2.2" y2="40" stroke="#000000" stroke-width="0.7" opacity="0.28" />
+                                <line x1="3.5" y1="0" x2="3.5" y2="40" stroke="#FFFFFF" stroke-width="0.5" opacity="0.16" />
+                                <line x1="4.8" y1="0" x2="4.8" y2="40" stroke="#000000" stroke-width="0.65" opacity="0.25" />
+                                <line x1="6.2" y1="0" x2="6.2" y2="40" stroke="#FFFFFF" stroke-width="0.75" opacity="0.26" />
+                                <line x1="7.5" y1="0" x2="7.5" y2="40" stroke="#000000" stroke-width="0.6" opacity="0.24" />
+                                <line x1="9.0" y1="0" x2="9.0" y2="40" stroke="#FFFFFF" stroke-width="0.55" opacity="0.18" />
+                                <line x1="10.4" y1="0" x2="10.4" y2="40" stroke="#000000" stroke-width="0.75" opacity="0.30" />
+                                <line x1="0" y1="0" x2="12" y2="40" stroke="#FFFFFF" stroke-width="0.4" opacity="0.12" />
+                            </pattern>
+
+                            <!-- Glossy Silk Sheen Gradient Overlay -->
+                            <linearGradient id="silkSheenGradient" x1="0%" y1="0%" x2="100%" y2="35%">
+                                <stop offset="0%" stop-color="#000000" stop-opacity="0.22" />
+                                <stop offset="28%" stop-color="#FFFFFF" stop-opacity="0.18" />
+                                <stop offset="52%" stop-color="#000000" stop-opacity="0.12" />
+                                <stop offset="78%" stop-color="#FFFFFF" stop-opacity="0.22" />
+                                <stop offset="100%" stop-color="#000000" stop-opacity="0.25" />
+                            </linearGradient>
+
+                            <!-- Subtle 3D Stitch Relief & Drop Shadow Filter -->
+                            <filter id="stitchReliefFilter" x="-10%" y="-10%" width="120%" height="120%">
+                                <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.45" />
+                            </filter>
+                        </defs>
+
+                        <!-- Clipped Patch Body (Background + Vector Waves/Cats + Overlay Thread Texture) -->
+                        <g id="clippedGroup" clip-path="url(#clip-cat)" filter="url(#stitchReliefFilter)">
+                            <!-- Base Fabric Fill -->
+                            <rect id="svgBg" width="320" height="310" fill="#1A2B3C" />
+                            
+                            <!-- Vector Seigaiha Waves & Cat Silhouettes -->
+                            <g id="wavesGroup"></g>
+
+                            <!-- Directional Embroidery Thread Texture Overlay -->
+                            <g id="embroideryOverlayGroup" style="mix-blend-mode: overlay;" opacity="0.95">
+                                <rect width="320" height="310" fill="url(#satinThreadPattern)" />
+                                <rect width="320" height="310" fill="url(#silkSheenGradient)" />
+                            </g>
+                            <!-- Crisp Micro-Fiber Highlight Layer -->
+                            <rect id="embroideryHighlightLayer" width="320" height="310" fill="url(#satinThreadPattern)" opacity="0.38" pointer-events="none" />
+                        </g>
+                    </svg>
+                </div>
+
+            </div>
+
+            <p class="text-xs text-[#75848F] mt-6 text-center">Directional satin stitch fiber overlay mapped directly onto vector geometry.</p>
+        </div>
+
+    </div>
+
+    <script>
+        let currentShape = 'cat';
+        let catColorCount = 3;
+        let catColorMode = 'horizontal';
+
+        function setShape(shape) {
+            currentShape = shape;
+            document.querySelectorAll('.shape-btn').forEach(btn => {
+                btn.classList.remove('bg-[#C85A32]', 'text-white', 'border-[#C85A32]');
+                btn.classList.add('bg-[#1A2B3C]', 'border-[#75848F]/40');
+            });
+            const activeBtn = document.getElementById(`btn-shape-${shape}`);
+            activeBtn.classList.add('bg-[#C85A32]', 'text-white', 'border-[#C85A32]');
+            activeBtn.classList.remove('bg-[#1A2B3C]', 'border-[#75848F]/40');
+
+            const clippedGroup = document.getElementById('clippedGroup');
+            clippedGroup.setAttribute('clip-path', `url(#clip-${shape})`);
+        }
+
+        function toggleEmbroideryMode() {
+            const isChecked = document.getElementById('embroideryToggle').checked;
+            const overlayGroup = document.getElementById('embroideryOverlayGroup');
+            const highlightLayer = document.getElementById('embroideryHighlightLayer');
+            const clippedGroup = document.getElementById('clippedGroup');
+
+            if (isChecked) {
+                overlayGroup.style.display = 'block';
+                highlightLayer.style.display = 'block';
+                clippedGroup.setAttribute('filter', 'url(#stitchReliefFilter)');
+            } else {
+                overlayGroup.style.display = 'none';
+                highlightLayer.style.display = 'none';
+                clippedGroup.removeAttribute('filter');
+            }
+        }
+
+        function setCatColorCount(count) {
+            catColorCount = count;
+            document.querySelectorAll('.cat-count-btn').forEach(btn => {
+                btn.classList.remove('bg-[#C85A32]', 'text-white', 'font-bold');
+                btn.classList.add('bg-[#243748]', 'text-[#75848F]', 'border', 'border-[#75848F]/30');
+            });
+            const activeBtn = document.getElementById(`count-btn-${count}`);
+            activeBtn.classList.add('bg-[#C85A32]', 'text-white', 'font-bold');
+            activeBtn.classList.remove('bg-[#243748]', 'text-[#75848F]', 'border', 'border-[#75848F]/30');
+
+            document.getElementById('catColorBox2').style.opacity = count >= 2 ? '1' : '0.35';
+            document.getElementById('catColorBox2').style.pointerEvents = count >= 2 ? 'auto' : 'none';
+            document.getElementById('catColorBox3').style.opacity = count >= 3 ? '1' : '0.35';
+            document.getElementById('catColorBox3').style.pointerEvents = count >= 3 ? 'auto' : 'none';
+
+            generateSeigaihaWaves();
+        }
+
+        function setCatColorMode(mode) {
+            catColorMode = mode;
+            document.querySelectorAll('.cat-mode-btn').forEach(btn => {
+                btn.classList.remove('bg-[#C85A32]', 'text-white');
+                btn.classList.add('bg-[#243748]', 'text-[#75848F]', 'border', 'border-[#75848F]/30');
+            });
+            const activeBtn = document.getElementById(`mode-cat-${mode}`);
+            activeBtn.classList.add('bg-[#C85A32]', 'text-white');
+            activeBtn.classList.remove('bg-[#243748]', 'text-[#75848F]', 'border', 'border-[#75848F]/30');
+
+            generateSeigaihaWaves();
+        }
+
+        function getCatFillColor(activeCatColors, row, col) {
+            const count = activeCatColors.length;
+            if (count === 1) return activeCatColors[0];
+
+            if (catColorMode === 'vertical') {
+                const vIndex = ((col + 10) % count);
+                return activeCatColors[vIndex];
+            }
+
+            if (catColorMode === 'random') {
+                const rIndex = Math.floor(Math.random() * count);
+                return activeCatColors[rIndex];
+            }
+
+            // Default: horizontal stripes by row
+            const hIndex = ((Math.floor(row / 2) + 10) % count);
+            return activeCatColors[hIndex];
+        }
+
+        function generateSeigaihaWaves() {
+            const R = parseInt(document.getElementById('waveScale').value);
+            const bgColor = document.getElementById('bgColor').value;
+            const strokeColor = document.getElementById('lineColor').value;
+            const strokeWeight = parseFloat(document.getElementById('strokeWeight').value);
+            
+            const activeCatColors = [
+                document.getElementById('catColor1').value,
+                document.getElementById('catColor2').value,
+                document.getElementById('catColor3').value
+            ].slice(0, catColorCount);
+
+            const wavesGroup = document.getElementById('wavesGroup');
+            wavesGroup.innerHTML = '';
+
+            const rowHeight = R * 0.62;
+            const colWidth = R * 2;
+            const totalRows = Math.ceil(380 / rowHeight);
+            const totalCols = Math.ceil(380 / colWidth) + 2;
+
+            for (let row = -1; row < totalRows; row++) {
+                const isOddRow = (row % 2 !== 0);
+                const xOffset = isOddRow ? R : 0;
+                const centerY = row * rowHeight + 10;
+
+                for (let col = -1; col < totalCols; col++) {
+                    const centerX = col * colWidth + xOffset;
+
+                    const isCatTile = (row % 2 === 0) && (((col + Math.floor(row / 2)) % 2 + 2) % 2 === 0);
+
+                    if (isCatTile) {
+                        const catFill = getCatFillColor(activeCatColors, row, col);
+
+                        const catPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        const d = `
+                            M ${centerX - R * 0.98} ${centerY + R * 0.25}
+                            C ${centerX - R * 0.98} ${centerY - R * 0.15}, ${centerX - R * 0.85} ${centerY - R * 0.45}, ${centerX - R * 0.78} ${centerY - R * 0.72}
+                            L ${centerX - R * 0.72} ${centerY - R * 1.18}
+                            L ${centerX - R * 0.34} ${centerY - R * 0.92}
+                            C ${centerX - R * 0.12} ${centerY - R * 0.98}, ${centerX + R * 0.12} ${centerY - R * 0.98}, ${centerX + R * 0.34} ${centerY - R * 0.92}
+                            L ${centerX + R * 0.72} ${centerY - R * 1.18}
+                            L ${centerX + R * 0.78} ${centerY - R * 0.72}
+                            C ${centerX + R * 0.85} ${centerY - R * 0.45}, ${centerX + R * 0.98} ${centerY - R * 0.15}, ${centerX + R * 0.98} ${centerY + R * 0.25}
+                            Z
+                        `;
+                        catPath.setAttribute('d', d);
+                        catPath.setAttribute('fill', catFill);
+                        wavesGroup.appendChild(catPath);
+                    } else {
+                        const baseArch = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        baseArch.setAttribute('d', `M ${centerX - R} ${centerY + R * 0.25} L ${centerX - R} ${centerY} A ${R} ${R} 0 0 1 ${centerX + R} ${centerY} L ${centerX + R} ${centerY + R * 0.25} Z`);
+                        baseArch.setAttribute('fill', bgColor);
+                        wavesGroup.appendChild(baseArch);
+
+                        const ringRadii = [R * 0.92, R * 0.70, R * 0.48, R * 0.26];
+                        ringRadii.forEach(r => {
+                            const arc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                            arc.setAttribute('d', `M ${centerX - r} ${centerY} A ${r} ${r} 0 0 1 ${centerX + r} ${centerY}`);
+                            arc.setAttribute('fill', 'none');
+                            arc.setAttribute('stroke', strokeColor);
+                            arc.setAttribute('stroke-width', strokeWeight);
+                            arc.setAttribute('stroke-linecap', 'butt');
+                            wavesGroup.appendChild(arc);
+                        });
+                    }
+                }
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('bgColor').addEventListener('input', (e) => {
+            document.getElementById('svgBg').setAttribute('fill', e.target.value);
+            document.getElementById('bgColorVal').innerText = e.target.value.toUpperCase();
+            generateSeigaihaWaves();
+        });
+
+        document.getElementById('lineColor').addEventListener('input', (e) => {
+            document.getElementById('lineColorVal').innerText = e.target.value.toUpperCase();
+            generateSeigaihaWaves();
+        });
+
+        [1, 2, 3].forEach(num => {
+            document.getElementById(`catColor${num}`).addEventListener('input', (e) => {
+                document.getElementById(`catColorVal${num}`).innerText = e.target.value.toUpperCase();
+                generateSeigaihaWaves();
+            });
+        });
+
+        document.getElementById('strokeWeight').addEventListener('input', (e) => {
+            document.getElementById('strokeWeightVal').innerText = e.target.value + 'px';
+            generateSeigaihaWaves();
+        });
+
+        document.getElementById('waveScale').addEventListener('input', (e) => {
+            document.getElementById('scaleVal').innerText = e.target.value + 'px';
+            generateSeigaihaWaves();
+        });
+
+        function randomizePatch() {
+            const bgPalette = ['#1A2B3C', '#0F1C2E', '#243748', '#F4EFE6'];
+            const linePalette = ['#F4EFE6', '#75848F', '#1A2B3C', '#9D8870'];
+            const catPalette = ['#C85A32', '#BA3B2E', '#9D8870', '#E2A03F', '#75848F'];
+            const shapes = ['square', 'cat', 'circle', 'heart'];
+
+            const bg = bgPalette[Math.floor(Math.random() * bgPalette.length)];
+            let line = linePalette[Math.floor(Math.random() * linePalette.length)];
+            if (line === bg) line = bg === '#F4EFE6' ? '#1A2B3C' : '#F4EFE6';
+
+            const shuffledCats = [...catPalette].sort(() => 0.5 - Math.random());
+
+            document.getElementById('bgColor').value = bg;
+            document.getElementById('svgBg').setAttribute('fill', bg);
+            document.getElementById('bgColorVal').innerText = bg.toUpperCase();
+
+            document.getElementById('lineColor').value = line;
+            document.getElementById('lineColorVal').innerText = line.toUpperCase();
+
+            [1, 2, 3].forEach((num, idx) => {
+                document.getElementById(`catColor${num}`).value = shuffledCats[idx];
+                document.getElementById(`catColorVal${num}`).innerText = shuffledCats[idx].toUpperCase();
+            });
+
+            const randomScale = [32, 36, 40, 44][Math.floor(Math.random() * 4)];
+            document.getElementById('waveScale').value = randomScale;
+            document.getElementById('scaleVal').innerText = randomScale + 'px';
+
+            setShape(shapes[Math.floor(Math.random() * shapes.length)]);
+            generateSeigaihaWaves();
+        }
+
+        function downloadPatch() {
+            const svg = document.getElementById('patchSvg');
+            const serializer = new XMLSerializer();
+            const source = serializer.serializeToString(svg);
+            const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 960;
+                canvas.height = 930;
+                const ctx = canvas.getContext('2d');
+
+                ctx.drawImage(img, 0, 0, 960, 930);
+
+                const pngUrl = canvas.toDataURL('image/png');
+                const downloadLink = document.createElement('a');
+                downloadLink.href = pngUrl;
+                downloadLink.download = `kokoro-wear-patch-${currentShape}.png`;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        }
+
+        // Initialize
+        setShape('cat');
+        setCatColorCount(3);
+        setCatColorMode('horizontal');
+        toggleEmbroideryMode();
+    </script>
+</body>
+</html>
